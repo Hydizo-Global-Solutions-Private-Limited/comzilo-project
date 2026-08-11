@@ -52,7 +52,7 @@ export const runEnterpriseInventoryVerification = async () => {
     bin: 'Bin-12',
     locationCode: 'LOC-A1-R5-S2',
   });
-  console.log(`✅ Warehouse Location Created: ${loc.locationCode}`);
+  console.log(`✅ Warehouse Location Created: ${(loc as any).locationCode || loc.code}`);
 
   // 3. Verify Stock Calculation Engine & Transactional Movements
   console.log('\n[3/7] Verifying Stock Calculation Engine & Movements...');

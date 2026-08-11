@@ -33,11 +33,11 @@ export const runDebugSellersList = async () => {
           {
             id: users[0].id,
             email: users[0].email,
-            tenant: users[0].tenant ? { id: users[0].tenant.id, name: users[0].tenant.name } : null,
+            tenant: (users[0] as any).tenant ? { id: (users[0] as any).tenant.id, name: (users[0] as any).tenant.name } : null,
             profile: users[0].profile
               ? { id: users[0].profile.id, metadata: users[0].profile.metadata }
               : null,
-            userRoles: users[0].userRoles?.map((ur: any) => ({
+            userRoles: (users[0] as any).userRoles?.map((ur: any) => ({
               role: ur.role ? { id: ur.role.id, code: ur.role.code, name: ur.role.name } : null,
               store: ur.store ? { id: ur.store.id, name: ur.store.name } : null,
             })),

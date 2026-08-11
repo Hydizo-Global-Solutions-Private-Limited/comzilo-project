@@ -204,7 +204,7 @@ export const seed22Products = async () => {
         url: item.imageUrl,
         path: item.imageUrl,
         storageProvider: 's3',
-      });
+      } as any);
     }
 
     const existingPM = await ProductMedia.findOne({
