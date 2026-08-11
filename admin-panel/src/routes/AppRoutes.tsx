@@ -69,8 +69,6 @@ export const AppRoutes: React.FC = () => {
             <Route path="/finance/bank-accounts" element={<AdminSellerBankAccountsPage />} />
             <Route path="/withdrawals" element={<AdminWithdrawalsPage />} />
             <Route path="/finance/withdrawals" element={<AdminWithdrawalsPage />} />
-            <Route path="/payouts" element={<RazorpayPayoutsPage />} />
-            <Route path="/finance/payouts" element={<RazorpayPayoutsPage />} />
             <Route path="/finance" element={<FinancialDashboardPage />} />
             <Route path="/finance/dashboard" element={<FinancialDashboardPage />} />
             <Route path="/financial-dashboard" element={<FinancialDashboardPage />} />

@@ -209,15 +209,21 @@ export const CommissionSettingsPage: React.FC = () => {
             <Grid container spacing={2} sx={{ mb: 3 }}>
               <Grid item xs={6} sm={4}>
                 <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700 }}>Gross GMV</Typography>
-                <Typography variant="h6" sx={{ fontWeight: 800 }}>INR {reports?.summary?.grossGmv?.toLocaleString() || '0'}</Typography>
+                <Typography variant="h6" sx={{ fontWeight: 800 }}>
+                  ₹{(Number(reports?.summary?.grossGmv) || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </Typography>
               </Grid>
               <Grid item xs={6} sm={4}>
                 <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700 }}>Platform Revenue</Typography>
-                <Typography variant="h6" sx={{ fontWeight: 800, color: '#10B981' }}>INR {reports?.summary?.totalPlatformRevenue?.toLocaleString() || '0'}</Typography>
+                <Typography variant="h6" sx={{ fontWeight: 800, color: '#10B981' }}>
+                  ₹{(Number(reports?.summary?.totalPlatformRevenue) || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </Typography>
               </Grid>
               <Grid item xs={6} sm={4}>
                 <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700 }}>Net Seller Payouts</Typography>
-                <Typography variant="h6" sx={{ fontWeight: 800, color: '#2563EB' }}>INR {reports?.summary?.totalSellerPayouts?.toLocaleString() || '0'}</Typography>
+                <Typography variant="h6" sx={{ fontWeight: 800, color: '#2563EB' }}>
+                  ₹{(Number(reports?.summary?.totalSellerPayouts) || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </Typography>
               </Grid>
             </Grid>
           </Paper>

@@ -246,7 +246,7 @@ export const FinancialDashboardPage: React.FC = () => {
               TOTAL PLATFORM REVENUE
             </Typography>
             <Typography variant="h4" sx={{ fontWeight: 800, color: '#15803D', mt: 0.5 }}>
-              INR {overview?.platformRevenue?.toLocaleString() || '0.00'}
+              ₹{(Number(overview?.platformRevenue) || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </Typography>
             <Typography variant="caption" color="text.secondary">
               Commissions + Gateway + Subscriptions
@@ -260,7 +260,7 @@ export const FinancialDashboardPage: React.FC = () => {
               SUBSCRIPTION REVENUE
             </Typography>
             <Typography variant="h4" sx={{ fontWeight: 800, color: '#1D4ED8', mt: 0.5 }}>
-              INR {overview?.subscriptionRevenue?.toLocaleString() || '0.00'}
+              ₹{(Number(overview?.subscriptionRevenue) || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </Typography>
             <Typography variant="caption" color="text.secondary">
               Seller SaaS Plans Total
@@ -274,7 +274,7 @@ export const FinancialDashboardPage: React.FC = () => {
               MARKETPLACE GMV
             </Typography>
             <Typography variant="h4" sx={{ fontWeight: 800, color: '#6D28D9', mt: 0.5 }}>
-              INR {overview?.marketplaceRevenue?.toLocaleString() || '0.00'}
+              ₹{(Number(overview?.marketplaceRevenue) || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </Typography>
             <Typography variant="caption" color="text.secondary">
               Gross Merchandise Order Volume
@@ -288,7 +288,7 @@ export const FinancialDashboardPage: React.FC = () => {
               PENDING SETTLEMENTS
             </Typography>
             <Typography variant="h4" sx={{ fontWeight: 800, color: '#B45309', mt: 0.5 }}>
-              INR {overview?.pendingSettlements?.toLocaleString() || '0.00'}
+              ₹{(Number(overview?.pendingSettlements) || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </Typography>
             <Typography variant="caption" color="text.secondary">
               Unsettled Escrow Balances
@@ -302,7 +302,7 @@ export const FinancialDashboardPage: React.FC = () => {
               COMPLETED SETTLEMENTS
             </Typography>
             <Typography variant="h4" sx={{ fontWeight: 800, color: '#047857', mt: 0.5 }}>
-              INR {overview?.completedSettlements?.toLocaleString() || '0.00'}
+              ₹{(Number(overview?.completedSettlements) || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </Typography>
             <Typography variant="caption" color="text.secondary">
               Settled Bank Payouts
@@ -316,7 +316,7 @@ export const FinancialDashboardPage: React.FC = () => {
               REFUNDS ({overview?.refunds?.count || 0})
             </Typography>
             <Typography variant="h4" sx={{ fontWeight: 800, color: '#BE123C', mt: 0.5 }}>
-              INR {overview?.refunds?.amount?.toLocaleString() || '0.00'}
+              ₹{(Number(overview?.refunds?.amount) || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </Typography>
             <Typography variant="caption" color="text.secondary">
               Customer Order Refunds
@@ -330,7 +330,7 @@ export const FinancialDashboardPage: React.FC = () => {
               CHARGEBACKS ({overview?.chargebacks?.count || 0})
             </Typography>
             <Typography variant="h4" sx={{ fontWeight: 800, color: '#DC2626', mt: 0.5 }}>
-              INR {overview?.chargebacks?.amount?.toLocaleString() || '0.00'}
+              ₹{(Number(overview?.chargebacks?.amount) || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </Typography>
             <Typography variant="caption" color="text.secondary">
               Disputed Chargeback Claims
@@ -357,7 +357,7 @@ export const FinancialDashboardPage: React.FC = () => {
                       {pm.method} ({pm.count} orders)
                     </Typography>
                     <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#2563EB' }}>
-                      INR {Number(pm.amount).toFixed(2)}
+                      ₹{(Number(pm.amount) || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </Typography>
                   </Box>
                   <Box sx={{ width: '100%', bgcolor: '#E2E8F0', height: 8, borderRadius: 4, overflow: 'hidden' }}>
@@ -389,7 +389,7 @@ export const FinancialDashboardPage: React.FC = () => {
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
                     <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>{mt.month}</Typography>
                     <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#10B981' }}>
-                      INR {Number(mt.gmv).toFixed(2)}
+                      ₹{(Number(mt.gmv) || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </Typography>
                   </Box>
                   <Box sx={{ width: '100%', bgcolor: '#E2E8F0', height: 8, borderRadius: 4, overflow: 'hidden' }}>

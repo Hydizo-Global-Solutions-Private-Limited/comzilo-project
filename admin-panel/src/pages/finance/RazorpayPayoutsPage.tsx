@@ -110,6 +110,22 @@ export const RazorpayPayoutsPage: React.FC = () => {
   const processedCount = history.filter((h) => h.status === 'processed').length;
   const failedCount = history.filter((h) => h.status === 'failed' || h.status === 'reversed').length;
 
+  const queuedTotalAmount = queue
+    .filter((q) => q.status === 'queued')
+    .reduce((sum, q) => sum + Number(q.amount || 0), 0);
+
+  const processingTotalAmount = queue
+    .filter((q) => q.status === 'processing')
+    .reduce((sum, q) => sum + Number(q.amount || 0), 0);
+
+  const processedTotalAmount = history
+    .filter((h) => h.status === 'processed')
+    .reduce((sum, h) => sum + Number(h.amount || 0), 0);
+
+  const failedTotalAmount = history
+    .filter((h) => h.status === 'failed' || h.status === 'reversed')
+    .reduce((sum, h) => sum + Number(h.amount || 0), 0);
+
   if (loading) {
     return (
       <PageContainer title="Razorpay Payout Architecture" subtitle="Loading settlement queue & audit logs...">
@@ -175,10 +191,10 @@ export const RazorpayPayoutsPage: React.FC = () => {
               QUEUED PAYOUTS ({queuedCount})
             </Typography>
             <Typography variant="h4" sx={{ fontWeight: 800, color: '#F59E0B', mt: 0.5 }}>
-              {queuedCount} Item(s)
+              ₹{queuedTotalAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </Typography>
             <Typography variant="caption" color="text.secondary">
-              Awaiting Worker Dispatch
+              {queuedCount} Item(s) Awaiting Dispatch
             </Typography>
           </Paper>
         </Grid>
@@ -189,10 +205,10 @@ export const RazorpayPayoutsPage: React.FC = () => {
               PROCESSING PAYOUTS ({processingCount})
             </Typography>
             <Typography variant="h4" sx={{ fontWeight: 800, color: '#2563EB', mt: 0.5 }}>
-              {processingCount} Item(s)
+              ₹{processingTotalAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </Typography>
             <Typography variant="caption" color="text.secondary">
-              In API Transaction Flow
+              {processingCount} Item(s) in API Flow
             </Typography>
           </Paper>
         </Grid>
@@ -200,13 +216,13 @@ export const RazorpayPayoutsPage: React.FC = () => {
         <Grid item xs={12} sm={6} md={3}>
           <Paper sx={{ p: 3, borderRadius: 3, border: '1px solid #E2E8F0', boxShadow: 'none' }}>
             <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700 }}>
-              PROCESSED (PAID) ({processedCount})
+              TOTAL PAYMENTS PROCESSED ({processedCount})
             </Typography>
             <Typography variant="h4" sx={{ fontWeight: 800, color: '#10B981', mt: 0.5 }}>
-              {processedCount} Payout(s)
+              ₹{processedTotalAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </Typography>
             <Typography variant="caption" color="text.secondary">
-              Completed Settlement UTRs
+              {processedCount} Completed Settlement UTRs
             </Typography>
           </Paper>
         </Grid>
@@ -217,10 +233,10 @@ export const RazorpayPayoutsPage: React.FC = () => {
               FAILED / REVERSED ({failedCount})
             </Typography>
             <Typography variant="h4" sx={{ fontWeight: 800, color: '#EF4444', mt: 0.5 }}>
-              {failedCount} Payout(s)
+              ₹{failedTotalAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </Typography>
             <Typography variant="caption" color="text.secondary">
-              Retry Required / Auto-Refunded
+              {failedCount} Payout(s) Requiring Retry
             </Typography>
           </Paper>
         </Grid>
@@ -270,7 +286,7 @@ export const RazorpayPayoutsPage: React.FC = () => {
                         <Typography variant="caption" color="text.secondary">{q.account_number}</Typography>
                       </TableCell>
                       <TableCell align="right" sx={{ fontWeight: 800, color: '#2563EB' }}>
-                        INR {Number(q.amount).toFixed(2)}
+                        ₹{(Number(q.amount) || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </TableCell>
                       <TableCell><Chip label={q.mode || 'IMPS'} size="small" variant="outlined" /></TableCell>
                       <TableCell>
@@ -322,7 +338,7 @@ export const RazorpayPayoutsPage: React.FC = () => {
                       <TableCell sx={{ fontFamily: 'monospace', color: '#2563EB' }}>{h.razorpay_payout_id || '-'}</TableCell>
                       <TableCell sx={{ fontWeight: 700 }}>{h.seller_name || `Tenant #${h.tenant_id}`}</TableCell>
                       <TableCell align="right" sx={{ fontWeight: 800, color: '#10B981' }}>
-                        INR {Number(h.amount).toFixed(2)}
+                        ₹{(Number(h.amount) || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </TableCell>
                       <TableCell>
                         <Chip

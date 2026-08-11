@@ -173,7 +173,7 @@ export const AdminShippingProvidersPage: React.FC = () => {
           <Card sx={{ p: 2, border: '1px solid #E2E8F0', borderRadius: 3, boxShadow: 'none' }}>
             <Typography variant="caption" color="text.secondary">Total Platform Shipments</Typography>
             <Typography variant="h4" sx={{ fontWeight: 800, color: '#0F172A', mt: 0.5 }}>
-              {analytics?.totalShipments || 1420}
+              {analytics?.totalShipments ?? 0}
             </Typography>
           </Card>
         </Grid>
@@ -181,7 +181,7 @@ export const AdminShippingProvidersPage: React.FC = () => {
           <Card sx={{ p: 2, border: '1px solid #E2E8F0', borderRadius: 3, boxShadow: 'none' }}>
             <Typography variant="caption" color="text.secondary">Successful Deliveries</Typography>
             <Typography variant="h4" sx={{ fontWeight: 800, color: '#10B981', mt: 0.5 }}>
-              {analytics?.delivered || 1394} ({analytics?.deliverySuccessRate || '98.2%'})
+              {analytics?.delivered ?? 0} ({analytics?.deliverySuccessRate ?? '0.0%'})
             </Typography>
           </Card>
         </Grid>
@@ -189,7 +189,7 @@ export const AdminShippingProvidersPage: React.FC = () => {
           <Card sx={{ p: 2, border: '1px solid #E2E8F0', borderRadius: 3, boxShadow: 'none' }}>
             <Typography variant="caption" color="text.secondary">Average Delivery Time</Typography>
             <Typography variant="h4" sx={{ fontWeight: 800, color: '#0284C7', mt: 0.5 }}>
-              {analytics?.averageDeliveryTimeDays || '2.1 Days'}
+              {analytics?.averageDeliveryTimeDays || '0.0 Days'}
             </Typography>
           </Card>
         </Grid>
@@ -197,7 +197,7 @@ export const AdminShippingProvidersPage: React.FC = () => {
           <Card sx={{ p: 2, border: '1px solid #E2E8F0', borderRadius: 3, boxShadow: 'none' }}>
             <Typography variant="caption" color="text.secondary">Top Carrier</Typography>
             <Typography variant="h4" sx={{ fontWeight: 800, color: '#6366F1', mt: 0.5 }}>
-              {analytics?.mostUsedProvider || 'Shiprocket'}
+              {analytics?.mostUsedProvider || 'N/A'}
             </Typography>
           </Card>
         </Grid>

@@ -522,11 +522,20 @@ export const SubscriptionPlansPage: React.FC = () => {
                   {/* ACTION ROW */}
                   <Box sx={{ display: 'flex', gap: 1 }}>
                     <Button
-                      variant={isPopular ? 'contained' : 'outlined'}
+                      variant="contained"
+                      color="primary"
                       fullWidth
                       startIcon={<Edit3 size={18} />}
                       onClick={() => handleOpenEdit(plan)}
-                      sx={{ fontWeight: 700, py: 1.2, borderRadius: 2 }}
+                      sx={{
+                        fontWeight: 700,
+                        py: 1.2,
+                        borderRadius: 2,
+                        boxShadow: 'none',
+                        '&:hover': {
+                          boxShadow: '0 4px 12px rgba(37, 99, 235, 0.3)',
+                        },
+                      }}
                     >
                       Edit Plan Tier
                     </Button>

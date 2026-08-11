@@ -127,7 +127,7 @@ export const SettlementReportsPage: React.FC = () => {
               GROSS SETTLED GMV
             </Typography>
             <Typography variant="h4" sx={{ fontWeight: 800, color: '#0F172A', mt: 0.5 }}>
-              INR {reports?.grossSettledGmv?.toLocaleString() || '0.00'}
+              ₹{(Number(reports?.grossSettledGmv) || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </Typography>
             <Typography variant="caption" color="text.secondary">
               Total Settled Orders Value
@@ -141,7 +141,7 @@ export const SettlementReportsPage: React.FC = () => {
               TOTAL COMMISSION RETAINED
             </Typography>
             <Typography variant="h4" sx={{ fontWeight: 800, color: '#10B981', mt: 0.5 }}>
-              INR {reports?.totalCommission?.toLocaleString() || '0.00'}
+              ₹{(Number(reports?.totalCommission) || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </Typography>
             <Typography variant="caption" color="text.secondary">
               Platform Revenue Earnings
@@ -155,7 +155,7 @@ export const SettlementReportsPage: React.FC = () => {
               NET SELLER PAYOUTS
             </Typography>
             <Typography variant="h4" sx={{ fontWeight: 800, color: '#2563EB', mt: 0.5 }}>
-              INR {reports?.totalNetSellerPayouts?.toLocaleString() || '0.00'}
+              ₹{(Number(reports?.totalNetSellerPayouts) || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </Typography>
             <Typography variant="caption" color="text.secondary">
               Transferred to Sellers' Available Balance

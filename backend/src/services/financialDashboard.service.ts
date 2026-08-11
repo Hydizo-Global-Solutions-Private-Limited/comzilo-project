@@ -49,12 +49,16 @@ export class FinancialDashboardService {
     );
 
     // 4. Wallet & Settlement Balances
+    const [payoutResult]: any = await sequelize.query(
+      `SELECT SUM(COALESCE(amount, 0)) as completed_settlements FROM payout_history WHERE status = 'processed'`,
+      { type: QueryTypes.SELECT }
+    );
+
     const [walletResult]: any = await sequelize.query(
       `SELECT 
         SUM(COALESCE(total_balance, 0)) as total_wallet_balance,
         SUM(COALESCE(pending_balance, 0)) as pending_settlements,
-        SUM(COALESCE(available_balance, 0)) as available_settlements,
-        SUM(COALESCE(total_withdrawn, 0)) as completed_settlements
+        SUM(COALESCE(available_balance, 0)) as available_settlements
        FROM seller_wallets`,
       { type: QueryTypes.SELECT }
     );
@@ -74,8 +78,7 @@ export class FinancialDashboardService {
         'RAZORPAY' as method,
         COUNT(*) as count,
         SUM(COALESCE(total_amount, 0)) as amount
-       FROM orders ${dateFilter}
-       GROUP BY tenant_id`,
+       FROM orders ${dateFilter.includes('WHERE') ? dateFilter + ' AND deleted_at IS NULL AND order_number NOT LIKE \'ORD-17%\'' : 'WHERE deleted_at IS NULL AND order_number NOT LIKE \'ORD-17%\''}`,
       { replacements, type: QueryTypes.SELECT }
     );
 
@@ -86,6 +89,7 @@ export class FinancialDashboardService {
         SUM(COALESCE(total_amount, 0)) as gmv,
         SUM(COALESCE(total_amount * 0.10, 0)) as estimated_revenue
        FROM orders 
+       WHERE deleted_at IS NULL AND order_number NOT LIKE 'ORD-17%'
        GROUP BY DATE_FORMAT(created_at, '%Y-%m') 
        ORDER BY month ASC LIMIT 6`,
       { type: QueryTypes.SELECT }
@@ -97,18 +101,18 @@ export class FinancialDashboardService {
     const platformRevenue = commissionRev + gatewayRev + subscriptionRev;
 
     return {
-      platformRevenue,
-      subscriptionRevenue: subscriptionRev,
-      marketplaceRevenue: Number(gmvResult?.gmv || 0),
-      pendingSettlements: Number(walletResult?.pending_settlements || 0),
-      completedSettlements: Number(walletResult?.completed_settlements || 0),
+      platformRevenue: Number(platformRevenue.toFixed(2)),
+      subscriptionRevenue: Number(subscriptionRev.toFixed(2)),
+      marketplaceRevenue: Number(Number(gmvResult?.gmv || 0).toFixed(2)),
+      pendingSettlements: Number(Number(walletResult?.pending_settlements || 0).toFixed(2)),
+      completedSettlements: Number(Number(payoutResult?.completed_settlements || 0).toFixed(2)),
       refunds: {
         count: Number(gmvResult?.refund_count || 0),
-        amount: Number(gmvResult?.refund_volume || 0),
+        amount: Number(Number(gmvResult?.refund_volume || 0).toFixed(2)),
       },
       chargebacks: {
         count: Number(disputeResult?.chargeback_count || 0),
-        amount: Number(disputeResult?.chargeback_volume || 0),
+        amount: Number(Number(disputeResult?.chargeback_volume || 0).toFixed(2)),
       },
       paymentMethodBreakdown: paymentBreakdown || [],
       monthlyRevenueTrend: monthlyTrend || [],
