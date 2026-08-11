@@ -18,21 +18,21 @@ interface CartState {
   discountAmount: number;
 }
 
+import { getProductImage } from '../utils/productImageService';
+
 const loadInitialCart = (): CartItem[] => {
   try {
     const stored = localStorage.getItem('customer_cart');
     if (!stored) return [];
     const parsed = JSON.parse(stored);
     if (!Array.isArray(parsed)) return [];
-    // Sanitize any stale mock cart items or stale test products from previous testing sessions
+    // Sanitize and dynamically update item images from product data
     return parsed
       .filter((item: any) => item && item.id && item.sku !== 'PROD-0074' && item.name !== 'QA Verified Physical Product' && item.name !== 'HTTP Variable Product 7132')
-      .map((item: any) => {
-        if (item.image && typeof item.image === 'string' && item.image.includes('523275335684')) {
-          return { ...item, image: '' };
-        }
-        return item;
-      });
+      .map((item: any) => ({
+        ...item,
+        image: item.image && typeof item.image === 'string' && !item.image.includes('523275335684') ? item.image : getProductImage(item),
+      }));
   } catch {
     return [];
   }

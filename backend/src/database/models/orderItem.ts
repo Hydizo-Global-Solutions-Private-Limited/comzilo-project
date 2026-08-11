@@ -21,6 +21,7 @@ export interface OrderItemAttributes {
   tax: number;
   subtotal: number;
   total: number;
+  customization?: any;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -38,6 +39,7 @@ export type OrderItemCreationAttributes = Optional<
   | 'tax'
   | 'subtotal'
   | 'total'
+  | 'customization'
 >;
 
 export class OrderItem
@@ -63,6 +65,7 @@ export class OrderItem
   declare tax: number;
   declare subtotal: number;
   declare total: number;
+  declare customization: any;
 
   declare readonly createdAt: Date;
   declare readonly updatedAt: Date;
@@ -166,6 +169,10 @@ OrderItem.init(
       type: DataTypes.DECIMAL(15, 4),
       allowNull: false,
       defaultValue: 0.0,
+    },
+    customization: {
+      type: DataTypes.JSON,
+      allowNull: true,
     },
   },
   {

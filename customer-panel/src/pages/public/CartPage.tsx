@@ -10,9 +10,11 @@ import {
   TextField,
   Divider,
   MenuItem,
+  Chip,
 } from '@mui/material';
 import { Trash2, ArrowRight, ShoppingBag, Plus, Minus, Heart, ArrowLeft, Tag, X, Sparkles } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
+import { getProductImage } from '../../utils/productImageService';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { updateQuantity, removeFromCart, applyCoupon, removeCoupon } from '../../store/cartSlice';
 import { toggleWishlist } from '../../store/wishlistSlice';
@@ -147,9 +149,9 @@ export const CartPage: React.FC = () => {
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: { xs: 'wrap', sm: 'nowrap' } }}>
                   <Box
                     component="img"
-                    src={getProductImage(item)}
+                    src={item.image || (item as any).customization?.previewImage || getProductImage(item)}
                     alt={item.name}
-                    sx={{ width: 90, height: 90, objectFit: 'cover', borderRadius: 2, border: '1px solid #F1F5F9' }}
+                    sx={{ width: 90, height: 90, objectFit: 'contain', borderRadius: 2, border: '1px solid #E2E8F0', bgcolor: '#F8FAFC' }}
                   />
                   <Box sx={{ flexGrow: 1 }}>
                     <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#0F172A' }}>
@@ -158,9 +160,16 @@ export const CartPage: React.FC = () => {
                     <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
                       SKU: PROD-{String(item.id).padStart(4, '0')}
                     </Typography>
-                    <Typography variant="body2" color="primary" sx={{ fontWeight: 800, mt: 0.5 }}>
-                      {formatPrice(item.price)}
-                    </Typography>
+                    {(item as any).customization && (
+                      <Box sx={{ mt: 1, display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                        <Chip
+                          label="🎨 Custom Design Attached (Front, Back, Left, Right)"
+                          color="secondary"
+                          size="small"
+                          sx={{ fontWeight: 800, fontSize: '0.7rem' }}
+                        />
+                      </Box>
+                    )}
 
                     <Box sx={{ display: 'flex', gap: 1, mt: 1 }}>
                       <Button

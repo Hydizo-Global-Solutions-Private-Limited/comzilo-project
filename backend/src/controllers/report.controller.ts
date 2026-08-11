@@ -8,13 +8,13 @@ import { createActivityLog } from '../utils/activityHelper';
 export class ReportController {
   private reportService = new ReportService();
 
-  private getStoreId(req: Request): number {
+  private getStoreId(req: Request): number | null {
     const raw =
       req.headers['x-store-id'] || req.query.storeId || req.body.storeId || req.context?.storeId;
     if (raw && !isNaN(Number(raw))) {
       return Number(raw);
     }
-    return req.context?.storeId || 1;
+    return req.context?.storeId || null;
   }
 
   public getDashboard = async (req: Request, res: Response, next: NextFunction): Promise<void> => {

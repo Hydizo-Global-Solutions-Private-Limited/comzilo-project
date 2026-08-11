@@ -150,6 +150,7 @@ export class StoreOrderService {
               discount: itemDiscount,
               subtotal: itemSubtotal,
               total: itemSubtotal + itemTax - itemDiscount,
+              customization: item.customization || item.customDesign || null,
             } as any,
             { transaction }
           );

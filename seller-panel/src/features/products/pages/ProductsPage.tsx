@@ -52,6 +52,7 @@ import {
   Upload,
   Download,
   Filter,
+  Sparkles,
 } from 'lucide-react';
 import { PageContainer } from '../../../components/layout/PageContainer';
 import { DataTable } from '../../../components/data-display/DataTable';
@@ -65,6 +66,7 @@ import { usePermission } from '../../../hooks/usePermission';
 import { formatCurrency } from '../../../utils/formatters';
 import toast from 'react-hot-toast';
 import { axiosInstance } from '../../../api/axiosInstance';
+import { SellerPodStudioModal } from '../../../components/pod/SellerPodStudioModal';
 
 interface ProductTypeMaster {
   code: string;
@@ -145,6 +147,7 @@ export const ProductsPage: React.FC = () => {
   const [typeSelectionModalOpen, setTypeSelectionModalOpen] = useState(false);
   const [selectedType, setSelectedType] = useState<ProductTypeMaster | null>(null);
   const [formModalOpen, setFormModalOpen] = useState(false);
+  const [isSellerPodDesignerOpen, setIsSellerPodDesignerOpen] = useState(false);
   
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -518,7 +521,7 @@ export const ProductsPage: React.FC = () => {
     console.log('[CREATE PRODUCT PAYLOAD]:', JSON.stringify(payload, null, 2));
 
     try {
-      const res = await axiosInstance.post('/products', payload);
+      const res = await axiosInstance.post('/store/products', payload);
       const createdProd = res.data?.data;
 
       // Upload actual file blobs if any files were attached via drag & drop
@@ -531,7 +534,7 @@ export const ProductsPage: React.FC = () => {
             formData.append('isPrimary', String(imgItem.isPrimary));
             formData.append('displayOrder', String(i));
             try {
-              await axiosInstance.post(`/products/${createdProd.id}/images`, formData, {
+              await axiosInstance.post(`/store/products/${createdProd.id}/images`, formData, {
                 headers: { 'Content-Type': 'multipart/form-data' },
               });
             } catch {
@@ -1343,6 +1346,176 @@ export const ProductsPage: React.FC = () => {
               </>
             )}
 
+            {/* PRINT ON DEMAND (LUMISE 2D + PACKDORA 3D) SPECIFIC FIELDS */}
+            {selectedType?.code === 'print_on_demand' && (
+              <>
+                <Grid item xs={12}>
+                  <Divider sx={{ my: 1 }}>
+                    <Chip label="LUMISE 2D & PACKDORA 3D PRINT ON DEMAND CONFIGURATION" size="small" color="secondary" />
+                  </Divider>
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <FormControl fullWidth>
+                    <InputLabel>Mockup Product Category</InputLabel>
+                    <Select
+                      value={productForm.podMockupType || 'tshirt'}
+                      label="Mockup Product Category"
+                      onChange={(e) => setProductForm({ ...productForm, podMockupType: e.target.value })}
+                    >
+                      <MenuItem value="tshirt">T-Shirt & Apparel (Front & Back)</MenuItem>
+                      <MenuItem value="phone_guard">Phone Guard / Phone Case / Mobile Pouch (Back Cover)</MenuItem>
+                      <MenuItem value="hoodie">Hoodie & Sweatshirt (Front & Back)</MenuItem>
+                      <MenuItem value="mug">Coffee Mug & Drinkware (Wrap Print)</MenuItem>
+                      <MenuItem value="tote">Tote Bag & Canvas Bag (Front & Back)</MenuItem>
+                      <MenuItem value="mailer_box">Mailer Packaging Box (Packdora 3D 6-Sides)</MenuItem>
+                      <MenuItem value="product_box">Product Packaging Box (Packdora 3D 6-Sides)</MenuItem>
+                      <MenuItem value="pouch">Stand-Up Pouch Bag (Packdora 3D)</MenuItem>
+                      <MenuItem value="water_bottle">Stainless Water Bottle (Packdora 3D)</MenuItem>
+                    </Select>
+                  </FormControl>
+                </Grid>
+
+                <Grid item xs={12} sm={6}>
+                  <FormControl fullWidth>
+                    <InputLabel>Packdora 3D Model Viewer Preset</InputLabel>
+                    <Select
+                      value={productForm.pod3dModel || 'none'}
+                      label="Packdora 3D Model Viewer Preset"
+                      onChange={(e) => setProductForm({ ...productForm, pod3dModel: e.target.value })}
+                    >
+                      <MenuItem value="none">2D Flat Studio Only</MenuItem>
+                      <MenuItem value="3d_box">Packdora 3D Custom Product Box</MenuItem>
+                      <MenuItem value="3d_mailer">Packdora 3D Custom Mailer Box</MenuItem>
+                      <MenuItem value="3d_mug">Packdora 3D Ceramic Mug Viewer</MenuItem>
+                      <MenuItem value="3d_tshirt">Packdora 3D Apparel Mesh</MenuItem>
+                      <MenuItem value="3d_pouch">Packdora 3D Stand-Up Pouch Viewer</MenuItem>
+                    </Select>
+                  </FormControl>
+                </Grid>
+
+                <Grid item xs={12} sm={4}>
+                  <TextField
+                    label="Print Canvas Width (mm)"
+                    type="number"
+                    fullWidth
+                    value={productForm.podCanvasWidth || 300}
+                    onChange={(e) => setProductForm({ ...productForm, podCanvasWidth: Number(e.target.value) })}
+                  />
+                </Grid>
+
+                <Grid item xs={12} sm={4}>
+                  <TextField
+                    label="Print Canvas Height (mm)"
+                    type="number"
+                    fullWidth
+                    value={productForm.podCanvasHeight || 400}
+                    onChange={(e) => setProductForm({ ...productForm, podCanvasHeight: Number(e.target.value) })}
+                  />
+                </Grid>
+
+                <Grid item xs={12} sm={4}>
+                  <TextField
+                    label="Base Printing Fee (₹)"
+                    type="number"
+                    fullWidth
+                    value={productForm.podPrintFee || 50}
+                    onChange={(e) => setProductForm({ ...productForm, podPrintFee: Number(e.target.value) })}
+                  />
+                </Grid>
+
+                {/* MULTI-SIDE BASE MOCKUP OVERLAYS & PRE-BUILT DESIGN TEMPLATE PRESETS */}
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    label="Front Side Base Mockup Image URL"
+                    fullWidth
+                    placeholder="https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=800"
+                    value={productForm.podFrontMockupUrl || ''}
+                    onChange={(e) => setProductForm({ ...productForm, podFrontMockupUrl: e.target.value })}
+                  />
+                </Grid>
+
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    label="Back Side Base Mockup Image URL"
+                    fullWidth
+                    placeholder="https://images.unsplash.com/photo-1581655353564-df123a1eb820?w=800"
+                    value={productForm.podBackMockupUrl || ''}
+                    onChange={(e) => setProductForm({ ...productForm, podBackMockupUrl: e.target.value })}
+                  />
+                </Grid>
+
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    label="Left Side Base Mockup Image URL"
+                    fullWidth
+                    placeholder="https://images.unsplash.com/photo-1580910051074-3eb694886505?w=800"
+                    value={productForm.podLeftMockupUrl || ''}
+                    onChange={(e) => setProductForm({ ...productForm, podLeftMockupUrl: e.target.value })}
+                  />
+                </Grid>
+
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    label="Right Side Base Mockup Image URL"
+                    fullWidth
+                    placeholder="https://images.unsplash.com/photo-1580910051074-3eb694886505?w=800"
+                    value={productForm.podRightMockupUrl || ''}
+                    onChange={(e) => setProductForm({ ...productForm, podRightMockupUrl: e.target.value })}
+                  />
+                </Grid>
+
+                <Grid item xs={12}>
+                  <TextField
+                    label="Seller Pre-built Design Template (Starter Layers JSON)"
+                    multiline
+                    rows={2}
+                    fullWidth
+                    placeholder='{"layers": [{"type": "text", "text": "YOUR LOGO HERE", "x": 100, "y": 150}]}'
+                    value={productForm.podStarterTemplateJson || ''}
+                    onChange={(e) => setProductForm({ ...productForm, podStarterTemplateJson: e.target.value })}
+                  />
+                </Grid>
+
+                <Grid item xs={12}>
+                  <Button
+                    variant="contained"
+                    color="secondary"
+                    fullWidth
+                    size="large"
+                    startIcon={<Sparkles size={20} />}
+                    onClick={() => setIsSellerPodDesignerOpen(true)}
+                    sx={{
+                      py: 1.8,
+                      fontWeight: 800,
+                      borderRadius: 3,
+                      background: 'linear-gradient(135deg, #8B5CF6 0%, #6D28D9 100%)',
+                      boxShadow: '0 8px 24px rgba(139, 92, 246, 0.3)',
+                    }}
+                  >
+                    🎨 Launch Interactive Seller Template Designer (Place Logos, Text Fields & Editable Zones)
+                  </Button>
+                </Grid>
+
+                <Grid item xs={12}>
+                  <Paper sx={{ p: 2, bgcolor: '#F8FAFC', borderRadius: 2, border: '1px solid #E2E8F0' }}>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 800, mb: 1, color: '#0F172A' }}>
+                      Customer Studio Capabilities & Multi-Side Features Enabled:
+                    </Typography>
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5 }}>
+                      <Chip label="Front & Back Side Switching" color="primary" size="small" variant="filled" />
+                      <Chip label="Phone Guard / Case Pouch Back Customizer" color="secondary" size="small" variant="filled" />
+                      <Chip label="Customer Photo & Artwork Upload" color="success" size="small" variant="outlined" />
+                      <Chip label="120K+ Pixabay/Openclipart Stocks" color="success" size="small" variant="outlined" />
+                      <Chip label="Lumise Arc Text & Bending" color="primary" size="small" variant="outlined" />
+                      <Chip label="Photo Filters & Crop Masking" color="info" size="small" variant="outlined" />
+                      <Chip label="Packdora 3D Live WebGL Projection" color="secondary" size="small" variant="outlined" />
+                      <Chip label="Ready-to-Print PDF / SVG / PNG Render for Seller ERP" color="success" size="small" variant="outlined" />
+                    </Box>
+                  </Paper>
+                </Grid>
+              </>
+            )}
+
             {/* SEO & DESCRIPTION */}
             <Grid item xs={12}>
               <Divider sx={{ my: 1 }}><Chip label="SEO & DESCRIPTION" size="small" /></Divider>
@@ -1382,6 +1555,17 @@ export const ProductsPage: React.FC = () => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      <SellerPodStudioModal
+        isOpen={isSellerPodDesignerOpen}
+        onClose={() => setIsSellerPodDesignerOpen(false)}
+        productName={productForm.name}
+        mockupType={productForm.podMockupType || 'tshirt'}
+        initialTemplateJson={productForm.podStarterTemplateJson}
+        onSaveTemplate={(templateJson) => {
+          setProductForm({ ...productForm, podStarterTemplateJson: templateJson });
+        }}
+      />
 
       <ConfirmDialog
         open={confirmOpen}

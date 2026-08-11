@@ -43,6 +43,10 @@ import { ProductSeo } from './productSeo';
 import { ProductShipping } from './productShipping';
 import { ProductVirtual } from './productVirtual';
 import { ProductPodTemplate } from './productPodTemplate';
+import { PodDesignTemplate } from './podDesignTemplate';
+import { PodClipart } from './podClipart';
+import { PodSavedDesign } from './podSavedDesign';
+import { PodPackagingModel } from './podPackagingModel';
 import { ProductVersion } from './productVersion';
 import { CategorySeo } from './categorySeo';
 import { BrandSeo } from './brandSeo';
@@ -816,6 +820,10 @@ export {
   ProductShipping,
   ProductVirtual,
   ProductPodTemplate,
+  PodDesignTemplate,
+  PodClipart,
+  PodSavedDesign,
+  PodPackagingModel,
   ProductVersion,
   CategorySeo,
   BrandSeo,

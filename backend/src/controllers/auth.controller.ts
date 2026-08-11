@@ -34,7 +34,18 @@ export class AuthController {
 
       const result = await this.authService.login(tenantId, req.body, clientContext, req.context);
 
-      const avatarUrl = (result.user as any).avatarUrl || (result.user as any).profileImage || null;
+      let avatarUrl: string | null = (result.user as any).avatarUrl || (result.user as any).profileImage || null;
+      try {
+        const [cust]: any = await sequelize.query(
+          'SELECT id FROM customers WHERE user_id = :uId AND deleted_at IS NULL ORDER BY id DESC LIMIT 1',
+          { replacements: { uId: result.user.id }, type: QueryTypes.SELECT }
+        );
+        if (cust) {
+          avatarUrl = (cust as any).avatar_url || (cust as any).profile_image || avatarUrl;
+        }
+      } catch {
+        // Non-fatal if customer avatar columns are not in schema
+      }
 
       success(res, 'Login successful', {
         accessToken: result.accessToken,

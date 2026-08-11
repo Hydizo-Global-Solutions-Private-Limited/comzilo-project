@@ -22,14 +22,15 @@ export class StoreProductService {
   /**
    * Fetch paginated list of products isolated by tenant_id & store_id
    */
-  static async getProducts(tenantId: number, storeId: number, query: any) {
-    const page = parseInt(query.page || '0', 10);
+  static async getProducts(tenantId: number, storeId: number | null, query: any) {
+    const rawPage = parseInt(query.page || '1', 10);
     const limit = parseInt(query.limit || '10', 10);
+    const page = rawPage > 0 ? rawPage - 1 : 0;
     const offset = page * limit;
 
     const where: any = {
       tenantId,
-      storeId,
+      ...(storeId ? { storeId } : {}),
     };
 
     if (query.search) {
@@ -74,7 +75,7 @@ export class StoreProductService {
     const { rows, count } = await Product.findAndCountAll({
       where,
       include: [
-        { model: ProductType, as: 'productType' },
+        { model: ProductType, as: 'productTypeRecord' },
         { model: ProductPrice, as: 'prices' },
         { model: ProductSeo, as: 'seoRecord' },
         { model: ProductShipping, as: 'shippingRecord' },
@@ -104,7 +105,7 @@ export class StoreProductService {
     const product = await Product.findOne({
       where: { id, tenantId, storeId },
       include: [
-        { model: ProductType, as: 'productType' },
+        { model: ProductType, as: 'productTypeRecord' },
         { model: ProductPrice, as: 'prices' },
         { model: ProductSeo, as: 'seoRecord' },
         { model: ProductShipping, as: 'shippingRecord' },
@@ -156,24 +157,38 @@ export class StoreProductService {
         slug = `${slug}-${Date.now()}`;
       }
 
-      // 3. Resolve ProductType ID if code provided
+      // 3. Resolve ProductType record and code
+      const targetTypeCode = (payload.productType || payload.productTypeCode || payload.type || 'physical').toLowerCase();
       let productTypeId = payload.productTypeId;
-      if (!productTypeId && payload.productTypeCode) {
-        const typeRecord = await ProductType.findOne({
-          where: { code: payload.productTypeCode },
-          transaction,
-        });
-        if (typeRecord) {
-          productTypeId = typeRecord.id;
-        }
+
+      let typeRecord = await ProductType.findOne({
+        where: { code: targetTypeCode },
+        transaction,
+      });
+
+      if (!typeRecord && targetTypeCode) {
+        typeRecord = await ProductType.create(
+          {
+            code: targetTypeCode,
+            name: targetTypeCode.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase()),
+            description: `${targetTypeCode} product type`,
+            status: 'active',
+          },
+          { transaction }
+        );
       }
 
-      // 3. Create Core Product Record
+      if (typeRecord) {
+        productTypeId = typeRecord.id;
+      }
+
+      // 4. Create Core Product Record
       const product = await Product.create(
         {
           tenantId,
           storeId,
           productTypeId,
+          productType: targetTypeCode,
           name: payload.name,
           slug,
           sku: payload.sku || `SKU-${Date.now()}`,
@@ -327,8 +342,29 @@ export class StoreProductService {
           );
         }
       }
+      // 11. Create Product Images if provided in payload
+      const rawImages = payload.images || payload.media || (payload.image ? [{ imageUrl: payload.image, isPrimary: true }] : []);
+      if (Array.isArray(rawImages) && rawImages.length > 0) {
+        const { ProductImage } = require('../database/models');
+        for (let i = 0; i < rawImages.length; i++) {
+          const img = rawImages[i];
+          const imgUrl = typeof img === 'string' ? img : (img.imageUrl || img.url || img.image_url || img.preview || img.path);
+          if (imgUrl && typeof imgUrl === 'string' && !imgUrl.startsWith('blob:')) {
+            await ProductImage.create(
+              {
+                productId: product.id,
+                imageUrl: imgUrl,
+                thumbnailUrl: imgUrl,
+                displayOrder: i,
+                isPrimary: img.isPrimary !== undefined ? Boolean(img.isPrimary) : i === 0,
+              },
+              { transaction }
+            );
+          }
+        }
+      }
 
-      // 11. Initial Version History Entry
+      // 12. Initial Version History Entry
       await ProductVersion.create(
         {
           productId: product.id,
@@ -353,7 +389,9 @@ export class StoreProductService {
       logger.info(`[StoreProductService] Product created ID ${product.id} on store ${storeId}`);
       return await this.getProductById(tenantId, storeId, product.id);
     } catch (error: any) {
-      await transaction.rollback();
+      if (!(transaction as any).finished) {
+        try { await transaction.rollback(); } catch {}
+      }
       logger.error(`[StoreProductService] Create product error: ${error.message}`);
       throw error;
     }
@@ -418,7 +456,9 @@ export class StoreProductService {
 
       return await this.getProductById(tenantId, storeId, id);
     } catch (error: any) {
-      await transaction.rollback();
+      if (!(transaction as any).finished) {
+        try { await transaction.rollback(); } catch {}
+      }
       throw error;
     }
   }
@@ -426,13 +466,49 @@ export class StoreProductService {
   /**
    * Soft Delete Product
    */
-  static async deleteProduct(tenantId: number, storeId: number, userId: number, id: number) {
-    const product = await Product.findOne({ where: { id, tenantId, storeId } });
+  static async deleteProduct(tenantId: number, storeId: number | null, userId: number, id: number) {
+    const where: any = { id, tenantId };
+    if (storeId) {
+      where.storeId = storeId;
+    }
+    let product = await Product.findOne({ where, paranoid: false });
+    if (!product && storeId) {
+      product = await Product.findOne({ where: { id, tenantId }, paranoid: false });
+    }
     if (!product) {
       throw new Error('Product not found');
     }
 
-    await product.destroy();
+    const {
+      ProductImage,
+      ProductPrice,
+      ProductVariant,
+      ProductSeo,
+      ProductShipping,
+      ProductVirtual,
+      ProductPodTemplate,
+      ProductDownload,
+    } = require('../database/models');
+
+    const transaction = await sequelize.transaction();
+    try {
+      if (ProductImage) await ProductImage.destroy({ where: { productId: id }, transaction, force: true });
+      if (ProductPrice) await ProductPrice.destroy({ where: { productId: id }, transaction, force: true });
+      if (ProductVariant) await ProductVariant.destroy({ where: { productId: id }, transaction, force: true });
+      if (ProductSeo) await ProductSeo.destroy({ where: { productId: id }, transaction, force: true });
+      if (ProductShipping) await ProductShipping.destroy({ where: { productId: id }, transaction, force: true });
+      if (ProductVirtual) await ProductVirtual.destroy({ where: { productId: id }, transaction, force: true });
+      if (ProductPodTemplate) await ProductPodTemplate.destroy({ where: { productId: id }, transaction, force: true });
+      if (ProductDownload) await ProductDownload.destroy({ where: { productId: id }, transaction, force: true });
+
+      await product.destroy({ transaction, force: true });
+      await transaction.commit();
+    } catch (err) {
+      if (!(transaction as any).finished) {
+        try { await transaction.rollback(); } catch {}
+      }
+      throw err;
+    }
 
     await createAuditLog({
       tenantId,

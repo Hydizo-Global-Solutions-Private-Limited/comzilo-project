@@ -23,8 +23,8 @@ import {
   Chip,
   InputAdornment,
 } from '@mui/material';
-import { Search, ShoppingCart, Heart, Filter, PackageX, Globe } from 'lucide-react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Search, ShoppingCart, Heart, Filter, PackageX, Globe, Sparkles } from 'lucide-react';
+import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { useGetProductsQuery } from '../../api/catalogApi';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { addToCart } from '../../store/cartSlice';
@@ -110,7 +110,15 @@ export const ProductListingPage: React.FC = () => {
     }
   };
 
+  const navigate = useNavigate();
+
   const handleAddToCart = (prod: any) => {
+    const isPod = prod.productType === 'print_on_demand' || prod.productTypeRecord?.code === 'print_on_demand' || (prod.sku && String(prod.sku).startsWith('POD-'));
+    if (isPod) {
+      navigate(`/products/${prod.id}`);
+      toast.success('🎨 Customization Required: Opening Design Studio!');
+      return;
+    }
     dispatch(
       addToCart({
         id: prod.id,
@@ -301,6 +309,10 @@ export const ProductListingPage: React.FC = () => {
                           height="200"
                           image={getProductImage(prod)}
                           alt={prod.name}
+                          onError={(e: any) => {
+                            e.currentTarget.src = 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500';
+                          }}
+                          sx={{ objectFit: 'cover' }}
                         />
                         <Button
                           onClick={() => {
@@ -312,14 +324,25 @@ export const ProductListingPage: React.FC = () => {
                         >
                           <Heart size={18} color="#DC2626" fill={wishlisted ? '#DC2626' : 'none'} />
                         </Button>
-                      {prod.productType && (
-                        <Chip
-                          label={prod.productType.toUpperCase().replace(/_/g, ' ')}
-                          size="small"
-                          color="primary"
-                          sx={{ position: 'absolute', top: 8, left: 8, fontWeight: 800, fontSize: 10 }}
-                        />
-                      )}
+                      {(() => {
+                        const rawType = prod.product_type || prod.productType || (prod.pod_template_id ? 'print_on_demand' : 'physical');
+                        const isPod = rawType === 'print_on_demand' || Boolean(prod.pod_template_id);
+                        return (
+                          <Chip
+                            label={isPod ? 'PRINT ON DEMAND' : rawType.toUpperCase().replace(/_/g, ' ')}
+                            size="small"
+                            sx={{
+                              position: 'absolute',
+                              top: 8,
+                              left: 8,
+                              fontWeight: 800,
+                              fontSize: 10,
+                              bgcolor: isPod ? '#7C3AED' : '#2563EB',
+                              color: '#FFFFFF',
+                            }}
+                          />
+                        );
+                      })()}
                     </Box>
                     <CardContent sx={{ flexGrow: 1 }}>
                       <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
@@ -341,15 +364,25 @@ export const ProductListingPage: React.FC = () => {
                       </Typography>
                     </CardContent>
                     <CardActions sx={{ p: 2, pt: 0 }}>
-                      <Button
-                        variant="contained"
-                        fullWidth
-                        startIcon={<ShoppingCart size={16} />}
-                        onClick={() => handleAddToCart(prod)}
-                        sx={{ fontWeight: 700, borderRadius: 2 }}
-                      >
-                        Add to Cart
-                      </Button>
+                      {(() => {
+                        const isPod = prod.productType === 'print_on_demand' || prod.productTypeRecord?.code === 'print_on_demand' || (prod.sku && String(prod.sku).startsWith('POD-'));
+                        return (
+                          <Button
+                            variant="contained"
+                            fullWidth
+                            color={isPod ? 'secondary' : 'primary'}
+                            startIcon={isPod ? <Sparkles size={16} /> : <ShoppingCart size={16} />}
+                            onClick={() => handleAddToCart(prod)}
+                            sx={{
+                              fontWeight: 800,
+                              borderRadius: 2,
+                              background: isPod ? 'linear-gradient(135deg, #6366F1 0%, #4F46E5 100%)' : undefined,
+                            }}
+                          >
+                            {isPod ? '🎨 CUSTOMIZE & DESIGN' : 'Add to Cart'}
+                          </Button>
+                        );
+                      })()}
                     </CardActions>
                   </Card>
                 </Grid>

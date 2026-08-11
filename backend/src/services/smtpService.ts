@@ -152,6 +152,21 @@ export class SmtpService {
       };
     }
 
+    if (!config || !config.host || !config.username || !config.password) {
+      if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASSWORD) {
+        config = {
+          host: process.env.SMTP_HOST,
+          port: Number(process.env.SMTP_PORT || 587),
+          username: String(process.env.SMTP_USER).trim(),
+          password: String(process.env.SMTP_PASSWORD).replace(/\s+/g, ''),
+          encryption: Number(process.env.SMTP_PORT) === 465 ? 'ssl' : 'tls',
+          senderName: process.env.SMTP_FROM_NAME || 'Comzilo Store',
+          senderEmail: process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER,
+          providerType: 'smtp',
+        };
+      }
+    }
+
     if (config) {
       config.username = String(config.username || '').trim();
       config.password = String(config.password || '').replace(/\s+/g, '');

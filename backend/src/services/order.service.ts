@@ -185,19 +185,21 @@ export class OrderService extends BaseService {
 
           itemRecords.push({
             productId: item.productId,
-            productVariantId: variantIdVal,
+            productVariantId: variantIdVal || item.productVariantId || null,
             variantId: variantIdVal,
             variantSku: variantSkuVal,
             variantAttributes: item.variantAttributes || item.selectedAttributes || null,
             warehouseId: item.warehouseId || 1,
             sku: itemSku,
-            productName: product.name,
+            productName: item.productName || item.name || product.name,
+            customization: item.customization || item.customDesign || null,
             quantity: qty,
             unitPrice,
             discount: itemDiscount,
             tax: itemTax,
             subtotal: itemSubtotal,
             total: itemTotal,
+            customization: item.customization || item.customDesign || null,
           });
         }
       }
@@ -347,7 +349,12 @@ export class OrderService extends BaseService {
     const orderField = sortWhitelist.includes(sortBy) ? sortBy : 'createdAt';
     const orderDirection = sortOrder.toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
 
-    return this.orderRepo.findAndCountAllScoped(tenantId, storeId, {
+    where.tenantId = tenantId;
+    if (storeId && storeId !== 1) {
+      where.storeId = storeId;
+    }
+
+    return Order.findAndCountAll({
       where,
       limit: Number(limit),
       offset,

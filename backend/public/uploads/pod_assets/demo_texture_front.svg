@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" width="500" height="500">
+    <pattern id="grain" width="10" height="10" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#374151" opacity="0.15"/>
+      <circle cx="7" cy="7" r="1" fill="#374151" opacity="0.15"/>
+    </pattern>
+    <rect width="500" height="500" fill="url(#grain)"/>
+  </svg>

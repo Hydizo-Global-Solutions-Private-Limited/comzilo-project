@@ -24,7 +24,14 @@ async function seedSalesData() {
     const [products] = await sequelize.query(`
       SELECT id FROM products WHERE tenant_id = 1 LIMIT 5;
     `);
-    let productId = products?.[0]?.id || 1;
+    let productId = products?.[0]?.id;
+    if (!productId) {
+      const [resProd] = await sequelize.query(`
+        INSERT INTO products (tenant_id, store_id, name, slug, sku, price, status, created_at, updated_at)
+        VALUES (1, 1, 'Wireless Noise-Cancelling Headphones', 'wireless-headphones', 'SKU-HEADPHONES-01', 1499.00, 'active', NOW(), NOW());
+      `);
+      productId = resProd;
+    }
 
     // 3. Create Real Sales Orders
     console.log('[Seed Sales Data] Seeding Sales Orders...');

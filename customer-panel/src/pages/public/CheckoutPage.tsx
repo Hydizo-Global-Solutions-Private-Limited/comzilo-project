@@ -28,6 +28,7 @@ import {
   useVerifyRazorpayPaymentMutation,
 } from '../../api/customerPortalApi';
 import { formatPrice } from '../../utils/currencyService';
+import { getProductImage } from '../../utils/productImageService';
 import toast from 'react-hot-toast';
 
 declare global {
@@ -497,6 +498,11 @@ export const CheckoutPage: React.FC = () => {
                       variant="outlined"
                       sx={{ mt: 0.5, height: 20, fontSize: '0.68rem', fontWeight: 700 }}
                     />
+                  )}
+                  {(item as any).customization && (
+                    <Typography variant="caption" sx={{ display: 'block', color: '#6366F1', fontWeight: 800, mt: 0.25 }}>
+                      🎨 Custom Artwork (Front, Back, Left, Right)
+                    </Typography>
                   )}
                 </Box>
               ))}

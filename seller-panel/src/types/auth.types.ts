@@ -6,6 +6,7 @@ export interface User {
   firstName: string;
   lastName: string;
   status: 'active' | 'inactive' | 'suspended';
+  mustChangePassword?: boolean;
   roles?: string[];
   permissions?: string[];
 }

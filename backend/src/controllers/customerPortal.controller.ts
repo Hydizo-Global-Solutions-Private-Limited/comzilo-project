@@ -42,16 +42,9 @@ export class CustomerPortalController {
 
   private async getCustomerFromUser(tenantId: number, userId: number): Promise<Customer> {
     let customer = await Customer.findOne({
-      where: { userId },
+      where: { tenantId, userId },
       include: ['preference', 'addresses'],
     });
-
-    if (!customer) {
-      customer = await Customer.findOne({
-        where: { tenantId, userId },
-        include: ['preference', 'addresses'],
-      });
-    }
 
     if (!customer) {
       const user = await User.findByPk(userId);
@@ -78,6 +71,7 @@ export class CustomerPortalController {
     return customer;
   }
 
+<<<<<<< HEAD
   private async getAllCustomerIdsForUser(
     tenantId: number,
     userId: number,
@@ -85,8 +79,11 @@ export class CustomerPortalController {
   ): Promise<number[]> {
     const where: any[] = [{ userId }];
     if (email) where.push({ email });
+=======
+  private async getAllCustomerIdsForUser(tenantId: number, userId: number, email?: string): Promise<number[]> {
+>>>>>>> origin/print-on-demand
     const customers = await Customer.findAll({
-      where: { [Op.or]: where },
+      where: { tenantId, [Op.or]: [{ userId }, ...(email ? [{ email }] : [])] },
       attributes: ['id'],
     });
     const ids = customers.map((c) => c.id);
@@ -107,7 +104,15 @@ export class CustomerPortalController {
 
       const orders = await Order.findAll({
         where: {
+<<<<<<< HEAD
           [Op.or]: [{ customerId: { [Op.in]: custIds } }, { createdBy: userId }],
+=======
+          tenantId,
+          [Op.or]: [
+            { customerId: { [Op.in]: custIds } },
+            { createdBy: userId },
+          ],
+>>>>>>> origin/print-on-demand
         } as any,
         order: [['createdAt', 'DESC']],
         include: [
@@ -148,22 +153,25 @@ export class CustomerPortalController {
         `${firstName} ${lastName}`.trim() ||
         customer.fullName ||
         (userRecord ? `${userRecord.firstName} ${userRecord.lastName}` : 'Valued Customer');
-      const [cRow]: any = await sequelize.query(
-        'SELECT avatar_url, profile_image FROM customers WHERE id = :cId OR user_id = :uId ORDER BY id DESC LIMIT 1',
-        { replacements: { cId: customer.id, uId: userId }, type: QueryTypes.SELECT }
-      );
-      const [uRow]: any = await sequelize.query(
-        'SELECT avatar_url, profile_image FROM users WHERE id = :uId LIMIT 1',
-        { replacements: { uId: userId }, type: QueryTypes.SELECT }
-      );
-      const avatarUrl =
-        cRow?.avatar_url ||
-        cRow?.profile_image ||
-        uRow?.avatar_url ||
-        uRow?.profile_image ||
-        (customer as any).avatarUrl ||
-        (customer as any).profileImage ||
-        null;
+      let avatarUrl: string | null = (customer as any).avatarUrl || (customer as any).profileImage || null;
+      try {
+        const [cRow]: any = await sequelize.query(
+          'SELECT avatar_url, profile_image FROM customers WHERE id = :cId OR user_id = :uId ORDER BY id DESC LIMIT 1',
+          { replacements: { cId: customer.id, uId: userId }, type: QueryTypes.SELECT }
+        );
+        const [uRow]: any = await sequelize.query(
+          'SELECT avatar_url, profile_image FROM users WHERE id = :uId LIMIT 1',
+          { replacements: { uId: userId }, type: QueryTypes.SELECT }
+        );
+        avatarUrl =
+          cRow?.avatar_url ||
+          cRow?.profile_image ||
+          uRow?.avatar_url ||
+          uRow?.profile_image ||
+          avatarUrl;
+      } catch {
+        // Safe fallback
+      }
 
       success(res, 'Customer dashboard metrics retrieved successfully', {
         customer: {
@@ -204,23 +212,25 @@ export class CustomerPortalController {
       const customer: any = await this.getCustomerFromUser(tenantId, userId);
       const userRecord = await User.findByPk(userId);
 
-      const [cRow]: any = await sequelize.query(
-        'SELECT avatar_url, profile_image FROM customers WHERE id = :cId OR user_id = :uId ORDER BY id DESC LIMIT 1',
-        { replacements: { cId: customer.id, uId: userId }, type: QueryTypes.SELECT }
-      );
-      const [uRow]: any = await sequelize.query(
-        'SELECT avatar_url, profile_image FROM users WHERE id = :uId LIMIT 1',
-        { replacements: { uId: userId }, type: QueryTypes.SELECT }
-      );
-
-      const avatarUrl =
-        cRow?.avatar_url ||
-        cRow?.profile_image ||
-        uRow?.avatar_url ||
-        uRow?.profile_image ||
-        (customer as any).avatarUrl ||
-        (customer as any).profileImage ||
-        null;
+      let avatarUrl: string | null = (customer as any).avatarUrl || (customer as any).profileImage || null;
+      try {
+        const [cRow]: any = await sequelize.query(
+          'SELECT avatar_url, profile_image FROM customers WHERE id = :cId OR user_id = :uId ORDER BY id DESC LIMIT 1',
+          { replacements: { cId: customer.id, uId: userId }, type: QueryTypes.SELECT }
+        );
+        const [uRow]: any = await sequelize.query(
+          'SELECT avatar_url, profile_image FROM users WHERE id = :uId LIMIT 1',
+          { replacements: { uId: userId }, type: QueryTypes.SELECT }
+        );
+        avatarUrl =
+          cRow?.avatar_url ||
+          cRow?.profile_image ||
+          uRow?.avatar_url ||
+          uRow?.profile_image ||
+          avatarUrl;
+      } catch {
+        // Safe fallback
+      }
       const firstName =
         customer.firstName && customer.firstName !== 'Valued'
           ? customer.firstName
@@ -319,22 +329,26 @@ export class CustomerPortalController {
         }
       }
 
-      const [cRow]: any = await sequelize.query(
-        'SELECT avatar_url, profile_image FROM customers WHERE id = :cId OR user_id = :uId ORDER BY id DESC LIMIT 1',
-        { replacements: { cId: customer.id, uId: userId }, type: QueryTypes.SELECT }
-      );
-      const [uRow]: any = await sequelize.query(
-        'SELECT avatar_url, profile_image FROM users WHERE id = :uId LIMIT 1',
-        { replacements: { uId: userId }, type: QueryTypes.SELECT }
-      );
-
-      const avatarUrl =
-        imgUrl ||
-        cRow?.avatar_url ||
-        cRow?.profile_image ||
-        uRow?.avatar_url ||
-        uRow?.profile_image ||
-        null;
+      let avatarUrl: string | null = imgUrl || null;
+      try {
+        const [cRow]: any = await sequelize.query(
+          'SELECT avatar_url, profile_image FROM customers WHERE id = :cId OR user_id = :uId ORDER BY id DESC LIMIT 1',
+          { replacements: { cId: customer.id, uId: userId }, type: QueryTypes.SELECT }
+        );
+        const [uRow]: any = await sequelize.query(
+          'SELECT avatar_url, profile_image FROM users WHERE id = :uId LIMIT 1',
+          { replacements: { uId: userId }, type: QueryTypes.SELECT }
+        );
+        avatarUrl =
+          imgUrl ||
+          cRow?.avatar_url ||
+          cRow?.profile_image ||
+          uRow?.avatar_url ||
+          uRow?.profile_image ||
+          null;
+      } catch {
+        // Safe fallback
+      }
       const updatedCustomer: any = await this.getCustomerFromUser(tenantId, userId);
       const firstName =
         req.body.firstName || updatedCustomer.firstName || user?.firstName || 'abhay';
@@ -370,7 +384,9 @@ export class CustomerPortalController {
       const search = req.query.search ? String(req.query.search).trim() : '';
 
       const whereClause: any = {
+        tenantId,
         [Op.or]: [{ customerId: { [Op.in]: custIds } }, { createdBy: userId }],
+      };
       };
 
       if (search) {
@@ -982,6 +998,7 @@ export class CustomerPortalController {
             unitPrice,
             subtotal: lineSubtotal,
             total: lineSubtotal,
+            customization: cartItem.customization || cartItem.customDesign || null,
           });
         }
 
@@ -1252,13 +1269,18 @@ export class CustomerPortalController {
 
           orderItemsInput.push({
             productId: product.id,
+<<<<<<< HEAD
             variantId: variant ? variant.id : null,
             sku: variant ? variant.sku : product.sku,
+=======
+            sku: product.sku,
+>>>>>>> origin/print-on-demand
             productName: cartItem.name || product.name,
             quantity: qty,
             unitPrice,
             subtotal: lineSubtotal,
             total: lineSubtotal,
+            customization: cartItem.customization || cartItem.customDesign || null,
           });
         }
 

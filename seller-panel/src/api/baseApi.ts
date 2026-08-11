@@ -15,6 +15,9 @@ export const baseApi = createApi({
       if (token) {
         headers.set('authorization', `Bearer ${token}`);
       }
+      if (tenant?.id || (tenant as any)?.tenantId) {
+        headers.set('x-tenant-id', (tenant.id || (tenant as any).tenantId).toString());
+      }
       if (tenant?.uuid) {
         headers.set('x-tenant-uuid', tenant.uuid);
       }

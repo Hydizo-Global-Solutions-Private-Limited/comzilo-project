@@ -384,7 +384,12 @@ export class PaymentService extends BaseService {
     const orderField = sortWhitelist.includes(sortBy) ? sortBy : 'createdAt';
     const orderDirection = sortOrder.toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
 
-    return this.paymentRepo.findAndCountAllScoped(tenantId, storeId, {
+    where.tenantId = tenantId;
+    if (storeId && storeId !== 1) {
+      where.storeId = storeId;
+    }
+
+    return Payment.findAndCountAll({
       where,
       limit: Number(limit),
       offset,
@@ -781,7 +786,12 @@ export class PaymentService extends BaseService {
     const orderField = sortWhitelist.includes(sortBy) ? sortBy : 'createdAt';
     const orderDirection = sortOrder.toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
 
-    return this.refundRepo.findAndCountAllScoped(tenantId, storeId, {
+    where.tenantId = tenantId;
+    if (storeId && storeId !== 1) {
+      where.storeId = storeId;
+    }
+
+    return Refund.findAndCountAll({
       where,
       limit: Number(limit),
       offset,

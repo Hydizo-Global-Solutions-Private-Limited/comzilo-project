@@ -201,7 +201,12 @@ export class InvoiceService extends BaseService {
     const orderField = sortWhitelist.includes(sortBy) ? sortBy : 'createdAt';
     const orderDirection = sortOrder.toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
 
-    return this.invoiceRepo.findAndCountAllScoped(tenantId, storeId, {
+    where.tenantId = tenantId;
+    if (storeId && storeId !== 1) {
+      where.storeId = storeId;
+    }
+
+    return Invoice.findAndCountAll({
       where,
       limit: Number(limit),
       offset,

@@ -13,7 +13,7 @@ export class InvoiceController {
     if (storeId && !isNaN(storeId)) {
       return storeId;
     }
-    return 1;
+    return req.context?.storeId || 1;
   }
 
   public createInvoice = async (req: Request, res: Response, next: NextFunction): Promise<void> => {

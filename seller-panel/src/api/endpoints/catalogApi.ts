@@ -5,7 +5,7 @@ export const catalogApi = baseApi.injectEndpoints({
     // PRODUCTS
     getProducts: builder.query<any, { page?: number; limit?: number; search?: string; categoryId?: number; brandId?: number; collectionId?: number; status?: string; types?: string; productType?: string }>({
       query: (params) => ({
-        url: '/products',
+        url: '/store/products',
         params,
       }),
       providesTags: ['Product'],

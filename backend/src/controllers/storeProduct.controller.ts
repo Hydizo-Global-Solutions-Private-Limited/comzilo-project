@@ -11,7 +11,7 @@ export class StoreProductController {
   static async getProducts(req: Request, res: Response): Promise<void> {
     try {
       const tenantId = req.context?.tenantId || Number((req.user as any)?.tenantId);
-      const storeId = (req as any).storeId || Number((req.user as any)?.storeId) || 1;
+      const storeId = (req as any).storeId || Number((req.user as any)?.storeId) || null;
 
       if (!tenantId) {
         badRequest(res, 'Tenant context missing');
@@ -95,10 +95,16 @@ export class StoreProductController {
    */
   static async deleteProduct(req: Request, res: Response): Promise<void> {
     try {
-      const tenantId = req.context?.tenantId || Number((req.user as any)?.tenantId) || 1;
-      const storeId = (req as any).storeId || Number((req.user as any)?.storeId) || 1;
-      const userId = Number((req.user as any)?.id) || 1;
+      const tenantId = req.context?.tenantId || Number((req.user as any)?.tenantId);
+      const rawStore = req.headers['x-store-id'] || req.query.storeId || (req as any).storeId;
+      const storeId = rawStore ? Number(rawStore) : null;
+      const userId = req.context?.authenticatedUserId || Number((req.user as any)?.id) || 1;
       const id = parseInt(req.params.id, 10);
+
+      if (!tenantId) {
+        badRequest(res, 'Tenant context missing');
+        return;
+      }
 
       await StoreProductService.deleteProduct(tenantId, storeId, userId, id);
       success(res, 'Product deleted successfully', null);

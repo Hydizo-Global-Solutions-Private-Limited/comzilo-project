@@ -21,6 +21,7 @@ import { SellerBankAccountPage } from '../pages/finance/SellerBankAccountPage';
 import { CustomerPaymentCenterPage } from '../pages/customer/CustomerPaymentCenterPage';
 
 import { ProductsPage } from '../features/products/pages/ProductsPage';
+import { SellerPodTemplatesPage } from '../pages/store/SellerPodTemplatesPage';
 import { CatalogLayout } from '../features/catalog/components/CatalogLayout';
 import { CategoriesPage } from '../features/catalog/pages/CategoriesPage';
 import { BrandsPage } from '../features/catalog/pages/BrandsPage';
@@ -92,6 +93,7 @@ export const AppRoutes: React.FC = () => {
 
             {/* Catalog Routes */}
             <Route path="/products" element={<PermissionGuard permission="product.read"><ProductsPage /></PermissionGuard>} />
+            <Route path="/pod-templates" element={<SellerPodTemplatesPage />} />
             <Route path="/categories" element={<PermissionGuard permission="category.read"><CategoriesPage /></PermissionGuard>} />
             <Route path="/brands" element={<PermissionGuard permission="brand.read"><BrandsPage /></PermissionGuard>} />
             <Route path="/collections" element={<PermissionGuard permission="collection.read"><CollectionsPage /></PermissionGuard>} />

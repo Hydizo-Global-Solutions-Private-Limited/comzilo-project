@@ -1,6 +1,12 @@
 import React, { useState } from 'react';
+<<<<<<< HEAD
 import { Container, Grid, Box, Typography, Button, Rating, Chip, Paper, Divider, TextField, Alert } from '@mui/material';
 import { ShoppingCart, Heart, ShieldCheck, Truck, RotateCcw } from 'lucide-react';
+=======
+import { Container, Grid, Box, Typography, Button, Rating, Chip, Paper, Divider, TextField } from '@mui/material';
+import { ShoppingCart, Heart, ShieldCheck, Truck, RotateCcw, Sparkles } from 'lucide-react';
+import { PodStudioModal } from '../../components/pod/PodStudioModal';
+>>>>>>> origin/print-on-demand
 import { useParams, useNavigate } from 'react-router-dom';
 import { useGetProductByIdQuery, useGetProductReviewsQuery } from '../../api/catalogApi';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
@@ -27,6 +33,7 @@ export const ProductDetailPage: React.FC = () => {
   const product = data?.data || data;
   const isWishlisted = product ? wishlistItems.some((i: any) => String(i.id) === String(product.id)) : false;
 
+  const [isPodModalOpen, setIsPodModalOpen] = useState(false);
   const hasVariants = product?.variants && Array.isArray(product.variants) && product.variants.length > 0;
 
   // Live Price and Image updates based on Selected Variant vs Simple Product
@@ -41,6 +48,13 @@ export const ProductDetailPage: React.FC = () => {
 
   const handleAddToCart = () => {
     if (!product) return;
+
+    const isPod = product.productType === 'print_on_demand' || product.productTypeRecord?.code === 'print_on_demand';
+    if (isPod) {
+      setIsPodModalOpen(true);
+      toast.success('🎨 Please configure your Front, Back, Left, and Right side artwork in the Studio!');
+      return;
+    }
 
     if (hasVariants && !selectedVariant) {
       toast.error('Please select a valid variant combination before adding to cart');
@@ -94,6 +108,20 @@ export const ProductDetailPage: React.FC = () => {
     toast.success(`${quantity}x ${itemPayload.name} added to cart`);
   };
 
+  const handleAddToCartCustomized = (customizedItem: any) => {
+    dispatch(
+      addToCart({
+        id: customizedItem.productId,
+        name: customizedItem.name,
+        price: customizedItem.price,
+        image: customizedItem.image || customizedItem.customization?.previewImage || getProductImage(product),
+        quantity: 1,
+        customization: customizedItem.customization,
+      } as any)
+    );
+    toast.success('🎨 Custom design added to cart!');
+  };
+
   const handleBuyNow = () => {
     handleAddToCart();
     if (!hasVariants || selectedVariant) navigate('/cart');
@@ -115,6 +143,9 @@ export const ProductDetailPage: React.FC = () => {
               component="img"
               src={displayImage}
               alt={product?.name || 'Product'}
+              onError={(e: any) => {
+                e.currentTarget.src = 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500';
+              }}
               sx={{ width: '100%', height: 400, objectFit: 'cover', borderRadius: 3 }}
             />
           </Paper>
@@ -122,7 +153,17 @@ export const ProductDetailPage: React.FC = () => {
 
         {/* Product Specs & Purchase Options */}
         <Grid item xs={12} md={6}>
-          <Chip label={product?.category || 'Retail Product'} color="primary" size="small" sx={{ fontWeight: 700, mb: 1.5 }} />
+          {(() => {
+            const rawType = product?.product_type || product?.productType || (product?.pod_template_id ? 'print_on_demand' : 'physical');
+            const isPod = rawType === 'print_on_demand' || Boolean(product?.pod_template_id);
+            return (
+              <Chip
+                label={isPod ? 'PRINT ON DEMAND' : (product?.category || 'Retail Product').toUpperCase()}
+                size="small"
+                sx={{ fontWeight: 800, mb: 1.5, bgcolor: isPod ? '#7C3AED' : '#2563EB', color: '#FFFFFF' }}
+              />
+            );
+          })()}
           <Typography variant="h3" sx={{ fontWeight: 800, color: '#0F172A', mb: 1 }}>
             {product?.name}
           </Typography>
@@ -175,8 +216,8 @@ export const ProductDetailPage: React.FC = () => {
             )}
           </Typography>
 
-          {/* Quantity Selector & Add to Cart */}
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 4 }}>
+          {/* Quantity Selector & Action Buttons */}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2, flexWrap: 'wrap' }}>
             <TextField
               type="number"
               label="Qty"
@@ -212,9 +253,40 @@ export const ProductDetailPage: React.FC = () => {
               onClick={handleToggleWishlist}
               sx={{ p: 1.5, minWidth: 0, borderRadius: 2 }}
             >
-              <Heart size={20} fill={isWishlisted ? '#FFFFFF' : 'none'} />
+              <Heart size={20} fill={isWishlisted ? '#DC2626' : 'none'} />
             </Button>
           </Box>
+
+          {/* LUMISE & PACKDORA 3D CUSTOMIZE BUTTON */}
+          <Box sx={{ mb: 4 }}>
+            <Button
+              variant="contained"
+              fullWidth
+              size="large"
+              startIcon={<Sparkles size={20} />}
+              onClick={() => setIsPodModalOpen(true)}
+              sx={{
+                py: 2,
+                fontWeight: 800,
+                borderRadius: 3,
+                background: 'linear-gradient(135deg, #6366F1 0%, #4F46E5 100%)',
+                boxShadow: '0 8px 24px rgba(99, 102, 241, 0.3)',
+                '&:hover': {
+                  background: 'linear-gradient(135deg, #4F46E5 0%, #4338CA 100%)',
+                },
+              }}
+            >
+              Customize & Design (2D Studio + 3D Packaging)
+            </Button>
+          </Box>
+
+          {/* POD STUDIO MODAL */}
+          <PodStudioModal
+            isOpen={isPodModalOpen}
+            onClose={() => setIsPodModalOpen(false)}
+            product={product}
+            onAddToCartCustomized={handleAddToCartCustomized}
+          />
 
           <Paper sx={{ p: 2.5, bgcolor: '#F8FAFC', borderRadius: 3, display: 'flex', flexDirection: 'column', gap: 1.5 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>

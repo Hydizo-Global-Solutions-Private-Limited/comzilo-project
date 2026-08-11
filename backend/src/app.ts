@@ -57,6 +57,7 @@ app.use(compression());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cookieParser());
+app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 app.use('/uploads', express.static(path.join(process.cwd(), 'public', 'uploads')));
 
 // Request Context Initialization
@@ -113,6 +114,9 @@ app.use('/api/v1/catalog', catalogRoutes);
 
 import marketingRoutes from './routes/marketing.routes';
 app.use('/api/v1/marketing', marketingRoutes);
+
+import podStudioRoutes from './routes/podStudio.routes';
+app.use('/api/v1/pod', podStudioRoutes);
 
 // Mount Tenant & Store Routes
 import tenantRoutes from './routes/tenant.routes';
