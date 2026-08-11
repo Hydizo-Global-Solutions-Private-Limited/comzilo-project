@@ -5,5 +5,14 @@
     "rootDir": "./src"
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist", "tests/**/*", "src/database/helpers/**/*"]
+  "exclude": [
+    "node_modules",
+    "dist",
+    "dist/**/*",
+    "build",
+    "coverage",
+    "*.js",
+    "tests/**/*",
+    "src/database/helpers/**/*"
+  ]
 }

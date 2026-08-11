@@ -1,4 +1,4 @@
-const { sequelize } = require('../../../dist/config/database');
+const { sequelize } = require('../../config/database');
 
 async function seed() {
   const [products] = await sequelize.query('SELECT id, name FROM products LIMIT 50');
