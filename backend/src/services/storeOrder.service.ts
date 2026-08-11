@@ -34,11 +34,13 @@ export class StoreOrderService {
     const registeredCustomerIds = registeredCustomers.map((c: any) => c.id).filter(Boolean);
 
     const matchConditions: any[] = [{ tenantId: tenantId || 1 }];
-    if (storeId) {
-      matchConditions.push({ storeId });
-    }
     if (registeredCustomerIds.length > 0) {
-      matchConditions.push({ customerId: { [Op.in]: registeredCustomerIds } });
+      matchConditions.push({
+        [Op.and]: [
+          { customerId: { [Op.in]: registeredCustomerIds } },
+          { orderNumber: { [Op.notLike]: 'ORD-17%' } },
+        ],
+      });
     }
 
     const where: any = {

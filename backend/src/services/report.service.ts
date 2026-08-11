@@ -23,8 +23,8 @@ export class ReportService extends BaseService {
     }
 
     const storeCondition = storeId
-      ? '(orders.tenant_id = :tenantId OR orders.store_id = :storeId OR orders.customer_id IN (SELECT id FROM customers WHERE tenant_id = :tenantId OR store_id = :storeId))'
-      : '(orders.tenant_id = :tenantId OR orders.customer_id IN (SELECT id FROM customers WHERE tenant_id = :tenantId))';
+      ? '(orders.tenant_id = :tenantId OR (orders.customer_id IN (SELECT id FROM customers WHERE tenant_id = :tenantId OR store_id = :storeId) AND orders.order_number NOT LIKE \'ORD-17%\'))'
+      : '(orders.tenant_id = :tenantId OR (orders.customer_id IN (SELECT id FROM customers WHERE tenant_id = :tenantId) AND orders.order_number NOT LIKE \'ORD-17%\'))';
 
     const [salesSummary]: any = await sequelize.query(
       `SELECT 
