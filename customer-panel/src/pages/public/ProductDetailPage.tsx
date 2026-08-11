@@ -252,36 +252,40 @@ export const ProductDetailPage: React.FC = () => {
             </Button>
           </Box>
 
-          {/* LUMISE & PACKDORA 3D CUSTOMIZE BUTTON */}
-          <Box sx={{ mb: 4 }}>
-            <Button
-              variant="contained"
-              fullWidth
-              size="large"
-              startIcon={<Sparkles size={20} />}
-              onClick={() => setIsPodModalOpen(true)}
-              sx={{
-                py: 2,
-                fontWeight: 800,
-                borderRadius: 3,
-                background: 'linear-gradient(135deg, #6366F1 0%, #4F46E5 100%)',
-                boxShadow: '0 8px 24px rgba(99, 102, 241, 0.3)',
-                '&:hover': {
-                  background: 'linear-gradient(135deg, #4F46E5 0%, #4338CA 100%)',
-                },
-              }}
-            >
-              Customize & Design (2D Studio + 3D Packaging)
-            </Button>
-          </Box>
+          {/* LUMISE & PACKDORA 3D CUSTOMIZE BUTTON (ONLY FOR PRINT ON DEMAND PRODUCTS) */}
+          {Boolean(product && (product.productType === 'print_on_demand' || product.productType === 'pod' || product.productTypeRecord?.code === 'print_on_demand' || (product as any)?.podTemplate)) && (
+            <Box sx={{ mb: 4 }}>
+              <Button
+                variant="contained"
+                fullWidth
+                size="large"
+                startIcon={<Sparkles size={20} />}
+                onClick={() => setIsPodModalOpen(true)}
+                sx={{
+                  py: 2,
+                  fontWeight: 800,
+                  borderRadius: 3,
+                  background: 'linear-gradient(135deg, #6366F1 0%, #4F46E5 100%)',
+                  boxShadow: '0 8px 24px rgba(99, 102, 241, 0.3)',
+                  '&:hover': {
+                    background: 'linear-gradient(135deg, #4F46E5 0%, #4338CA 100%)',
+                  },
+                }}
+              >
+                Customize & Design (2D Studio + 3D Packaging)
+              </Button>
+            </Box>
+          )}
 
           {/* POD STUDIO MODAL */}
-          <PodStudioModal
-            isOpen={isPodModalOpen}
-            onClose={() => setIsPodModalOpen(false)}
-            product={product}
-            onAddToCartCustomized={handleAddToCartCustomized}
-          />
+          {Boolean(product && (product.productType === 'print_on_demand' || product.productType === 'pod' || product.productTypeRecord?.code === 'print_on_demand' || (product as any)?.podTemplate)) && (
+            <PodStudioModal
+              isOpen={isPodModalOpen}
+              onClose={() => setIsPodModalOpen(false)}
+              product={product}
+              onAddToCartCustomized={handleAddToCartCustomized}
+            />
+          )}
 
           <Paper sx={{ p: 2.5, bgcolor: '#F8FAFC', borderRadius: 3, display: 'flex', flexDirection: 'column', gap: 1.5 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
