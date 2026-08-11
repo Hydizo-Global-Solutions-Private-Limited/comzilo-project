@@ -103,7 +103,9 @@ export const runSellerLoginFlowVerify = async () => {
     const loginUser = sellerLoginRes.body.data.user;
     const loginTenant = sellerLoginRes.body.data.tenant;
     logger.info('✓ Seller Login SUCCESSFUL!');
-    logger.info(`✓ Authenticated User UUID: ${loginUser.uuid} | mustChangePassword: ${loginUser.mustChangePassword}`);
+    logger.info(
+      `✓ Authenticated User UUID: ${loginUser.uuid} | mustChangePassword: ${loginUser.mustChangePassword}`
+    );
     logger.info(`✓ Authenticated Tenant Slug: ${loginTenant.slug} | Name: ${loginTenant.name}`);
 
     logger.info('=== STEP 6: FORCE CHANGE PASSWORD ===');

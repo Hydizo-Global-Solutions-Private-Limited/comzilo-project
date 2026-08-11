@@ -23,7 +23,8 @@ export class NotificationService extends BaseService {
   }
 
   public async createNotification(tenantIdOrData: any, dataPayload?: any): Promise<Notification> {
-    const tenantId = typeof tenantIdOrData === 'number' ? tenantIdOrData : (tenantIdOrData?.tenantId || 1);
+    const tenantId =
+      typeof tenantIdOrData === 'number' ? tenantIdOrData : tenantIdOrData?.tenantId || 1;
     const data = typeof tenantIdOrData === 'number' ? dataPayload : tenantIdOrData;
     return this.sendNotification(tenantId, data?.storeId || 1, data || {});
   }
@@ -47,7 +48,8 @@ export class NotificationService extends BaseService {
     }
   ): Promise<Notification> {
     const { userId, channel, priority = 'normal', payload } = data;
-    const recipient = data.recipient || (userId ? `user-${userId}@comzilo.com` : 'system@comzilo.com');
+    const recipient =
+      data.recipient || (userId ? `user-${userId}@comzilo.com` : 'system@comzilo.com');
 
     // Check Preference if userId provided
     if (userId) {

@@ -40,7 +40,15 @@ export interface PayoutResponse {
   notes?: Record<string, any>;
   fees?: number;
   tax?: number;
-  status: 'queued' | 'pending' | 'processing' | 'processed' | 'cancelled' | 'rejected' | 'reversed' | 'failed';
+  status:
+    | 'queued'
+    | 'pending'
+    | 'processing'
+    | 'processed'
+    | 'cancelled'
+    | 'rejected'
+    | 'reversed'
+    | 'failed';
   utr?: string;
   mode: string;
   purpose: string;

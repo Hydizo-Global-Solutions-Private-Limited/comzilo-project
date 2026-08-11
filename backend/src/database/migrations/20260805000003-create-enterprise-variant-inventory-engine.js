@@ -38,10 +38,12 @@ module.exports = {
     }
 
     // Add unique index on (variant_id, warehouse_id) to prevent duplicate warehouse allocation
-    await queryInterface.addIndex('variant_inventories', ['variant_id', 'warehouse_id'], {
-      name: 'idx_var_wh_unique',
-      unique: true,
-    }).catch(() => {});
+    await queryInterface
+      .addIndex('variant_inventories', ['variant_id', 'warehouse_id'], {
+        name: 'idx_var_wh_unique',
+        unique: true,
+      })
+      .catch(() => {});
   },
 
   down: async (queryInterface, Sequelize) => {

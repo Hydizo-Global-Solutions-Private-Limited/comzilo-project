@@ -150,7 +150,9 @@ export class PayoutQueueService {
 
     // Auto-process queue immediately
     setImmediate(() => {
-      this.processQueue().catch((err) => console.error('[PayoutQueueWorker] Processing Error:', err));
+      this.processQueue().catch((err) =>
+        console.error('[PayoutQueueWorker] Processing Error:', err)
+      );
     });
 
     const [queuedItem]: any = await sequelize.query(
@@ -344,10 +346,9 @@ export class PayoutQueueService {
    */
   public async getPayoutLogs(): Promise<any[]> {
     await this.ensurePayoutTablesExist();
-    return await sequelize.query(
-      `SELECT * FROM payout_logs ORDER BY id DESC LIMIT 100`,
-      { type: QueryTypes.SELECT }
-    );
+    return await sequelize.query(`SELECT * FROM payout_logs ORDER BY id DESC LIMIT 100`, {
+      type: QueryTypes.SELECT,
+    });
   }
 
   /**
@@ -374,7 +375,9 @@ export class PayoutQueueService {
   public async handleWebhook(event: string, payload: any): Promise<any> {
     await this.ensurePayoutTablesExist();
 
-    const payoutEntity = payload?.contains?.includes('payout') ? payload?.payload?.payout?.entity : payload;
+    const payoutEntity = payload?.contains?.includes('payout')
+      ? payload?.payload?.payout?.entity
+      : payload;
     const rzpPayoutId = payoutEntity?.id;
     const status = payoutEntity?.status || 'processed';
     const utr = payoutEntity?.utr;

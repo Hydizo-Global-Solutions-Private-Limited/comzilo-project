@@ -5,7 +5,11 @@ import { success } from '../shared/responses';
 const variantService = new ProductVariantService();
 
 export class ProductVariantController {
-  public getVariantsByProduct = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public getVariantsByProduct = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const productId = Number(req.params.productId);
       const tenantId = (req as any).tenantId || null;
@@ -16,7 +20,11 @@ export class ProductVariantController {
     }
   };
 
-  public getVariantById = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public getVariantById = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const id = Number(req.params.id);
       const tenantId = (req as any).tenantId || null;

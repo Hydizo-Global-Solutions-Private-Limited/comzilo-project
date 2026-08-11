@@ -6,7 +6,11 @@ import { ValidationError } from '../shared/errors/AppError';
 export class SellerSubscriptionController {
   private readonly service = new SellerSubscriptionService();
 
-  public getCurrentSubscription = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public getCurrentSubscription = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const tenantId = req.context?.tenantId || 1;
       const data = await this.service.getCurrentSubscription(tenantId);
@@ -16,7 +20,11 @@ export class SellerSubscriptionController {
     }
   };
 
-  public createCheckoutSession = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public createCheckoutSession = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const tenantId = req.context?.tenantId || 1;
       const { planId, billingCycle } = req.body;
@@ -31,7 +39,11 @@ export class SellerSubscriptionController {
     }
   };
 
-  public verifyAndActivateSubscription = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public verifyAndActivateSubscription = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const tenantId = req.context?.tenantId || 1;
       const result = await this.service.verifyAndActivateSubscription(tenantId, req.body);
@@ -51,7 +63,11 @@ export class SellerSubscriptionController {
     }
   };
 
-  public getSaaSReports = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public getSaaSReports = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const reports = await this.service.getSaaSReports();
       success(res, 'SaaS subscription reports retrieved successfully', reports);

@@ -8,11 +8,56 @@ async function seed() {
   }
 
   const reviewTemplates = [
-    { rating: 5, title: 'Outstanding Quality & Fast Shipping!', comment: 'Extremely satisfied with this purchase. Premium quality material, matched description perfectly, and arrived sooner than expected. Highly recommended!', customerName: 'Aarav Sharma', customerEmail: 'aarav.sharma@example.com', verifiedPurchase: true, helpfulCount: 14 },
-    { rating: 5, title: 'Exceeded My Expectations!', comment: 'Top-notch build quality and flawless user experience. Comzilo store delivered it safely with pristine packaging. Will definitely buy again!', customerName: 'Priya Patel', customerEmail: 'priya.patel@example.com', verifiedPurchase: true, helpfulCount: 9 },
-    { rating: 4, title: 'Great Product, Highly Functional', comment: 'Very good product overall. Does everything advertised smoothly. Minor suggestion on packaging, but otherwise 10/10 experience.', customerName: 'Rohan Verma', customerEmail: 'rohan.v@example.com', verifiedPurchase: true, helpfulCount: 6 },
-    { rating: 5, title: 'Must-Have Item!', comment: 'Worth every rupee spent! Super easy to use, highly durable, and elegant design. Friends have already asked where I got it.', customerName: 'Ananya Reddy', customerEmail: 'ananya.reddy@example.com', verifiedPurchase: true, helpfulCount: 11 },
-    { rating: 4, title: 'Solid Purchase', comment: 'Great value for money. Delivery was fast and customer service answered my questions promptly.', customerName: 'Vikram Singh', customerEmail: 'vikram.singh@example.com', verifiedPurchase: true, helpfulCount: 4 }
+    {
+      rating: 5,
+      title: 'Outstanding Quality & Fast Shipping!',
+      comment:
+        'Extremely satisfied with this purchase. Premium quality material, matched description perfectly, and arrived sooner than expected. Highly recommended!',
+      customerName: 'Aarav Sharma',
+      customerEmail: 'aarav.sharma@example.com',
+      verifiedPurchase: true,
+      helpfulCount: 14,
+    },
+    {
+      rating: 5,
+      title: 'Exceeded My Expectations!',
+      comment:
+        'Top-notch build quality and flawless user experience. Comzilo store delivered it safely with pristine packaging. Will definitely buy again!',
+      customerName: 'Priya Patel',
+      customerEmail: 'priya.patel@example.com',
+      verifiedPurchase: true,
+      helpfulCount: 9,
+    },
+    {
+      rating: 4,
+      title: 'Great Product, Highly Functional',
+      comment:
+        'Very good product overall. Does everything advertised smoothly. Minor suggestion on packaging, but otherwise 10/10 experience.',
+      customerName: 'Rohan Verma',
+      customerEmail: 'rohan.v@example.com',
+      verifiedPurchase: true,
+      helpfulCount: 6,
+    },
+    {
+      rating: 5,
+      title: 'Must-Have Item!',
+      comment:
+        'Worth every rupee spent! Super easy to use, highly durable, and elegant design. Friends have already asked where I got it.',
+      customerName: 'Ananya Reddy',
+      customerEmail: 'ananya.reddy@example.com',
+      verifiedPurchase: true,
+      helpfulCount: 11,
+    },
+    {
+      rating: 4,
+      title: 'Solid Purchase',
+      comment:
+        'Great value for money. Delivery was fast and customer service answered my questions promptly.',
+      customerName: 'Vikram Singh',
+      customerEmail: 'vikram.singh@example.com',
+      verifiedPurchase: true,
+      helpfulCount: 4,
+    },
   ];
 
   let count = 0;
@@ -39,7 +84,14 @@ async function seed() {
     }
   }
 
-  console.log(`✅ Successfully seeded ${count} customer reviews across ${products.length} products!`);
+  console.log(
+    `✅ Successfully seeded ${count} customer reviews across ${products.length} products!`
+  );
 }
 
-seed().then(() => process.exit(0)).catch(e => { console.error(e); process.exit(1); });
+seed()
+  .then(() => process.exit(0))
+  .catch((e) => {
+    console.error(e);
+    process.exit(1);
+  });

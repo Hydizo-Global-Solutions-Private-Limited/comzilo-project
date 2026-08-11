@@ -9,7 +9,8 @@ export class ReportController {
   private reportService = new ReportService();
 
   private getStoreId(req: Request): number {
-    const raw = req.headers['x-store-id'] || req.query.storeId || req.body.storeId || req.context?.storeId;
+    const raw =
+      req.headers['x-store-id'] || req.query.storeId || req.body.storeId || req.context?.storeId;
     if (raw && !isNaN(Number(raw))) {
       return Number(raw);
     }
@@ -286,7 +287,11 @@ export class ReportController {
     }
   };
 
-  public getMarketingReport = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public getMarketingReport = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const tenantId = req.context!.tenantId!;
       const storeId = this.getStoreId(req);
@@ -297,7 +302,11 @@ export class ReportController {
     }
   };
 
-  public scheduleReport = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public scheduleReport = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const tenantId = req.context!.tenantId!;
       const storeId = this.getStoreId(req);

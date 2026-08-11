@@ -5,14 +5,8 @@ export class MetaWhatsAppCloudProvider implements IWhatsAppProvider {
   private accessToken: string;
 
   constructor(config?: any) {
-    this.phoneNumberId =
-      config?.phoneNumberId ||
-      process.env.WHATSAPP_PHONE_NUMBER_ID ||
-      '';
-    this.accessToken =
-      config?.accessToken ||
-      process.env.WHATSAPP_ACCESS_TOKEN ||
-      '';
+    this.phoneNumberId = config?.phoneNumberId || process.env.WHATSAPP_PHONE_NUMBER_ID || '';
+    this.accessToken = config?.accessToken || process.env.WHATSAPP_ACCESS_TOKEN || '';
   }
 
   public async testConnection(config?: any): Promise<boolean> {
@@ -32,25 +26,32 @@ export class MetaWhatsAppCloudProvider implements IWhatsAppProvider {
     return true;
   }
 
-  public async sendTextMessage(to: string, message: string, _options?: any): Promise<WhatsAppMessageResponse> {
+  public async sendTextMessage(
+    to: string,
+    message: string,
+    _options?: any
+  ): Promise<WhatsAppMessageResponse> {
     const formattedPhone = to.replace(/[^0-9]/g, '');
 
     if (this.accessToken && !this.accessToken.includes('mock')) {
       try {
-        const response = await fetch(`https://graph.facebook.com/v18.0/${this.phoneNumberId}/messages`, {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${this.accessToken}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            messaging_product: 'whatsapp',
-            recipient_type: 'individual',
-            to: formattedPhone,
-            type: 'text',
-            text: { preview_url: false, body: message },
-          }),
-        });
+        const response = await fetch(
+          `https://graph.facebook.com/v18.0/${this.phoneNumberId}/messages`,
+          {
+            method: 'POST',
+            headers: {
+              Authorization: `Bearer ${this.accessToken}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              messaging_product: 'whatsapp',
+              recipient_type: 'individual',
+              to: formattedPhone,
+              type: 'text',
+              text: { preview_url: false, body: message },
+            }),
+          }
+        );
 
         const resData = (await response.json()) as any;
         if (response.ok && resData?.messages?.length > 0) {
@@ -83,7 +84,11 @@ export class MetaWhatsAppCloudProvider implements IWhatsAppProvider {
     parameters: Record<string, any>,
     options?: any
   ): Promise<WhatsAppMessageResponse> {
-    const tplText = `[${templateName}] ` + Object.entries(parameters).map(([k, v]) => `${k}: ${v}`).join(', ');
+    const tplText =
+      `[${templateName}] ` +
+      Object.entries(parameters)
+        .map(([k, v]) => `${k}: ${v}`)
+        .join(', ');
     return this.sendTextMessage(to, tplText, options);
   }
 }

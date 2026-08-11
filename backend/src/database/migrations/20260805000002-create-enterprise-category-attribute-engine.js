@@ -26,10 +26,12 @@ module.exports = {
     }
 
     // Add unique index on attribute_groups(tenant_id, code)
-    await queryInterface.addIndex('attribute_groups', ['tenant_id', 'code'], {
-      name: 'idx_ag_tenant_code_unique',
-      unique: true,
-    }).catch(() => {});
+    await queryInterface
+      .addIndex('attribute_groups', ['tenant_id', 'code'], {
+        name: 'idx_ag_tenant_code_unique',
+        unique: true,
+      })
+      .catch(() => {});
 
     // 2. Update category_attributes table
     const caDesc = await queryInterface.describeTable('category_attributes').catch(() => null);
@@ -115,9 +117,11 @@ module.exports = {
     }
 
     // Add unique index on category_attributes(tenant_id, category_id, code)
-    await queryInterface.addIndex('category_attributes', ['tenant_id', 'category_id', 'attribute_name'], {
-      name: 'idx_ca_tenant_cat_attr_unique',
-    }).catch(() => {});
+    await queryInterface
+      .addIndex('category_attributes', ['tenant_id', 'category_id', 'attribute_name'], {
+        name: 'idx_ca_tenant_cat_attr_unique',
+      })
+      .catch(() => {});
 
     // 3. Update attribute_values table
     const avDesc = await queryInterface.describeTable('attribute_values').catch(() => null);
@@ -137,15 +141,23 @@ module.exports = {
     }
 
     // Add unique index on attribute_values(attribute_group_id, value)
-    await queryInterface.addIndex('attribute_values', ['attribute_group_id', 'value'], {
-      name: 'idx_av_group_value_unique',
-      unique: true,
-    }).catch(() => {});
+    await queryInterface
+      .addIndex('attribute_values', ['attribute_group_id', 'value'], {
+        name: 'idx_av_group_value_unique',
+        unique: true,
+      })
+      .catch(() => {});
   },
 
   down: async (queryInterface, Sequelize) => {
-    await queryInterface.removeIndex('attribute_values', 'idx_av_group_value_unique').catch(() => {});
-    await queryInterface.removeIndex('category_attributes', 'idx_ca_tenant_cat_attr_unique').catch(() => {});
-    await queryInterface.removeIndex('attribute_groups', 'idx_ag_tenant_code_unique').catch(() => {});
+    await queryInterface
+      .removeIndex('attribute_values', 'idx_av_group_value_unique')
+      .catch(() => {});
+    await queryInterface
+      .removeIndex('category_attributes', 'idx_ca_tenant_cat_attr_unique')
+      .catch(() => {});
+    await queryInterface
+      .removeIndex('attribute_groups', 'idx_ag_tenant_code_unique')
+      .catch(() => {});
   },
 };

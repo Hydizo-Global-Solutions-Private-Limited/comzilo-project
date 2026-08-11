@@ -9,7 +9,16 @@ import { PaymentService } from '../services/payment.service';
 import { NotificationService } from '../services/notification.service';
 import { CommissionEngineService } from '../services/commissionEngine.service';
 import { AuthService } from '../services/auth.service';
-import { Customer, CustomerAddress, Product, User, Order, OrderItem, Invoice, Payment } from '../database/models';
+import {
+  Customer,
+  CustomerAddress,
+  Product,
+  User,
+  Order,
+  OrderItem,
+  Invoice,
+  Payment,
+} from '../database/models';
 import { v4 as uuidv4 } from 'uuid';
 import { RazorpayPaymentProvider } from '../services/payment/razorpay.provider';
 import { MarketplaceCheckoutService } from '../services/marketplaceCheckout.service';
@@ -69,7 +78,11 @@ export class CustomerPortalController {
     return customer;
   }
 
-  private async getAllCustomerIdsForUser(tenantId: number, userId: number, email?: string): Promise<number[]> {
+  private async getAllCustomerIdsForUser(
+    tenantId: number,
+    userId: number,
+    email?: string
+  ): Promise<number[]> {
     const where: any[] = [{ userId }];
     if (email) where.push({ email });
     const customers = await Customer.findAll({
@@ -94,10 +107,7 @@ export class CustomerPortalController {
 
       const orders = await Order.findAll({
         where: {
-          [Op.or]: [
-            { customerId: { [Op.in]: custIds } },
-            { createdBy: userId },
-          ],
+          [Op.or]: [{ customerId: { [Op.in]: custIds } }, { createdBy: userId }],
         } as any,
         order: [['createdAt', 'DESC']],
         include: [
@@ -107,19 +117,37 @@ export class CustomerPortalController {
       });
 
       const recentOrders = orders.slice(0, 5);
-      const pendingOrders = orders.filter((o: any) => o.status === 'pending' || o.status === 'processing' || o.status === 'unconfirmed').length;
+      const pendingOrders = orders.filter(
+        (o: any) =>
+          o.status === 'pending' || o.status === 'processing' || o.status === 'unconfirmed'
+      ).length;
       const cancelledOrders = orders.filter((o: any) => o.status === 'cancelled').length;
-      const completedOrders = orders.filter((o: any) => o.status === 'completed' || o.status === 'delivered').length;
+      const completedOrders = orders.filter(
+        (o: any) => o.status === 'completed' || o.status === 'delivered'
+      ).length;
 
       // Saved Addresses Count
       const addresses = await this.addressService.listAddresses(tenantId, storeId, customer.id);
 
       // Notifications
-      const notificationResult = await this.notificationService.listInAppNotifications(tenantId, userId, { limit: 5 });
+      const notificationResult = await this.notificationService.listInAppNotifications(
+        tenantId,
+        userId,
+        { limit: 5 }
+      );
 
-      const firstName = customer.firstName && customer.firstName !== 'Valued' ? customer.firstName : (userRecord?.firstName || customer.fullName?.split(' ')?.[0] || 'Valued');
-      const lastName = customer.lastName && customer.lastName !== 'Customer' ? customer.lastName : (userRecord?.lastName || '');
-      const fullName = `${firstName} ${lastName}`.trim() || customer.fullName || (userRecord ? `${userRecord.firstName} ${userRecord.lastName}` : 'Valued Customer');
+      const firstName =
+        customer.firstName && customer.firstName !== 'Valued'
+          ? customer.firstName
+          : userRecord?.firstName || customer.fullName?.split(' ')?.[0] || 'Valued';
+      const lastName =
+        customer.lastName && customer.lastName !== 'Customer'
+          ? customer.lastName
+          : userRecord?.lastName || '';
+      const fullName =
+        `${firstName} ${lastName}`.trim() ||
+        customer.fullName ||
+        (userRecord ? `${userRecord.firstName} ${userRecord.lastName}` : 'Valued Customer');
       const [cRow]: any = await sequelize.query(
         'SELECT avatar_url, profile_image FROM customers WHERE id = :cId OR user_id = :uId ORDER BY id DESC LIMIT 1',
         { replacements: { cId: customer.id, uId: userId }, type: QueryTypes.SELECT }
@@ -128,7 +156,14 @@ export class CustomerPortalController {
         'SELECT avatar_url, profile_image FROM users WHERE id = :uId LIMIT 1',
         { replacements: { uId: userId }, type: QueryTypes.SELECT }
       );
-      const avatarUrl = cRow?.avatar_url || cRow?.profile_image || uRow?.avatar_url || uRow?.profile_image || (customer as any).avatarUrl || (customer as any).profileImage || null;
+      const avatarUrl =
+        cRow?.avatar_url ||
+        cRow?.profile_image ||
+        uRow?.avatar_url ||
+        uRow?.profile_image ||
+        (customer as any).avatarUrl ||
+        (customer as any).profileImage ||
+        null;
 
       success(res, 'Customer dashboard metrics retrieved successfully', {
         customer: {
@@ -178,9 +213,22 @@ export class CustomerPortalController {
         { replacements: { uId: userId }, type: QueryTypes.SELECT }
       );
 
-      const avatarUrl = cRow?.avatar_url || cRow?.profile_image || uRow?.avatar_url || uRow?.profile_image || (customer as any).avatarUrl || (customer as any).profileImage || null;
-      const firstName = customer.firstName && customer.firstName !== 'Valued' ? customer.firstName : (userRecord?.firstName || 'abhay');
-      const lastName = customer.lastName && customer.lastName !== 'Customer' ? customer.lastName : (userRecord?.lastName || 'ram');
+      const avatarUrl =
+        cRow?.avatar_url ||
+        cRow?.profile_image ||
+        uRow?.avatar_url ||
+        uRow?.profile_image ||
+        (customer as any).avatarUrl ||
+        (customer as any).profileImage ||
+        null;
+      const firstName =
+        customer.firstName && customer.firstName !== 'Valued'
+          ? customer.firstName
+          : userRecord?.firstName || 'abhay';
+      const lastName =
+        customer.lastName && customer.lastName !== 'Customer'
+          ? customer.lastName
+          : userRecord?.lastName || 'ram';
 
       const plain = customer.toJSON ? customer.toJSON() : { ...customer };
       const responseData = {
@@ -251,7 +299,8 @@ export class CustomerPortalController {
         if (req.body.firstName) updates.first_name = req.body.firstName;
         if (req.body.lastName) updates.last_name = req.body.lastName;
         if (req.body.firstName || req.body.lastName) {
-          updates.full_name = `${req.body.firstName || customer.firstName} ${req.body.lastName || customer.lastName}`.trim();
+          updates.full_name =
+            `${req.body.firstName || customer.firstName} ${req.body.lastName || customer.lastName}`.trim();
         }
         if (req.body.gender) updates.gender = req.body.gender;
         if (req.body.dateOfBirth) updates.date_of_birth = req.body.dateOfBirth;
@@ -262,7 +311,10 @@ export class CustomerPortalController {
         if (setClause) {
           await sequelize.query(
             `UPDATE customers SET ${setClause} WHERE user_id = :uId OR email = :email`,
-            { replacements: { ...updates, uId: userId, email: customer.email }, type: QueryTypes.UPDATE }
+            {
+              replacements: { ...updates, uId: userId, email: customer.email },
+              type: QueryTypes.UPDATE,
+            }
           );
         }
       }
@@ -276,9 +328,16 @@ export class CustomerPortalController {
         { replacements: { uId: userId }, type: QueryTypes.SELECT }
       );
 
-      const avatarUrl = imgUrl || cRow?.avatar_url || cRow?.profile_image || uRow?.avatar_url || uRow?.profile_image || null;
+      const avatarUrl =
+        imgUrl ||
+        cRow?.avatar_url ||
+        cRow?.profile_image ||
+        uRow?.avatar_url ||
+        uRow?.profile_image ||
+        null;
       const updatedCustomer: any = await this.getCustomerFromUser(tenantId, userId);
-      const firstName = req.body.firstName || updatedCustomer.firstName || user?.firstName || 'abhay';
+      const firstName =
+        req.body.firstName || updatedCustomer.firstName || user?.firstName || 'abhay';
       const lastName = req.body.lastName || updatedCustomer.lastName || user?.lastName || 'ram';
 
       const plain = updatedCustomer.toJSON ? updatedCustomer.toJSON() : { ...updatedCustomer };
@@ -311,10 +370,7 @@ export class CustomerPortalController {
       const search = req.query.search ? String(req.query.search).trim() : '';
 
       const whereClause: any = {
-        [Op.or]: [
-          { customerId: { [Op.in]: custIds } },
-          { createdBy: userId },
-        ],
+        [Op.or]: [{ customerId: { [Op.in]: custIds } }, { createdBy: userId }],
       };
 
       if (search) {
@@ -330,13 +386,20 @@ export class CustomerPortalController {
         ],
       });
 
-      success(res, 'Customer orders retrieved successfully', { rows: orders, count: orders.length });
+      success(res, 'Customer orders retrieved successfully', {
+        rows: orders,
+        count: orders.length,
+      });
     } catch (err) {
       next(err);
     }
   };
 
-  public getMyOrderDetails = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public getMyOrderDetails = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const tenantId = req.context.tenantId || 1;
       const userId = req.context.authenticatedUserId;
@@ -356,7 +419,10 @@ export class CustomerPortalController {
       if (!order) {
         throw new NotFoundError(`Order with ID ${orderId} not found.`);
       }
-      if (!custIds.includes(Number(order.customerId)) && Number(order.createdBy) !== Number(userId)) {
+      if (
+        !custIds.includes(Number(order.customerId)) &&
+        Number(order.createdBy) !== Number(userId)
+      ) {
         throw new UnauthorizedError('Access denied: You do not own this order');
       }
 
@@ -403,7 +469,11 @@ export class CustomerPortalController {
   };
 
   // 4. Saved Addresses
-  public listMyAddresses = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public listMyAddresses = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const tenantId = req.context.tenantId || 1;
       const userId = req.context.authenticatedUserId;
@@ -419,7 +489,11 @@ export class CustomerPortalController {
     }
   };
 
-  public createMyAddress = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public createMyAddress = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const tenantId = req.context.tenantId || 1;
       const userId = req.context.authenticatedUserId;
@@ -444,7 +518,11 @@ export class CustomerPortalController {
     }
   };
 
-  public updateMyAddress = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public updateMyAddress = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const tenantId = req.context.tenantId || 1;
       const userId = req.context.authenticatedUserId;
@@ -475,7 +553,11 @@ export class CustomerPortalController {
     }
   };
 
-  public deleteMyAddress = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public deleteMyAddress = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const tenantId = req.context.tenantId || 1;
       const userId = req.context.authenticatedUserId;
@@ -505,7 +587,11 @@ export class CustomerPortalController {
     }
   };
 
-  public setDefaultAddress = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public setDefaultAddress = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const tenantId = req.context.tenantId || 1;
       const userId = req.context.authenticatedUserId;
@@ -523,9 +609,23 @@ export class CustomerPortalController {
 
       let updated: CustomerAddress;
       if (type === 'billing') {
-        updated = await this.addressService.setDefaultBilling(tenantId, storeId, addressId, userId, req.ip, req.headers['user-agent']);
+        updated = await this.addressService.setDefaultBilling(
+          tenantId,
+          storeId,
+          addressId,
+          userId,
+          req.ip,
+          req.headers['user-agent']
+        );
       } else {
-        updated = await this.addressService.setDefaultShipping(tenantId, storeId, addressId, userId, req.ip, req.headers['user-agent']);
+        updated = await this.addressService.setDefaultShipping(
+          tenantId,
+          storeId,
+          addressId,
+          userId,
+          req.ip,
+          req.headers['user-agent']
+        );
       }
 
       success(res, 'Default address updated successfully', updated);
@@ -535,7 +635,11 @@ export class CustomerPortalController {
   };
 
   // 5. Invoices (List & Details)
-  public listMyInvoices = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public listMyInvoices = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const tenantId = req.context.tenantId || 1;
       const userId = req.context.authenticatedUserId;
@@ -546,10 +650,7 @@ export class CustomerPortalController {
 
       let orders = await Order.findAll({
         where: {
-          [Op.or]: [
-            { customerId: { [Op.in]: custIds } },
-            { createdBy: userId },
-          ],
+          [Op.or]: [{ customerId: { [Op.in]: custIds } }, { createdBy: userId }],
         } as any,
         order: [['createdAt', 'DESC']],
       });
@@ -566,11 +667,11 @@ export class CustomerPortalController {
           paymentStatus: 'paid',
           fulfillmentStatus: 'fulfilled',
           currency: 'INR',
-          subtotalAmount: 2499.00,
-          taxAmount: 180.00,
-          shippingAmount: 0.00,
-          discountAmount: 0.00,
-          totalAmount: 2679.00,
+          subtotalAmount: 2499.0,
+          taxAmount: 180.0,
+          shippingAmount: 0.0,
+          discountAmount: 0.0,
+          totalAmount: 2679.0,
           paymentMethod: 'razorpay',
           placedAt: new Date(),
         } as any);
@@ -579,7 +680,7 @@ export class CustomerPortalController {
 
       const orderIds = orders.map((o: any) => o.id);
 
-      let myInvoices: any[] = await Invoice.findAll({
+      const myInvoices: any[] = await Invoice.findAll({
         where: {
           orderId: { [Op.in]: orderIds },
           invoiceNumber: {
@@ -610,13 +711,20 @@ export class CustomerPortalController {
         }
       }
 
-      success(res, 'Customer invoices retrieved successfully', { rows: myInvoices, count: myInvoices.length });
+      success(res, 'Customer invoices retrieved successfully', {
+        rows: myInvoices,
+        count: myInvoices.length,
+      });
     } catch (err) {
       next(err);
     }
   };
 
-  public listMyPayments = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public listMyPayments = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const tenantId = req.context.tenantId || 1;
       const userId = req.context.authenticatedUserId;
@@ -627,10 +735,7 @@ export class CustomerPortalController {
 
       let orders = await Order.findAll({
         where: {
-          [Op.or]: [
-            { customerId: { [Op.in]: custIds } },
-            { createdBy: userId },
-          ],
+          [Op.or]: [{ customerId: { [Op.in]: custIds } }, { createdBy: userId }],
         } as any,
         order: [['createdAt', 'DESC']],
       });
@@ -647,7 +752,7 @@ export class CustomerPortalController {
           paymentStatus: 'paid',
           fulfillmentStatus: 'fulfilled',
           currency: 'INR',
-          totalAmount: 2679.00,
+          totalAmount: 2679.0,
           placedAt: new Date(),
         } as any);
         orders = [newOrder];
@@ -655,7 +760,7 @@ export class CustomerPortalController {
 
       const orderIds = orders.map((o: any) => o.id);
 
-      let myPayments: any[] = await Payment.findAll({
+      const myPayments: any[] = await Payment.findAll({
         where: {
           orderId: { [Op.in]: orderIds },
         },
@@ -684,14 +789,21 @@ export class CustomerPortalController {
         }
       }
 
-      success(res, 'Customer payment history retrieved successfully', { rows: myPayments, count: myPayments.length });
+      success(res, 'Customer payment history retrieved successfully', {
+        rows: myPayments,
+        count: myPayments.length,
+      });
     } catch (err) {
       next(err);
     }
   };
 
   // 6. Security (Change Password & Privacy Sessions)
-  public changePassword = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public changePassword = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const tenantId = req.context.tenantId || 1;
       const userId = req.context.authenticatedUserId;
@@ -705,7 +817,11 @@ export class CustomerPortalController {
   };
 
   // 7. Checkout & Order Placement Transaction Engine
-  public validateCoupon = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public validateCoupon = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const tenantId = req.context.tenantId || 1;
       const { code, subtotal } = req.body;
@@ -764,7 +880,11 @@ export class CustomerPortalController {
         // Validate Address
         let address = null;
         if (shippingAddressId) {
-          address = await this.addressService.getAddress(tenantId, storeId, Number(shippingAddressId));
+          address = await this.addressService.getAddress(
+            tenantId,
+            storeId,
+            Number(shippingAddressId)
+          );
         }
 
         // Validate Inventory and Products
@@ -773,8 +893,14 @@ export class CustomerPortalController {
 
         for (const cartItem of items) {
           const rawId = String(cartItem.id || '');
-          const productId = Number(cartItem.productId || (rawId.includes('-') ? rawId.split('-')[0] : rawId));
-          const variantId = cartItem.variantId ? Number(cartItem.variantId) : (rawId.includes('-') ? Number(rawId.split('-')[1]) : null);
+          const productId = Number(
+            cartItem.productId || (rawId.includes('-') ? rawId.split('-')[0] : rawId)
+          );
+          const variantId = cartItem.variantId
+            ? Number(cartItem.variantId)
+            : rawId.includes('-')
+              ? Number(rawId.split('-')[1])
+              : null;
           const qty = Number(cartItem.quantity || 1);
 
           const product = await Product.findOne({
@@ -811,16 +937,25 @@ export class CustomerPortalController {
             }
           }
 
-          const unitPrice = Number(cartItem.price || (variant ? variant.price : product.price) || 0);
+          const unitPrice = Number(
+            cartItem.price || (variant ? variant.price : product.price) || 0
+          );
           const lineSubtotal = unitPrice * qty;
           calculatedSubtotal += lineSubtotal;
 
           let formattedItemName = cartItem.name || product.name;
           if (variant && !formattedItemName.includes('(')) {
             let variantAttrsText = '';
-            if (variant.attributes && Array.isArray(variant.attributes) && variant.attributes.length > 0) {
+            if (
+              variant.attributes &&
+              Array.isArray(variant.attributes) &&
+              variant.attributes.length > 0
+            ) {
               variantAttrsText = variant.attributes
-                .map((a: any) => `${a.name || a.attributeName || 'Option'}: ${a.value || a.attributeValue || ''}`)
+                .map(
+                  (a: any) =>
+                    `${a.name || a.attributeName || 'Option'}: ${a.value || a.attributeValue || ''}`
+                )
                 .filter((str: string) => !str.endsWith(': '))
                 .join(', ');
             } else if (variant.sku && variant.sku.includes('-')) {
@@ -841,7 +976,8 @@ export class CustomerPortalController {
             sku: variant ? variant.sku : product.sku,
             variantSku: variant ? variant.sku : product.sku,
             productName: formattedItemName,
-            variantAttributes: cartItem.selectedAttributes || (variant?.attributes ? variant.attributes : null),
+            variantAttributes:
+              cartItem.selectedAttributes || (variant?.attributes ? variant.attributes : null),
             quantity: qty,
             unitPrice,
             subtotal: lineSubtotal,
@@ -945,7 +1081,11 @@ export class CustomerPortalController {
   /**
    * Step A: Create Razorpay Payment Order for Customer Checkout
    */
-  public createRazorpayOrder = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public createRazorpayOrder = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const tenantId = req.context?.tenantId || 1;
       const userId = req.context?.authenticatedUserId;
@@ -972,7 +1112,7 @@ export class CustomerPortalController {
       if (shippingMethod === 'pickup' || calcSubtotal > 99) shipping = 0;
 
       const tax = (calcSubtotal - discount) * 0.08;
-      const grandTotal = Math.max(1, totalAmount || (calcSubtotal - discount + tax + shipping));
+      const grandTotal = Math.max(1, totalAmount || calcSubtotal - discount + tax + shipping);
 
       const receiptId = `REC-ORD-${Date.now().toString().slice(-6)}`;
       const amountPaise = Math.round(grandTotal * 100);
@@ -980,7 +1120,9 @@ export class CustomerPortalController {
       const razorpayProvider = new RazorpayPaymentProvider();
       const rzpOrder = await razorpayProvider.createRazorpayOrder(grandTotal, 'INR', receiptId);
 
-      const razorpayOrderId = rzpOrder.id || `order_${Date.now().toString(36)}${Math.random().toString(36).substring(2, 7)}`;
+      const razorpayOrderId =
+        rzpOrder.id ||
+        `order_${Date.now().toString(36)}${Math.random().toString(36).substring(2, 7)}`;
 
       success(res, 'Razorpay checkout order created successfully', {
         razorpayOrderId,
@@ -998,7 +1140,11 @@ export class CustomerPortalController {
   /**
    * Step B: Verify Razorpay Payment Signature, Atomically Deduct Stock, Create Order, Invoice, Payment, Email & WhatsApp
    */
-  public verifyRazorpayPayment = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public verifyRazorpayPayment = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const tenantId = req.context?.tenantId || 1;
       const userId = req.context?.authenticatedUserId;
@@ -1026,25 +1172,32 @@ export class CustomerPortalController {
         throw new ValidationError('Cart items are required for order placement.');
       }
 
-      console.log("1 before verify signature");
+      console.log('1 before verify signature');
       // HMAC Signature Verification
       const secret = process.env.RAZORPAY_KEY_SECRET || 'gjwzI3mm19CcyaShfXgheJSR';
       const payloadString = `${razorpayOrderId || ''}|${razorpayPaymentId}`;
-      const expectedSignature = crypto.createHmac('sha256', secret).update(payloadString).digest('hex');
+      const expectedSignature = crypto
+        .createHmac('sha256', secret)
+        .update(payloadString)
+        .digest('hex');
 
       const isValidSignature = razorpaySignature === expectedSignature;
 
       if (!isValidSignature) {
         throw new ValidationError('Invalid Razorpay payment signature verification failed.');
       }
-      console.log("1 after verify signature");
+      console.log('1 after verify signature');
 
       // Atomic Transaction: Stock Reduction + Order Creation + Invoice + Payment Save + Notifications
-      console.log("5 before transaction.commit");
+      console.log('5 before transaction.commit');
       const result = await sequelize.transaction(async (t) => {
         let address = null;
         if (shippingAddressId) {
-          address = await this.addressService.getAddress(tenantId, storeId, Number(shippingAddressId));
+          address = await this.addressService.getAddress(
+            tenantId,
+            storeId,
+            Number(shippingAddressId)
+          );
         }
 
         const orderItemsInput: any[] = [];
@@ -1052,16 +1205,22 @@ export class CustomerPortalController {
 
         for (const cartItem of items) {
           const rawId = String(cartItem.id || '');
-          const productId = Number(cartItem.productId || (rawId.includes('-') ? rawId.split('-')[0] : rawId));
-          const variantId = cartItem.variantId ? Number(cartItem.variantId) : (rawId.includes('-') ? Number(rawId.split('-')[1]) : null);
+          const productId = Number(
+            cartItem.productId || (rawId.includes('-') ? rawId.split('-')[0] : rawId)
+          );
+          const variantId = cartItem.variantId
+            ? Number(cartItem.variantId)
+            : rawId.includes('-')
+              ? Number(rawId.split('-')[1])
+              : null;
           const qty = Number(cartItem.quantity || 1);
 
-          console.log("2 before Product.findOne");
+          console.log('2 before Product.findOne');
           const product = await Product.findOne({
             where: { id: productId },
             transaction: t,
           });
-          console.log("2 after Product.findOne");
+          console.log('2 after Product.findOne');
 
           if (!product) {
             throw new NotFoundError(`Product #${productId} not found.`);
@@ -1085,7 +1244,9 @@ export class CustomerPortalController {
             }
           }
 
-          const unitPrice = Number(cartItem.price || (variant ? variant.price : product.price) || 0);
+          const unitPrice = Number(
+            cartItem.price || (variant ? variant.price : product.price) || 0
+          );
           const lineSubtotal = unitPrice * qty;
           calculatedSubtotal += lineSubtotal;
 
@@ -1114,7 +1275,7 @@ export class CustomerPortalController {
         const grandTotal = calculatedSubtotal - discountAmount + taxAmount + shippingAmount;
 
         // 1. Create Order
-        console.log("3 before Order.create");
+        console.log('3 before Order.create');
         const order = await this.orderService.createOrder(
           tenantId,
           storeId,
@@ -1136,7 +1297,7 @@ export class CustomerPortalController {
           req.headers['user-agent'],
           { transaction: t }
         );
-        console.log("3 after Order.create");
+        console.log('3 after Order.create');
 
         // 2. Generate Invoice
         let invoice = null;
@@ -1246,11 +1407,11 @@ export class CustomerPortalController {
           },
         };
       });
-      console.log("5 after transaction.commit");
+      console.log('5 after transaction.commit');
 
-      console.log("6 before res.json");
+      console.log('6 before res.json');
       created(res, 'Razorpay payment verified and order placed successfully', result);
-      console.log("6 after res.json");
+      console.log('6 after res.json');
     } catch (err) {
       next(err);
     }
@@ -1259,7 +1420,11 @@ export class CustomerPortalController {
   /**
    * Handle Webhooks for Razorpay: payment.captured, payment.failed, refund.processed
    */
-  public handleRazorpayWebhook = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public handleRazorpayWebhook = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const event = req.body?.event;
       const payload = req.body?.payload;
@@ -1314,7 +1479,11 @@ export class CustomerPortalController {
     }
   };
 
-  public subscribeNewsletter = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public subscribeNewsletter = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const { email } = req.body;
       if (!email || typeof email !== 'string' || !email.includes('@')) {
@@ -1350,4 +1519,3 @@ export class CustomerPortalController {
     }
   };
 }
-

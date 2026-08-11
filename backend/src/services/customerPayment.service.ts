@@ -82,16 +82,15 @@ export class CustomerPaymentService {
    * Retry Failed Payment via Razorpay
    */
   public async retryFailedPayment(orderId: number): Promise<any> {
-    let [order]: any = await sequelize.query(
-      `SELECT * FROM orders WHERE id = :orderId LIMIT 1`,
-      { replacements: { orderId }, type: QueryTypes.SELECT }
-    );
+    let [order]: any = await sequelize.query(`SELECT * FROM orders WHERE id = :orderId LIMIT 1`, {
+      replacements: { orderId },
+      type: QueryTypes.SELECT,
+    });
 
     if (!order) {
-      [order] = await sequelize.query(
-        `SELECT * FROM orders ORDER BY id DESC LIMIT 1`,
-        { type: QueryTypes.SELECT }
-      );
+      [order] = await sequelize.query(`SELECT * FROM orders ORDER BY id DESC LIMIT 1`, {
+        type: QueryTypes.SELECT,
+      });
     }
 
     if (!order) {
@@ -113,16 +112,15 @@ export class CustomerPaymentService {
    * Send Email Receipt
    */
   public async sendEmailReceipt(orderId: number, email?: string): Promise<any> {
-    let [order]: any = await sequelize.query(
-      `SELECT * FROM orders WHERE id = :orderId LIMIT 1`,
-      { replacements: { orderId }, type: QueryTypes.SELECT }
-    );
+    let [order]: any = await sequelize.query(`SELECT * FROM orders WHERE id = :orderId LIMIT 1`, {
+      replacements: { orderId },
+      type: QueryTypes.SELECT,
+    });
 
     if (!order) {
-      [order] = await sequelize.query(
-        `SELECT * FROM orders ORDER BY id DESC LIMIT 1`,
-        { type: QueryTypes.SELECT }
-      );
+      [order] = await sequelize.query(`SELECT * FROM orders ORDER BY id DESC LIMIT 1`, {
+        type: QueryTypes.SELECT,
+      });
     }
 
     const targetEmail = email || 'customer@comzilo.com';
@@ -139,16 +137,15 @@ export class CustomerPaymentService {
    * Send WhatsApp Receipt
    */
   public async sendWhatsAppReceipt(orderId: number, phone?: string): Promise<any> {
-    let [order]: any = await sequelize.query(
-      `SELECT * FROM orders WHERE id = :orderId LIMIT 1`,
-      { replacements: { orderId }, type: QueryTypes.SELECT }
-    );
+    let [order]: any = await sequelize.query(`SELECT * FROM orders WHERE id = :orderId LIMIT 1`, {
+      replacements: { orderId },
+      type: QueryTypes.SELECT,
+    });
 
     if (!order) {
-      [order] = await sequelize.query(
-        `SELECT * FROM orders ORDER BY id DESC LIMIT 1`,
-        { type: QueryTypes.SELECT }
-      );
+      [order] = await sequelize.query(`SELECT * FROM orders ORDER BY id DESC LIMIT 1`, {
+        type: QueryTypes.SELECT,
+      });
     }
 
     const targetPhone = phone || '+919988776655';

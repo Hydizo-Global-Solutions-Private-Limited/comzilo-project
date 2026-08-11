@@ -7,11 +7,11 @@ import { logger } from '../shared/logging/logger';
 export interface CommissionConfig {
   tenantId: number;
   commissionRate: number; // e.g., 10.0 for 10%
-  gatewayRate: number;    // e.g., 2.0 for 2%
-  gatewayFixed: number;   // e.g., 3.0 for $3
+  gatewayRate: number; // e.g., 2.0 for 2%
+  gatewayFixed: number; // e.g., 3.0 for $3
   shippingCharge: number; // e.g., 5.0 for $5
-  processingFee: number;  // e.g., 1.0 for $1
-  taxRate: number;        // e.g., 0.0 or 18.0 for GST/Tax
+  processingFee: number; // e.g., 1.0 for $1
+  taxRate: number; // e.g., 0.0 or 18.0 for GST/Tax
 }
 
 export interface PayoutBreakdown {
@@ -92,10 +92,10 @@ export class CommissionEngineService {
         tenantId,
         commissionRate: 10.0, // 10% Platform Commission
         gatewayRate: 0.0,
-        gatewayFixed: 3.0,     // $3 Gateway Fee
-        shippingCharge: 5.0,   // $5 Shipping Fee
-        processingFee: 0.0,    // $0 Processing Fee
-        taxRate: 0.0,          // 0% Tax
+        gatewayFixed: 3.0, // $3 Gateway Fee
+        shippingCharge: 5.0, // $5 Shipping Fee
+        processingFee: 0.0, // $0 Processing Fee
+        taxRate: 0.0, // 0% Tax
       };
     }
 
@@ -113,7 +113,10 @@ export class CommissionEngineService {
   /**
    * Update Commission Config (Admin Settings)
    */
-  public async updateCommissionConfig(tenantId: number, config: Partial<CommissionConfig>): Promise<CommissionConfig> {
+  public async updateCommissionConfig(
+    tenantId: number,
+    config: Partial<CommissionConfig>
+  ): Promise<CommissionConfig> {
     await this.ensureTablesExist();
 
     const current = await this.getCommissionConfig(tenantId);
@@ -158,19 +161,28 @@ export class CommissionEngineService {
    *  Shipping = $5
    *  Seller Receives = $82
    */
-  public async calculateOrderPayout(tenantId: number, orderId: number, orderTotal: number, subtotal?: number): Promise<PayoutBreakdown> {
+  public async calculateOrderPayout(
+    tenantId: number,
+    orderId: number,
+    orderTotal: number,
+    subtotal?: number
+  ): Promise<PayoutBreakdown> {
     const config = await this.getCommissionConfig(tenantId);
 
     const baseSubtotal = subtotal || orderTotal;
-    const platformCommission = Math.round((baseSubtotal * (config.commissionRate / 100)) * 100) / 100;
-    const gatewayFee = Math.round((orderTotal * (config.gatewayRate / 100) + config.gatewayFixed) * 100) / 100;
+    const platformCommission = Math.round(baseSubtotal * (config.commissionRate / 100) * 100) / 100;
+    const gatewayFee =
+      Math.round((orderTotal * (config.gatewayRate / 100) + config.gatewayFixed) * 100) / 100;
     const shippingFee = Number(config.shippingCharge || 0);
     const processingFee = Number(config.processingFee || 0);
 
     const taxableFees = platformCommission + gatewayFee + processingFee;
-    const taxAmount = Math.round((taxableFees * (config.taxRate / 100)) * 100) / 100;
+    const taxAmount = Math.round(taxableFees * (config.taxRate / 100) * 100) / 100;
 
-    const totalDeductions = Math.round((platformCommission + gatewayFee + shippingFee + processingFee + taxAmount) * 100) / 100;
+    const totalDeductions =
+      Math.round(
+        (platformCommission + gatewayFee + shippingFee + processingFee + taxAmount) * 100
+      ) / 100;
     const netSellerPayout = Math.max(0, Math.round((orderTotal - totalDeductions) * 100) / 100);
 
     return {

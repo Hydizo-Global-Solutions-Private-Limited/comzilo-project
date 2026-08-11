@@ -1,6 +1,11 @@
 import { User, UserRole, UserProfile, Role, Tenant } from '../database/models';
 import { sequelize } from '../config/database';
-import { NotFoundError, ValidationError, ConflictError, ForbiddenError } from '../shared/errors/AppError';
+import {
+  NotFoundError,
+  ValidationError,
+  ConflictError,
+  ForbiddenError,
+} from '../shared/errors/AppError';
 import { createAuditLog } from '../utils/auditHelper';
 import { sendSellerOnboardingEmail, generateSecureTempPassword } from '../utils/emailHelper';
 import bcrypt from 'bcrypt';
@@ -73,8 +78,10 @@ export class AdminPlatformUserService {
     });
 
     const formattedUsers = users.map((u: any) => {
-      const primaryRole = u.userRoles && u.userRoles.length > 0 ? u.userRoles[0].role?.code : 'SUPER_ADMIN';
-      const roleName = u.userRoles && u.userRoles.length > 0 ? u.userRoles[0].role?.name : 'Super Admin';
+      const primaryRole =
+        u.userRoles && u.userRoles.length > 0 ? u.userRoles[0].role?.code : 'SUPER_ADMIN';
+      const roleName =
+        u.userRoles && u.userRoles.length > 0 ? u.userRoles[0].role?.name : 'Super Admin';
       const name = `${u.firstName || ''} ${u.lastName || ''}`.trim() || u.email;
 
       return {
@@ -228,7 +235,11 @@ export class AdminPlatformUserService {
           action: 'user.platform_created',
           entityType: 'user',
           entityId: String(user.id),
-          newValues: { email: user.email, name: `${user.firstName} ${user.lastName}`, role: input.roleCode },
+          newValues: {
+            email: user.email,
+            name: `${user.firstName} ${user.lastName}`,
+            role: input.roleCode,
+          },
         },
         context
       );
@@ -244,7 +255,10 @@ export class AdminPlatformUserService {
           loginUrl: 'http://localhost:4200/login',
         });
       } catch (emailErr: any) {
-        console.error('[AdminPlatformUserService] Failed to send credentials email:', emailErr.message);
+        console.error(
+          '[AdminPlatformUserService] Failed to send credentials email:',
+          emailErr.message
+        );
       }
 
       return {
@@ -265,7 +279,11 @@ export class AdminPlatformUserService {
     }
   }
 
-  public async updatePlatformUser(id: number, input: UpdatePlatformUserInput, context: any): Promise<any> {
+  public async updatePlatformUser(
+    id: number,
+    input: UpdatePlatformUserInput,
+    context: any
+  ): Promise<any> {
     const user = await User.findByPk(id);
     if (!user) {
       throw new NotFoundError(`Platform User with ID ${id} not found.`);
@@ -284,7 +302,8 @@ export class AdminPlatformUserService {
     if (input.firstName !== undefined) user.firstName = input.firstName.trim();
     if (input.lastName !== undefined) user.lastName = input.lastName.trim();
     if (input.phone !== undefined) user.mobile = input.phone.trim();
-    if (input.status !== undefined) user.status = input.status === 'inactive' ? 'disabled' : (input.status as any);
+    if (input.status !== undefined)
+      user.status = input.status === 'inactive' ? 'disabled' : (input.status as any);
 
     await user.save();
 
@@ -325,7 +344,10 @@ export class AdminPlatformUserService {
     return this.getPlatformUserById(user.id);
   }
 
-  public async resetPassword(id: number, context: any): Promise<{ tempPassword: string; messageId?: string }> {
+  public async resetPassword(
+    id: number,
+    context: any
+  ): Promise<{ tempPassword: string; messageId?: string }> {
     const user = await User.findByPk(id);
     if (!user) {
       throw new NotFoundError(`Platform User with ID ${id} not found.`);
@@ -340,7 +362,8 @@ export class AdminPlatformUserService {
     const emailRes = await sendSellerOnboardingEmail({
       tenantId: user.tenantId || 1,
       recipientEmail: user.email,
-      ownerName: `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Platform Administrator',
+      ownerName:
+        `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Platform Administrator',
       storeName: 'Comzilo Super Admin Portal',
       tempPassword,
       loginUrl: 'http://localhost:4200/login',

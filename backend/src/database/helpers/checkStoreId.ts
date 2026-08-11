@@ -6,9 +6,13 @@ export const checkStores = async () => {
 
   const stores = await Store.findAll();
   console.log('Stores in database:');
-  stores.forEach((s) => console.log(` - ID: ${s.id}, Name: ${s.name}, Tenant: ${s.tenantId}, Status: ${s.status}`));
+  stores.forEach((s) =>
+    console.log(` - ID: ${s.id}, Name: ${s.name}, Tenant: ${s.tenantId}, Status: ${s.status}`)
+  );
 
-  const products = await Product.findAll({ attributes: ['id', 'storeId', 'tenantId', 'name', 'productType', 'status'] });
+  const products = await Product.findAll({
+    attributes: ['id', 'storeId', 'tenantId', 'name', 'productType', 'status'],
+  });
   console.log(`\nTotal products in database: ${products.length}`);
   const storeCounts: Record<number, number> = {};
   products.forEach((p) => {

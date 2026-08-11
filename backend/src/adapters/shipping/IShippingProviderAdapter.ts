@@ -59,13 +59,26 @@ export interface IShippingProviderAdapter {
   providerCode: string;
   providerName: string;
 
-  authenticate(config: { apiKey?: string; apiSecret?: string; environment?: string }): Promise<boolean>;
+  authenticate(config: {
+    apiKey?: string;
+    apiSecret?: string;
+    environment?: string;
+  }): Promise<boolean>;
   getRates(params: ShippingRatesParams, config: any): Promise<ShippingRatesResult[]>;
   createShipment(params: CreateShipmentParams, config: any): Promise<ShipmentResult>;
   cancelShipment(awbNumber: string, config: any): Promise<boolean>;
   generateAWB(orderNumber: string, config: any): Promise<string>;
-  generateLabel(awbNumber: string, config: any): Promise<{ labelUrl: string; barcode: string; qrCode: string }>;
+  generateLabel(
+    awbNumber: string,
+    config: any
+  ): Promise<{ labelUrl: string; barcode: string; qrCode: string }>;
   trackShipment(awbNumber: string, config: any): Promise<TrackingResult>;
-  createPickup(awbNumber: string, pickupDate: string, config: any): Promise<{ success: boolean; pickupToken: string }>;
-  webhookHandler(payload: any): Promise<{ eventType: string; awbNumber: string; status: string; raw: any }>;
+  createPickup(
+    awbNumber: string,
+    pickupDate: string,
+    config: any
+  ): Promise<{ success: boolean; pickupToken: string }>;
+  webhookHandler(
+    payload: any
+  ): Promise<{ eventType: string; awbNumber: string; status: string; raw: any }>;
 }

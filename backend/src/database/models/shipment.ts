@@ -9,7 +9,18 @@ export class Shipment extends Model {
   public providerCode!: string;
   public awbNumber?: string;
   public courierName?: string;
-  public status!: 'created' | 'pickup_assigned' | 'picked_up' | 'in_transit' | 'out_for_delivery' | 'delivered' | 'cancelled' | 'returned' | 'failed_delivery' | 'lost' | 'damaged';
+  public status!:
+    | 'created'
+    | 'pickup_assigned'
+    | 'picked_up'
+    | 'in_transit'
+    | 'out_for_delivery'
+    | 'delivered'
+    | 'cancelled'
+    | 'returned'
+    | 'failed_delivery'
+    | 'lost'
+    | 'damaged';
   public isCod!: boolean;
   public codAmount!: number;
   public shippingCost!: number;
@@ -30,13 +41,35 @@ Shipment.init(
     awbNumber: { type: DataTypes.STRING(100), field: 'awb_number', allowNull: true },
     courierName: { type: DataTypes.STRING(100), field: 'courier_name', allowNull: true },
     status: {
-      type: DataTypes.ENUM('created', 'pickup_assigned', 'picked_up', 'in_transit', 'out_for_delivery', 'delivered', 'cancelled', 'returned', 'failed_delivery', 'lost', 'damaged'),
+      type: DataTypes.ENUM(
+        'created',
+        'pickup_assigned',
+        'picked_up',
+        'in_transit',
+        'out_for_delivery',
+        'delivered',
+        'cancelled',
+        'returned',
+        'failed_delivery',
+        'lost',
+        'damaged'
+      ),
       allowNull: false,
       defaultValue: 'created',
     },
     isCod: { type: DataTypes.BOOLEAN, field: 'is_cod', allowNull: false, defaultValue: false },
-    codAmount: { type: DataTypes.DECIMAL(10, 2), field: 'cod_amount', allowNull: false, defaultValue: 0.0 },
-    shippingCost: { type: DataTypes.DECIMAL(10, 2), field: 'shipping_cost', allowNull: false, defaultValue: 0.0 },
+    codAmount: {
+      type: DataTypes.DECIMAL(10, 2),
+      field: 'cod_amount',
+      allowNull: false,
+      defaultValue: 0.0,
+    },
+    shippingCost: {
+      type: DataTypes.DECIMAL(10, 2),
+      field: 'shipping_cost',
+      allowNull: false,
+      defaultValue: 0.0,
+    },
     destinationAddress: { type: DataTypes.JSON, field: 'destination_address', allowNull: true },
     pickupAddress: { type: DataTypes.JSON, field: 'pickup_address', allowNull: true },
     packageInfo: { type: DataTypes.JSON, field: 'package_info', allowNull: true },
@@ -117,7 +150,11 @@ ShippingLog.init(
     tenantId: { type: DataTypes.BIGINT.UNSIGNED, field: 'tenant_id', allowNull: false },
     providerCode: { type: DataTypes.STRING(50), field: 'provider_code', allowNull: false },
     action: { type: DataTypes.STRING(50), allowNull: false },
-    status: { type: DataTypes.ENUM('success', 'failed', 'pending'), allowNull: false, defaultValue: 'success' },
+    status: {
+      type: DataTypes.ENUM('success', 'failed', 'pending'),
+      allowNull: false,
+      defaultValue: 'success',
+    },
     requestData: { type: DataTypes.JSON, field: 'request_data', allowNull: true },
     responseData: { type: DataTypes.JSON, field: 'response_data', allowNull: true },
     errorMessage: { type: DataTypes.TEXT, field: 'error_message', allowNull: true },
@@ -143,7 +180,11 @@ ProviderWebhook.init(
     providerCode: { type: DataTypes.STRING(50), field: 'provider_code', allowNull: false },
     eventType: { type: DataTypes.STRING(100), field: 'event_type', allowNull: false },
     payload: { type: DataTypes.JSON, allowNull: false },
-    status: { type: DataTypes.ENUM('processed', 'failed', 'retrying'), allowNull: false, defaultValue: 'processed' },
+    status: {
+      type: DataTypes.ENUM('processed', 'failed', 'retrying'),
+      allowNull: false,
+      defaultValue: 'processed',
+    },
     createdAt: { type: DataTypes.DATE, field: 'created_at', allowNull: false },
     updatedAt: { type: DataTypes.DATE, field: 'updated_at', allowNull: false },
   },
@@ -154,7 +195,14 @@ export class ShippingRateRule extends Model {
   public id!: number;
   public tenantId!: number;
   public name!: string;
-  public type!: 'flat' | 'weight_based' | 'distance_based' | 'order_value_based' | 'free' | 'courier_api' | 'custom_formula';
+  public type!:
+    | 'flat'
+    | 'weight_based'
+    | 'distance_based'
+    | 'order_value_based'
+    | 'free'
+    | 'courier_api'
+    | 'custom_formula';
   public minValue!: number;
   public maxValue?: number;
   public rate!: number;
@@ -169,11 +217,24 @@ ShippingRateRule.init(
     tenantId: { type: DataTypes.BIGINT.UNSIGNED, field: 'tenant_id', allowNull: false },
     name: { type: DataTypes.STRING(100), allowNull: false },
     type: {
-      type: DataTypes.ENUM('flat', 'weight_based', 'distance_based', 'order_value_based', 'free', 'courier_api', 'custom_formula'),
+      type: DataTypes.ENUM(
+        'flat',
+        'weight_based',
+        'distance_based',
+        'order_value_based',
+        'free',
+        'courier_api',
+        'custom_formula'
+      ),
       allowNull: false,
       defaultValue: 'flat',
     },
-    minValue: { type: DataTypes.DECIMAL(10, 2), field: 'min_value', allowNull: false, defaultValue: 0.0 },
+    minValue: {
+      type: DataTypes.DECIMAL(10, 2),
+      field: 'min_value',
+      allowNull: false,
+      defaultValue: 0.0,
+    },
     maxValue: { type: DataTypes.DECIMAL(10, 2), field: 'max_value', allowNull: true },
     rate: { type: DataTypes.DECIMAL(10, 2), allowNull: false, defaultValue: 0.0 },
     isActive: { type: DataTypes.BOOLEAN, field: 'is_active', allowNull: false, defaultValue: true },

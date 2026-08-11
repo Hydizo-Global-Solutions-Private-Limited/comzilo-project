@@ -28,7 +28,7 @@ export const ensureDefaultCustomer = async () => {
     console.log(`✅ Default demo customer password reset to: ${password}`);
   }
 
-  let customer = await Customer.findOne({ where: { email } });
+  const customer = await Customer.findOne({ where: { email } });
   if (!customer) {
     await Customer.create({
       tenantId: 1,

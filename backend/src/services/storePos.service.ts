@@ -26,7 +26,7 @@ export class StorePosService {
   static async createRegister(tenantId: number, storeId: number, userId: number, payload: any) {
     const name = payload.name || 'Main POS Register';
     const code = payload.code || name.toLowerCase().replace(/\s+/g, '_');
-    
+
     const existing = await POSRegister.findOne({ where: { tenantId, storeId, code } });
     if (existing) {
       return existing;

@@ -84,12 +84,18 @@ export class AdminSellerController {
       const search = (req.query.search as string) || '';
       const status = (req.query.status as string) || '';
       const roleCode = (req.query.role as string) || '';
-      
+
       const rawTenantId = req.query.tenantId as string;
       const rawStoreId = req.query.storeId as string;
 
-      const tenantId = rawTenantId && rawTenantId.trim() !== '' && !isNaN(Number(rawTenantId)) ? Number(rawTenantId) : null;
-      const storeId = rawStoreId && rawStoreId.trim() !== '' && !isNaN(Number(rawStoreId)) ? Number(rawStoreId) : null;
+      const tenantId =
+        rawTenantId && rawTenantId.trim() !== '' && !isNaN(Number(rawTenantId))
+          ? Number(rawTenantId)
+          : null;
+      const storeId =
+        rawStoreId && rawStoreId.trim() !== '' && !isNaN(Number(rawStoreId))
+          ? Number(rawStoreId)
+          : null;
       const sort = (req.query.sort as string) || 'newest';
 
       const offset = (page - 1) * limit;
@@ -181,7 +187,9 @@ export class AdminSellerController {
       });
 
       // eslint-disable-next-line no-console
-      console.log(`[DEBUG STEP 2 COMPLETE] User.findAndCountAll Result -> count: ${count}, rows.length: ${rows.length}`);
+      console.log(
+        `[DEBUG STEP 2 COMPLETE] User.findAndCountAll Result -> count: ${count}, rows.length: ${rows.length}`
+      );
 
       success(res, 'Sellers list retrieved successfully', {
         sellers: rows,
@@ -279,7 +287,9 @@ export class AdminSellerController {
       });
 
       // Process pending queue jobs immediately
-      emailQueueManager.processPendingJobs().catch((err) => console.error('[EmailQueue] Process error:', err));
+      emailQueueManager
+        .processPendingJobs()
+        .catch((err) => console.error('[EmailQueue] Process error:', err));
 
       // Log direct audit seller creation
       await createAuditLog(
@@ -530,7 +540,10 @@ export class AdminSellerController {
       }
 
       const tempPassword =
-        'Sel' + Math.floor(100 + Math.random() * 900) + 'Reset!' + Math.floor(100 + Math.random() * 900);
+        'Sel' +
+        Math.floor(100 + Math.random() * 900) +
+        'Reset!' +
+        Math.floor(100 + Math.random() * 900);
       user.passwordHash = await bcrypt.hash(tempPassword, 10);
       user.mustChangePassword = true;
       await user.save();

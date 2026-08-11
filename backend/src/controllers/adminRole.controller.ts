@@ -53,7 +53,11 @@ export class AdminRoleController {
     }
   };
 
-  public listPermissions = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public listPermissions = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const perms = await this.service.listAllPermissions();
       success(res, 'Enterprise permissions matrix retrieved successfully', perms);
@@ -62,7 +66,11 @@ export class AdminRoleController {
     }
   };
 
-  public assignUserRole = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public assignUserRole = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const { userId, roleCode } = req.body;
       const result = await this.service.assignUserRole(Number(userId), roleCode, req.context);

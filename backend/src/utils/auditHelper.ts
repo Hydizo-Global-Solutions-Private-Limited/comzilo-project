@@ -56,10 +56,7 @@ export const createAuditLog = async (
   }
 };
 
-export const logVariantCreated = async (
-  variant: any,
-  context?: RequestContext
-): Promise<void> => {
+export const logVariantCreated = async (variant: any, context?: RequestContext): Promise<void> => {
   await createAuditLog(
     {
       tenantId: variant.tenantId || variant.tenant_id,
@@ -90,10 +87,7 @@ export const logVariantUpdated = async (
   );
 };
 
-export const logVariantDeleted = async (
-  variant: any,
-  context?: RequestContext
-): Promise<void> => {
+export const logVariantDeleted = async (variant: any, context?: RequestContext): Promise<void> => {
   await createAuditLog(
     {
       tenantId: variant.tenantId || variant.tenant_id,

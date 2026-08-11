@@ -16,7 +16,9 @@ export const runAllInventoryTabsVerification = async () => {
   });
 
   if (loginRes.status !== 200 || !loginRes.body?.data?.accessToken) {
-    throw new Error(`Login failed with status ${loginRes.status}: ${JSON.stringify(loginRes.body)}`);
+    throw new Error(
+      `Login failed with status ${loginRes.status}: ${JSON.stringify(loginRes.body)}`
+    );
   }
 
   const token = loginRes.body.data.accessToken;
@@ -26,12 +28,24 @@ export const runAllInventoryTabsVerification = async () => {
     { tab: 1, name: 'Warehouses', path: '/api/v1/store/inventory-management/warehouses' },
     { tab: 2, name: 'Warehouse Locations', path: '/api/v1/store/inventory-management/locations' },
     { tab: 3, name: 'Stock Balances', path: '/api/v1/store/inventory-management/balances' },
-    { tab: 4, name: 'Stock Management Overview', path: '/api/v1/store/inventory-management/dashboard' },
+    {
+      tab: 4,
+      name: 'Stock Management Overview',
+      path: '/api/v1/store/inventory-management/dashboard',
+    },
     { tab: 5, name: 'Stock Transfers', path: '/api/v1/store/inventory-management/transfers' },
     { tab: 6, name: 'Stock Adjustments', path: '/api/v1/store/inventory-management/adjustments' },
     { tab: 7, name: 'Suppliers Directory', path: '/api/v1/store/inventory-management/suppliers' },
-    { tab: 8, name: 'Purchase Orders (PO)', path: '/api/v1/store/inventory-management/purchase-orders' },
-    { tab: 9, name: 'Goods Receipt (GRN)', path: '/api/v1/store/inventory-management/goods-receipts' },
+    {
+      tab: 8,
+      name: 'Purchase Orders (PO)',
+      path: '/api/v1/store/inventory-management/purchase-orders',
+    },
+    {
+      tab: 9,
+      name: 'Goods Receipt (GRN)',
+      path: '/api/v1/store/inventory-management/goods-receipts',
+    },
     { tab: 10, name: 'Goods Issue (GIN)', path: '/api/v1/store/inventory-management/goods-issues' },
     { tab: 11, name: 'Barcode & QR Generator', path: '/api/v1/products' },
     { tab: 12, name: 'Serial Numbers', path: '/api/v1/store/inventory-management/serials' },
@@ -45,7 +59,9 @@ export const runAllInventoryTabsVerification = async () => {
   for (const ep of endpoints) {
     const res = await req.get(ep.path).set('Authorization', 'Bearer ' + token);
     if (res.status !== 200) {
-      throw new Error(`Tab ${ep.tab} [${ep.name}] failed at ${ep.path} with status ${res.status}: ${JSON.stringify(res.body)}`);
+      throw new Error(
+        `Tab ${ep.tab} [${ep.name}] failed at ${ep.path} with status ${res.status}: ${JSON.stringify(res.body)}`
+      );
     }
     const count = Array.isArray(res.body.data) ? res.body.data.length : 'OK';
     console.log(`✅ Tab ${ep.tab} [${ep.name}]: Status 200 OK | Data: ${count}`);

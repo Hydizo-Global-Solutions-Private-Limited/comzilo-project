@@ -17,7 +17,9 @@ export const verifyCredentials = async () => {
 
   let user = await User.findOne({ where: { email } });
   if (!user) {
-    console.log(`⚠️ User record not found. Creating user account with email "${email}" and password "${password}"...`);
+    console.log(
+      `⚠️ User record not found. Creating user account with email "${email}" and password "${password}"...`
+    );
     const passwordHash = await bcrypt.hash(password, 10);
     user = await User.create({
       tenantId: 1,
@@ -61,7 +63,9 @@ export const verifyCredentials = async () => {
   // Ensure Customer Role is assigned
   const customerRole = await Role.findOne({ where: { name: 'CUSTOMER' } });
   if (customerRole) {
-    const roleAssigned = await UserRole.findOne({ where: { userId: user.id, roleId: customerRole.id } });
+    const roleAssigned = await UserRole.findOne({
+      where: { userId: user.id, roleId: customerRole.id },
+    });
     if (!roleAssigned) {
       await UserRole.create({ tenantId: 1, userId: user.id, roleId: customerRole.id });
       console.log(`✅ CUSTOMER role assigned to User ID ${user.id}`);

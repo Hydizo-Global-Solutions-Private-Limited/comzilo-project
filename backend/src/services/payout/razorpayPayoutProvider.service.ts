@@ -19,7 +19,9 @@ export class RazorpayPayoutProvider implements IPayoutProvider {
     this.accountNumber = process.env.RAZORPAY_ACCOUNT_NUMBER || '2334455667788';
 
     if (!keyId || !keySecret) {
-      throw new ValidationError('Razorpay Payout API credentials (RAZORPAY_PAYOUT_KEY_ID / RAZORPAY_PAYOUT_KEY_SECRET) are missing.');
+      throw new ValidationError(
+        'Razorpay Payout API credentials (RAZORPAY_PAYOUT_KEY_ID / RAZORPAY_PAYOUT_KEY_SECRET) are missing.'
+      );
     }
 
     this.authToken = Buffer.from(`${keyId}:${keySecret}`).toString('base64');
@@ -51,7 +53,9 @@ export class RazorpayPayoutProvider implements IPayoutProvider {
     return { id: res.id, name: res.name };
   }
 
-  public async createFundAccount(payload: CreateFundAccountPayload): Promise<{ id: string; contact_id: string }> {
+  public async createFundAccount(
+    payload: CreateFundAccountPayload
+  ): Promise<{ id: string; contact_id: string }> {
     const res = await this.request('/fund_accounts', {
       method: 'POST',
       body: JSON.stringify(payload),

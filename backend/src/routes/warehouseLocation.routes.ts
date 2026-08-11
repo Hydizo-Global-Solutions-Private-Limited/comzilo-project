@@ -13,7 +13,11 @@ router.use(tenantResolver);
 router.use(requireAuth);
 router.use(authorize);
 
-router.get('/:id', requireAnyPermission(['warehouse_location.read', 'warehouse.read', 'warehouse.view']), controller.getLocation);
+router.get(
+  '/:id',
+  requireAnyPermission(['warehouse_location.read', 'warehouse.read', 'warehouse.view']),
+  controller.getLocation
+);
 
 router.put(
   '/:id',

@@ -54,7 +54,9 @@ export class EmailQueueManager {
       }
     );
 
-    console.log(`[EmailQueue] Queued job #${res} (${triggerEvent}) for ${recipient} scheduled at ${scheduledAt}`);
+    console.log(
+      `[EmailQueue] Queued job #${res} (${triggerEvent}) for ${recipient} scheduled at ${scheduledAt}`
+    );
     return res;
   }
 
@@ -78,10 +80,14 @@ export class EmailQueueManager {
    */
   public startWorker(intervalMs = 15000): void {
     if (this.intervalId) return;
-    console.log(`[EmailQueueWorker] Background queue worker active (polling every ${intervalMs / 1000}s)...`);
+    console.log(
+      `[EmailQueueWorker] Background queue worker active (polling every ${intervalMs / 1000}s)...`
+    );
     this.intervalId = setInterval(() => this.processPendingJobs(), intervalMs);
     // Run immediately on boot
-    this.processPendingJobs().catch((err) => console.error('[EmailQueueWorker] Error in processPendingJobs:', err));
+    this.processPendingJobs().catch((err) =>
+      console.error('[EmailQueueWorker] Error in processPendingJobs:', err)
+    );
   }
 
   /**
@@ -97,7 +103,11 @@ export class EmailQueueManager {
   /**
    * Process Pending & Due Queue Jobs (Database Queue Engine)
    */
-  public async processPendingJobs(): Promise<{ processed: number; success: number; failed: number }> {
+  public async processPendingJobs(): Promise<{
+    processed: number;
+    success: number;
+    failed: number;
+  }> {
     if (this.isProcessing) return { processed: 0, success: 0, failed: 0 };
     this.isProcessing = true;
 
@@ -135,11 +145,16 @@ export class EmailQueueManager {
         if (job.trigger_event === 'cart_abandoned' && job.cart_token) {
           const [order]: any = await sequelize.query(
             `SELECT id FROM orders WHERE (id = :cartToken OR order_number = :cartToken) AND tenant_id = :tenantId LIMIT 1`,
-            { replacements: { cartToken: job.cart_token, tenantId: job.tenant_id }, type: QueryTypes.SELECT }
+            {
+              replacements: { cartToken: job.cart_token, tenantId: job.tenant_id },
+              type: QueryTypes.SELECT,
+            }
           );
 
           if (order && order.id) {
-            console.log(`[EmailQueueWorker] Customer completed order #${order.id}! Cancelling abandoned cart job #${job.id}`);
+            console.log(
+              `[EmailQueueWorker] Customer completed order #${order.id}! Cancelling abandoned cart job #${job.id}`
+            );
             await sequelize.query(
               `UPDATE marketing_email_queue SET status = 'cancelled', error_log = 'Order completed before dispatch', updated_at = NOW() WHERE id = :id`,
               { replacements: { id: job.id } }
@@ -156,7 +171,10 @@ export class EmailQueueManager {
             offer: payload.offer || '10% OFF with SAVE10',
           });
 
-          const finalSubject = this.aiGenerator.interpolatePlaceholders(job.subject || aiContent.subject, payload);
+          const finalSubject = this.aiGenerator.interpolatePlaceholders(
+            job.subject || aiContent.subject,
+            payload
+          );
           const finalHtml = this.aiGenerator.interpolatePlaceholders(aiContent.bodyHtml, payload);
 
           // Dispatch email via Nodemailer SMTP
@@ -175,7 +193,9 @@ export class EmailQueueManager {
           );
 
           successCount++;
-          console.log(`[EmailQueueWorker] Job #${job.id} (${job.trigger_event}) successfully sent to ${job.recipient}. MsgID: ${sendRes.messageId}`);
+          console.log(
+            `[EmailQueueWorker] Job #${job.id} (${job.trigger_event}) successfully sent to ${job.recipient}. MsgID: ${sendRes.messageId}`
+          );
         } catch (err: any) {
           failedCount++;
           const errorMsg = err.message || String(err);
@@ -198,7 +218,9 @@ export class EmailQueueManager {
                WHERE id = :id`,
               { replacements: { retryCount, nextRetryAt, errorMsg, id: job.id } }
             );
-            console.warn(`[EmailQueueWorker] Job #${job.id} failed (${errorMsg}). Scheduled Retry #${retryCount} at ${nextRetryAt}`);
+            console.warn(
+              `[EmailQueueWorker] Job #${job.id} failed (${errorMsg}). Scheduled Retry #${retryCount} at ${nextRetryAt}`
+            );
           } else {
             // Max retries exceeded -> Mark Failed
             await sequelize.query(
@@ -207,7 +229,9 @@ export class EmailQueueManager {
                WHERE id = :id`,
               { replacements: { retryCount, errorMsg, id: job.id } }
             );
-            console.error(`[EmailQueueWorker] Job #${job.id} permanently failed after 3 retries. Error: ${errorMsg}`);
+            console.error(
+              `[EmailQueueWorker] Job #${job.id} permanently failed after 3 retries. Error: ${errorMsg}`
+            );
           }
         }
       }

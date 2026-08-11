@@ -234,7 +234,9 @@ export class AdminSellerApplicationController {
       });
 
       // Process pending queue jobs immediately
-      emailQueueManager.processPendingJobs().catch((err) => console.error('[EmailQueue] Process error:', err));
+      emailQueueManager
+        .processPendingJobs()
+        .catch((err) => console.error('[EmailQueue] Process error:', err));
 
       // Notification Service Fallback
       const notificationService = new NotificationService();
@@ -245,19 +247,15 @@ export class AdminSellerApplicationController {
         content: `Dear ${application.ownerName}, your application for ${application.businessName} has been approved.\n\nCredentials:\nEmail: ${application.email}\nTemporary Password: ${temporaryPassword}\nTenant: ${tenantName}\nStore: ${storeName}\n\nPlease change your temporary password upon first login.`,
       });
 
-      success(
-        res,
-        'Seller approved successfully. Login credentials have been emailed.',
-        {
-          application,
-          credentials: {
-            email: application.email,
-            temporaryPassword,
-            tenantName,
-            storeName,
-          },
-        }
-      );
+      success(res, 'Seller approved successfully. Login credentials have been emailed.', {
+        application,
+        credentials: {
+          email: application.email,
+          temporaryPassword,
+          tenantName,
+          storeName,
+        },
+      });
     } catch (error) {
       next(error);
     }

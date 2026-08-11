@@ -17,7 +17,12 @@ export const errorHandler = (
   let message: string = RESPONSE_MESSAGES.INTERNAL_ERROR;
   let errors: unknown[] = [];
 
-  if (err instanceof AppError || err?.isOperational || err?.statusCode || err?.name === 'ValidationError') {
+  if (
+    err instanceof AppError ||
+    err?.isOperational ||
+    err?.statusCode ||
+    err?.name === 'ValidationError'
+  ) {
     statusCode = err.statusCode || HTTP_STATUS.BAD_REQUEST;
     code = err.code || 'VALIDATION_ERROR';
     message = err.message || RESPONSE_MESSAGES.VALIDATION_ERROR;

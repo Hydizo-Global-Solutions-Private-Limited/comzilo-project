@@ -39,8 +39,12 @@ export const debugSatishPermissions = async () => {
 
     console.log(`Permissions (storeId = undefined): Count = ${permsWithUndefinedStore.length}`);
     console.log(`Permissions (storeId = 1): Count = ${permsWithStore1.length}`);
-    console.log(`Has 'warehouse.create' (undefined storeId): ${permsWithUndefinedStore.includes('warehouse.create')}`);
-    console.log(`Has 'warehouse.create' (storeId = 1): ${permsWithStore1.includes('warehouse.create')}`);
+    console.log(
+      `Has 'warehouse.create' (undefined storeId): ${permsWithUndefinedStore.includes('warehouse.create')}`
+    );
+    console.log(
+      `Has 'warehouse.create' (storeId = 1): ${permsWithStore1.includes('warehouse.create')}`
+    );
   }
 };
 

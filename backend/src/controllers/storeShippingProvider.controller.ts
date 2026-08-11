@@ -15,18 +15,30 @@ export class StoreShippingProviderController {
     }
   };
 
-  public configureProvider = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public configureProvider = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const tenantId = req.context.tenantId!;
       const { providerId } = req.params;
-      const config = await shippingService.configureTenantProvider(tenantId, Number(providerId), req.body);
+      const config = await shippingService.configureTenantProvider(
+        tenantId,
+        Number(providerId),
+        req.body
+      );
       success(res, 'Shipping provider configured successfully', config);
     } catch (error) {
       next(error);
     }
   };
 
-  public testConnection = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public testConnection = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const tenantId = req.context.tenantId!;
       const { providerCode } = req.body;
@@ -77,7 +89,11 @@ export class StoreShippingProviderController {
     }
   };
 
-  public getPickupAddresses = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public getPickupAddresses = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const tenantId = req.context.tenantId!;
       const addresses = await shippingService.getPickupAddresses(tenantId);
@@ -87,7 +103,11 @@ export class StoreShippingProviderController {
     }
   };
 
-  public createPickupAddress = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public createPickupAddress = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const tenantId = req.context.tenantId!;
       const address = await shippingService.createPickupAddress(tenantId, req.body);
@@ -127,7 +147,11 @@ export class StoreShippingProviderController {
     }
   };
 
-  public createShipment = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public createShipment = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const tenantId = req.context.tenantId!;
       const shipment = await shippingService.createShipment(tenantId, req.body);
@@ -179,7 +203,11 @@ export class StoreShippingProviderController {
     }
   };
 
-  public deletePickupAddress = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public deletePickupAddress = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const tenantId = req.context.tenantId!;
       const { id } = req.params;
@@ -201,7 +229,11 @@ export class StoreShippingProviderController {
     }
   };
 
-  public deleteShipment = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public deleteShipment = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const tenantId = req.context.tenantId!;
       const { id } = req.params;
@@ -223,7 +255,11 @@ export class StoreShippingProviderController {
     }
   };
 
-  public deleteProvider = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public deleteProvider = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const tenantId = req.context.tenantId!;
       const { id } = req.params;

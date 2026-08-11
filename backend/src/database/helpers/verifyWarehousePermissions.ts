@@ -51,14 +51,20 @@ export const runWarehousePermissionsVerification = async () => {
   // 2. Ensure tenant_owner & store_owner roles have warehouse permissions
   console.log('\n[2/4] Verifying Role-Permission Mappings for Seller/Tenant Owner...');
   const targetRoles = ['tenant_owner', 'store_owner', 'admin', 'super_admin'];
-  const roles: any = await sequelize.query('SELECT id, code FROM roles WHERE code IN (:targetRoles)', {
-    replacements: { targetRoles },
-    type: QueryTypes.SELECT,
-  });
+  const roles: any = await sequelize.query(
+    'SELECT id, code FROM roles WHERE code IN (:targetRoles)',
+    {
+      replacements: { targetRoles },
+      type: QueryTypes.SELECT,
+    }
+  );
 
-  const permissions: any = await sequelize.query('SELECT id, code FROM permissions WHERE module = "warehouses"', {
-    type: QueryTypes.SELECT,
-  });
+  const permissions: any = await sequelize.query(
+    'SELECT id, code FROM permissions WHERE module = "warehouses"',
+    {
+      type: QueryTypes.SELECT,
+    }
+  );
 
   for (const role of roles) {
     for (const perm of permissions) {
@@ -92,7 +98,9 @@ export const runWarehousePermissionsVerification = async () => {
   });
 
   if (loginRes.status !== 200 || !loginRes.body?.data?.accessToken) {
-    throw new Error(`Login failed with status ${loginRes.status}: ${JSON.stringify(loginRes.body)}`);
+    throw new Error(
+      `Login failed with status ${loginRes.status}: ${JSON.stringify(loginRes.body)}`
+    );
   }
 
   const token = loginRes.body.data.accessToken;
@@ -122,7 +130,9 @@ export const runWarehousePermissionsVerification = async () => {
   }
 
   // 4. Verify Warehouse is persisted in MySQL database & test DELETE API with auto-reassignment
-  console.log('\n[4/4] Verifying Database Record Persistence & DELETE API with Auto-Reassignment...');
+  console.log(
+    '\n[4/4] Verifying Database Record Persistence & DELETE API with Auto-Reassignment...'
+  );
   const savedWarehouse1 = await Warehouse.findOne({ where: { code: testWarehouseCode } });
   if (!savedWarehouse1) {
     throw new Error(`Warehouse with code ${testWarehouseCode} was not found in MySQL database!`);
@@ -149,12 +159,16 @@ export const runWarehousePermissionsVerification = async () => {
 
   console.log(`DELETE HTTP Response Status: ${deleteRes1.status}`);
   if (deleteRes1.status !== 200) {
-    throw new Error(`DELETE warehouse failed with status ${deleteRes1.status}: ${JSON.stringify(deleteRes1.body)}`);
+    throw new Error(
+      `DELETE warehouse failed with status ${deleteRes1.status}: ${JSON.stringify(deleteRes1.body)}`
+    );
   }
 
   // Reload warehouse 2 to confirm it was automatically promoted to default
   await savedWarehouse2?.reload();
-  console.log(`✅ Warehouse #${savedWarehouse1.id} deleted. Warehouse #${savedWarehouse2?.id} is now default: ${savedWarehouse2?.isDefault}`);
+  console.log(
+    `✅ Warehouse #${savedWarehouse1.id} deleted. Warehouse #${savedWarehouse2?.id} is now default: ${savedWarehouse2?.isDefault}`
+  );
 
   console.log('\n====================================================');
   console.log('🎉 WAREHOUSE RBAC PERMISSIONS VERIFIED 100% SUCCESS!');

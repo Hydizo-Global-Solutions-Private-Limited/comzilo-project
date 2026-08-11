@@ -105,8 +105,13 @@ export class MarketingService {
 
     if (dbRows.length === 0) return [defaultGmailProvider];
 
-    const saved = dbRows.find((r: any) => r.provider_type === 'smtp' || r.provider_type === 'gmail') || dbRows[0];
-    const parsedConfig = typeof saved.config_json === 'string' ? JSON.parse(saved.config_json || '{}') : (saved.config_json || {});
+    const saved =
+      dbRows.find((r: any) => r.provider_type === 'smtp' || r.provider_type === 'gmail') ||
+      dbRows[0];
+    const parsedConfig =
+      typeof saved.config_json === 'string'
+        ? JSON.parse(saved.config_json || '{}')
+        : saved.config_json || {};
 
     return [
       {
@@ -145,7 +150,10 @@ export class MarketingService {
       );
       if (existing && existing.config_json) {
         try {
-          const parsed = typeof existing.config_json === 'string' ? JSON.parse(existing.config_json) : existing.config_json;
+          const parsed =
+            typeof existing.config_json === 'string'
+              ? JSON.parse(existing.config_json)
+              : existing.config_json;
           rawPassword = parsed.password || parsed.smtpPassword || '';
         } catch {}
       }
@@ -237,9 +245,11 @@ export class MarketingService {
         port: Number(config.smtpPort || config.port || 587),
         username: config.smtpUsername || config.username || '',
         password: config.smtpPassword || config.password || '',
-        encryption: config.encryption || (Number(config.smtpPort || config.port) === 465 ? 'ssl' : 'tls'),
+        encryption:
+          config.encryption || (Number(config.smtpPort || config.port) === 465 ? 'ssl' : 'tls'),
         senderName: config.senderName || config.fromName || 'Comzilo Store',
-        senderEmail: config.senderEmail || config.fromEmail || config.smtpUsername || config.username || '',
+        senderEmail:
+          config.senderEmail || config.fromEmail || config.smtpUsername || config.username || '',
         providerType: 'smtp',
       };
     }
@@ -251,7 +261,11 @@ export class MarketingService {
     }
   }
 
-  public async sendTestEmail(tenantId: number, recipientEmail: string, config?: any): Promise<{ success: boolean; messageId: string }> {
+  public async sendTestEmail(
+    tenantId: number,
+    recipientEmail: string,
+    config?: any
+  ): Promise<{ success: boolean; messageId: string }> {
     if (!recipientEmail) throw new ValidationError('Recipient Email Address is required');
     let formattedConfig: any = undefined;
     if (config && (config.smtpHost || config.host || config.smtpUsername || config.username)) {
@@ -260,9 +274,11 @@ export class MarketingService {
         port: Number(config.smtpPort || config.port || 587),
         username: config.smtpUsername || config.username || '',
         password: config.smtpPassword || config.password || '',
-        encryption: config.encryption || (Number(config.smtpPort || config.port) === 465 ? 'ssl' : 'tls'),
+        encryption:
+          config.encryption || (Number(config.smtpPort || config.port) === 465 ? 'ssl' : 'tls'),
         senderName: config.senderName || config.fromName || 'Comzilo Store',
-        senderEmail: config.senderEmail || config.fromEmail || config.smtpUsername || config.username || '',
+        senderEmail:
+          config.senderEmail || config.fromEmail || config.smtpUsername || config.username || '',
         providerType: 'smtp',
       };
     }
@@ -320,7 +336,13 @@ export class MarketingService {
     );
   }
 
-  public async enqueueCartAbandonment(tenantId: number, recipient: string, payload: any, delayMinutes = 5, cartToken?: string): Promise<number> {
+  public async enqueueCartAbandonment(
+    tenantId: number,
+    recipient: string,
+    payload: any,
+    delayMinutes = 5,
+    cartToken?: string
+  ): Promise<number> {
     return await this.queueManager.addJob({
       tenantId,
       triggerEvent: 'cart_abandoned',
@@ -345,7 +367,11 @@ export class MarketingService {
     return await NotificationTemplate.findAll({ where, order: [['name', 'ASC']] });
   }
 
-  public async createEmailTemplate(tenantId: number, storeId: number, data: any): Promise<NotificationTemplate> {
+  public async createEmailTemplate(
+    tenantId: number,
+    storeId: number,
+    data: any
+  ): Promise<NotificationTemplate> {
     if (!data.name) throw new ValidationError('Template Name is required');
     return await NotificationTemplate.create({
       tenantId,
@@ -369,7 +395,11 @@ export class MarketingService {
     return await MarketingCampaign.findAll({ where, order: [['createdAt', 'DESC']] });
   }
 
-  public async createCampaign(tenantId: number, storeId: number, data: any): Promise<MarketingCampaign> {
+  public async createCampaign(
+    tenantId: number,
+    storeId: number,
+    data: any
+  ): Promise<MarketingCampaign> {
     if (!data.name) throw new ValidationError('Campaign Name is required');
     return await MarketingCampaign.create({
       tenantId,
@@ -428,7 +458,8 @@ export class MarketingService {
     });
 
     const customerIds = pendingOrders.map((o: any) => o.customerId).filter(Boolean);
-    const customers = customerIds.length > 0 ? await Customer.findAll({ where: { id: customerIds } }) : [];
+    const customers =
+      customerIds.length > 0 ? await Customer.findAll({ where: { id: customerIds } }) : [];
     const customerMap = new Map(customers.map((c: any) => [c.id, c]));
 
     return pendingOrders.map((order: any) => {
@@ -457,7 +488,11 @@ export class MarketingService {
     return await CustomerSegment.findAll({ where, order: [['name', 'ASC']] });
   }
 
-  public async createCustomerSegment(tenantId: number, storeId: number, data: any): Promise<CustomerSegment> {
+  public async createCustomerSegment(
+    tenantId: number,
+    storeId: number,
+    data: any
+  ): Promise<CustomerSegment> {
     if (!data.name) throw new ValidationError('Segment Name is required');
 
     return await CustomerSegment.create({
@@ -480,7 +515,11 @@ export class MarketingService {
     return await MarketingAutomation.findAll({ where, order: [['name', 'ASC']] });
   }
 
-  public async createAutomationRule(tenantId: number, storeId: number, data: any): Promise<MarketingAutomation> {
+  public async createAutomationRule(
+    tenantId: number,
+    storeId: number,
+    data: any
+  ): Promise<MarketingAutomation> {
     if (!data.name) throw new ValidationError('Rule Name is required');
 
     return await MarketingAutomation.create({
@@ -545,17 +584,52 @@ export class MarketingService {
     return true;
   }
 
-  public async sendWhatsAppTestMessage(tenantId: number, recipientPhone: string, config: any): Promise<any> {
+  public async sendWhatsAppTestMessage(
+    tenantId: number,
+    recipientPhone: string,
+    config: any
+  ): Promise<any> {
     const provider = new MetaWhatsAppCloudProvider(config);
-    return await provider.sendTextMessage(recipientPhone || '+15550192831', 'Hello! This is an automated test message from Comzilo WhatsApp Cloud API Integration.');
+    return await provider.sendTextMessage(
+      recipientPhone || '+15550192831',
+      'Hello! This is an automated test message from Comzilo WhatsApp Cloud API Integration.'
+    );
   }
 
   public async getWhatsAppTemplates(tenantId: number | null): Promise<any[]> {
     return [
-      { id: 1, name: 'welcome_customer', category: 'Welcome', language: 'en', status: 'APPROVED', body: 'Hello {{customer_name}}, welcome to {{store_name}}!' },
-      { id: 2, name: 'order_confirmation', category: 'Order Confirmation', language: 'en', status: 'APPROVED', body: 'Hi {{customer_name}}, your order #{{order_number}} of {{payment_amount}} is confirmed!' },
-      { id: 3, name: 'order_shipped', category: 'Order Shipped', language: 'en', status: 'APPROVED', body: 'Your order #{{order_number}} is shipped! Track here: {{tracking_link}}' },
-      { id: 4, name: 'abandoned_cart_reminder', category: 'Abandoned Cart', language: 'en', status: 'APPROVED', body: 'Hi {{customer_name}}, you left items in your cart. Use coupon {{coupon_code}} for 10% OFF!' },
+      {
+        id: 1,
+        name: 'welcome_customer',
+        category: 'Welcome',
+        language: 'en',
+        status: 'APPROVED',
+        body: 'Hello {{customer_name}}, welcome to {{store_name}}!',
+      },
+      {
+        id: 2,
+        name: 'order_confirmation',
+        category: 'Order Confirmation',
+        language: 'en',
+        status: 'APPROVED',
+        body: 'Hi {{customer_name}}, your order #{{order_number}} of {{payment_amount}} is confirmed!',
+      },
+      {
+        id: 3,
+        name: 'order_shipped',
+        category: 'Order Shipped',
+        language: 'en',
+        status: 'APPROVED',
+        body: 'Your order #{{order_number}} is shipped! Track here: {{tracking_link}}',
+      },
+      {
+        id: 4,
+        name: 'abandoned_cart_reminder',
+        category: 'Abandoned Cart',
+        language: 'en',
+        status: 'APPROVED',
+        body: 'Hi {{customer_name}}, you left items in your cart. Use coupon {{coupon_code}} for 10% OFF!',
+      },
     ];
   }
 
@@ -574,10 +648,30 @@ export class MarketingService {
 
   public async getCommunicationLogs(tenantId: number | null): Promise<any[]> {
     return [
-      { id: 'COMM-101', channel: 'WhatsApp', recipient: '+1 555 0192', event: 'Order Confirmation', status: 'DELIVERED', sentAt: new Date().toISOString() },
-      { id: 'COMM-102', channel: 'Email', recipient: 'customer@example.com', event: 'Invoice Receipt', status: 'SENT', sentAt: new Date().toISOString() },
-      { id: 'COMM-103', channel: 'In-App', recipient: 'Customer #1', event: 'Order Shipped Alert', status: 'READ', sentAt: new Date().toISOString() },
+      {
+        id: 'COMM-101',
+        channel: 'WhatsApp',
+        recipient: '+1 555 0192',
+        event: 'Order Confirmation',
+        status: 'DELIVERED',
+        sentAt: new Date().toISOString(),
+      },
+      {
+        id: 'COMM-102',
+        channel: 'Email',
+        recipient: 'customer@example.com',
+        event: 'Invoice Receipt',
+        status: 'SENT',
+        sentAt: new Date().toISOString(),
+      },
+      {
+        id: 'COMM-103',
+        channel: 'In-App',
+        recipient: 'Customer #1',
+        event: 'Order Shipped Alert',
+        status: 'READ',
+        sentAt: new Date().toISOString(),
+      },
     ];
   }
 }
-

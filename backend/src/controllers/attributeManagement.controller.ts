@@ -6,7 +6,11 @@ const service = new AttributeManagementService();
 
 export class AttributeManagementController {
   // Attribute Groups
-  public getAttributeGroups = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public getAttributeGroups = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const tenantId = (req as any).tenantId || null;
       const groups = await service.getAttributeGroups(tenantId);
@@ -16,7 +20,11 @@ export class AttributeManagementController {
     }
   };
 
-  public createAttributeGroup = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public createAttributeGroup = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const tenantId = (req as any).tenantId || null;
       const group = await service.createAttributeGroup(tenantId, req.body, (req as any).context);
@@ -26,18 +34,31 @@ export class AttributeManagementController {
     }
   };
 
-  public updateAttributeGroup = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public updateAttributeGroup = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const id = Number(req.params.id);
       const tenantId = (req as any).tenantId || null;
-      const updated = await service.updateAttributeGroup(id, tenantId, req.body, (req as any).context);
+      const updated = await service.updateAttributeGroup(
+        id,
+        tenantId,
+        req.body,
+        (req as any).context
+      );
       success(res, 'Attribute group updated successfully', updated);
     } catch (error) {
       next(error);
     }
   };
 
-  public deleteAttributeGroup = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public deleteAttributeGroup = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const id = Number(req.params.id);
       const tenantId = (req as any).tenantId || null;
@@ -49,7 +70,11 @@ export class AttributeManagementController {
   };
 
   // Attribute Values
-  public getAttributeValues = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public getAttributeValues = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const groupId = Number(req.params.groupId);
       const values = await service.getAttributeValues(groupId);
@@ -59,7 +84,11 @@ export class AttributeManagementController {
     }
   };
 
-  public createAttributeValue = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public createAttributeValue = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const tenantId = (req as any).tenantId || null;
       const val = await service.createAttributeValue(tenantId, req.body, (req as any).context);
@@ -69,18 +98,31 @@ export class AttributeManagementController {
     }
   };
 
-  public updateAttributeValue = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public updateAttributeValue = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const id = Number(req.params.id);
       const tenantId = (req as any).tenantId || null;
-      const updated = await service.updateAttributeValue(id, tenantId, req.body, (req as any).context);
+      const updated = await service.updateAttributeValue(
+        id,
+        tenantId,
+        req.body,
+        (req as any).context
+      );
       success(res, 'Attribute value updated successfully', updated);
     } catch (error) {
       next(error);
     }
   };
 
-  public deleteAttributeValue = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public deleteAttributeValue = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const id = Number(req.params.id);
       const tenantId = (req as any).tenantId || null;
@@ -92,7 +134,11 @@ export class AttributeManagementController {
   };
 
   // Category Attributes
-  public getCategoryAttributes = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public getCategoryAttributes = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const categoryId = req.query.categoryId ? Number(req.query.categoryId) : undefined;
       const tenantId = (req as any).tenantId || null;
@@ -103,7 +149,11 @@ export class AttributeManagementController {
     }
   };
 
-  public createCategoryAttribute = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public createCategoryAttribute = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const tenantId = (req as any).tenantId || null;
       const attr = await service.createCategoryAttribute(tenantId, req.body, (req as any).context);
@@ -113,18 +163,31 @@ export class AttributeManagementController {
     }
   };
 
-  public updateCategoryAttribute = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public updateCategoryAttribute = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const id = Number(req.params.id);
       const tenantId = (req as any).tenantId || null;
-      const updated = await service.updateCategoryAttribute(id, tenantId, req.body, (req as any).context);
+      const updated = await service.updateCategoryAttribute(
+        id,
+        tenantId,
+        req.body,
+        (req as any).context
+      );
       success(res, 'Category attribute updated successfully', updated);
     } catch (error) {
       next(error);
     }
   };
 
-  public deleteCategoryAttribute = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public deleteCategoryAttribute = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const id = Number(req.params.id);
       const tenantId = (req as any).tenantId || null;

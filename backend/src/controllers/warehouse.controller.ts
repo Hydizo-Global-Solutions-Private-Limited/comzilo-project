@@ -15,7 +15,8 @@ export class WarehouseController {
   }
 
   private async getStoreId(req: Request): Promise<number> {
-    const rawStoreId = req.headers['x-store-id'] || req.query.storeId || req.body.storeId || req.context?.storeId;
+    const rawStoreId =
+      req.headers['x-store-id'] || req.query.storeId || req.body.storeId || req.context?.storeId;
     if (rawStoreId) {
       const parsed = Number(rawStoreId);
       if (!isNaN(parsed) && parsed > 0) return parsed;

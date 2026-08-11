@@ -919,10 +919,19 @@ export {
 };
 
 // Shipping Associations
-ShippingProvider.hasMany(TenantShippingProviderConfig, { foreignKey: 'provider_id', as: 'tenantConfigs' });
-TenantShippingProviderConfig.belongsTo(ShippingProvider, { foreignKey: 'provider_id', as: 'provider' });
+ShippingProvider.hasMany(TenantShippingProviderConfig, {
+  foreignKey: 'provider_id',
+  as: 'tenantConfigs',
+});
+TenantShippingProviderConfig.belongsTo(ShippingProvider, {
+  foreignKey: 'provider_id',
+  as: 'provider',
+});
 
-Tenant.hasMany(TenantShippingProviderConfig, { foreignKey: 'tenant_id', as: 'shippingProviderConfigs' });
+Tenant.hasMany(TenantShippingProviderConfig, {
+  foreignKey: 'tenant_id',
+  as: 'shippingProviderConfigs',
+});
 TenantShippingProviderConfig.belongsTo(Tenant, { foreignKey: 'tenant_id', as: 'tenant' });
 
 Tenant.hasMany(ShippingZone, { foreignKey: 'tenant_id', as: 'shippingZones' });
@@ -938,17 +947,9 @@ Tenant.hasMany(ShipmentPackage, { foreignKey: 'tenant_id', as: 'shipmentPackages
 ShipmentPackage.belongsTo(Tenant, { foreignKey: 'tenant_id', as: 'tenant' });
 
 Tenant.hasMany(Shipment, { foreignKey: 'tenant_id', as: 'shipments' });
-import {
-  VariantAttribute,
-  VariantImage,
-  VariantInventory,
-} from './productVariant';
+import { VariantAttribute, VariantImage, VariantInventory } from './productVariant';
 
-import {
-  AttributeGroup,
-  CategoryAttribute,
-  AttributeValue,
-} from './categoryAttributeEngine';
+import { AttributeGroup, CategoryAttribute, AttributeValue } from './categoryAttributeEngine';
 
 export {
   VariantAttribute,
@@ -979,7 +980,8 @@ VariantInventory.belongsTo(Warehouse, { foreignKey: 'warehouse_id', as: 'warehou
 AttributeGroup.hasMany(AttributeValue, { foreignKey: 'attribute_group_id', as: 'values' });
 AttributeValue.belongsTo(AttributeGroup, { foreignKey: 'attribute_group_id', as: 'group' });
 
-AttributeGroup.hasMany(CategoryAttribute, { foreignKey: 'attribute_group_id', as: 'categoryAttributes' });
+AttributeGroup.hasMany(CategoryAttribute, {
+  foreignKey: 'attribute_group_id',
+  as: 'categoryAttributes',
+});
 CategoryAttribute.belongsTo(AttributeGroup, { foreignKey: 'attribute_group_id', as: 'group' });
-
-

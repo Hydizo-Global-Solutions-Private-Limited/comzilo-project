@@ -68,16 +68,51 @@ export class AiEmailGenerator {
   public generateProductRecommendations(cartItemsText = 'Shoes'): string {
     const items = cartItemsText.toLowerCase();
     let recs = [
-      { name: 'Premium Cotton Cushion Socks (Pack of 3)', price: '₹399', original: '₹599', discount: '33% OFF' },
-      { name: 'All-In-One Shoe Cleaner & Polish Kit', price: '₹299', original: '₹499', discount: '40% OFF' },
-      { name: 'Reflective Durable Laces Set', price: '₹149', original: '₹249', discount: '40% OFF' },
+      {
+        name: 'Premium Cotton Cushion Socks (Pack of 3)',
+        price: '₹399',
+        original: '₹599',
+        discount: '33% OFF',
+      },
+      {
+        name: 'All-In-One Shoe Cleaner & Polish Kit',
+        price: '₹299',
+        original: '₹499',
+        discount: '40% OFF',
+      },
+      {
+        name: 'Reflective Durable Laces Set',
+        price: '₹149',
+        original: '₹249',
+        discount: '40% OFF',
+      },
     ];
 
-    if (items.includes('phone') || items.includes('mobile') || items.includes('laptop') || items.includes('electronics')) {
+    if (
+      items.includes('phone') ||
+      items.includes('mobile') ||
+      items.includes('laptop') ||
+      items.includes('electronics')
+    ) {
       recs = [
-        { name: 'Ultra-Fast GaN 65W Charger', price: '₹999', original: '₹1,499', discount: '33% OFF' },
-        { name: 'Tempered Glass Screen Protector', price: '₹299', original: '₹599', discount: '50% OFF' },
-        { name: 'Shockproof Matte Armor Case', price: '₹499', original: '₹799', discount: '37% OFF' },
+        {
+          name: 'Ultra-Fast GaN 65W Charger',
+          price: '₹999',
+          original: '₹1,499',
+          discount: '33% OFF',
+        },
+        {
+          name: 'Tempered Glass Screen Protector',
+          price: '₹299',
+          original: '₹599',
+          discount: '50% OFF',
+        },
+        {
+          name: 'Shockproof Matte Armor Case',
+          price: '₹499',
+          original: '₹799',
+          discount: '37% OFF',
+        },
       ];
     }
 
@@ -85,7 +120,9 @@ export class AiEmailGenerator {
       <div style="margin-top: 25px; padding: 20px; background-color: #F9FAFB; border-radius: 8px; border: 1px solid #E5E7EB;">
         <h3 style="margin-top: 0; color: #111827; font-size: 16px; font-weight: 700;">Recommended Items to Complete Your Look & Save Extra:</h3>
         <div style="display: grid; grid-template-columns: 1fr; gap: 12px;">
-          ${recs.map(r => `
+          ${recs
+            .map(
+              (r) => `
             <div style="display: flex; justify-content: space-between; align-items: center; background: #FFFFFF; padding: 10px 14px; border-radius: 6px; border: 1px solid #E5E7EB;">
               <div>
                 <strong style="font-size: 14px; color: #1F2937;">${r.name}</strong>
@@ -96,7 +133,9 @@ export class AiEmailGenerator {
                 <span style="font-size: 11px; text-decoration: line-through; color: #9CA3AF; margin-left: 4px;">${r.original}</span>
               </div>
             </div>
-          `).join('')}
+          `
+            )
+            .join('')}
         </div>
       </div>
     `;
@@ -178,7 +217,10 @@ export class AiEmailGenerator {
           As a special welcome gift, enjoy {{discount}} on your very first order using code: <strong>{{coupon_code}}</strong>.
         </p>
       `;
-    } else if (purpose.toLowerCase().includes('order') || purpose.toLowerCase().includes('confirmation')) {
+    } else if (
+      purpose.toLowerCase().includes('order') ||
+      purpose.toLowerCase().includes('confirmation')
+    ) {
       bodyContent = `
         <p style="font-size: 15px; color: #374151; line-height: 1.6;">
           Thank you for your order! We have successfully received your order <strong>#{{order_number}}</strong> and are preparing it for shipment.
@@ -232,7 +274,9 @@ export class AiEmailGenerator {
     `;
 
     return {
-      subject: purpose.toLowerCase().includes('seller') ? 'Welcome to Comzilo Seller Portal' : chosenSubject,
+      subject: purpose.toLowerCase().includes('seller')
+        ? 'Welcome to Comzilo Seller Portal'
+        : chosenSubject,
       subjectVariations: subjects,
       greeting: 'Hi {{seller_name}},',
       bodyHtml: fullHtml,
@@ -250,7 +294,8 @@ export class AiEmailGenerator {
     let result = templateStr;
 
     const placeholders: Record<string, string> = {
-      customer_name: data.customerName || data.sellerName || data.ownerName || data.name || 'Valued Customer',
+      customer_name:
+        data.customerName || data.sellerName || data.ownerName || data.name || 'Valued Customer',
       seller_name: data.sellerName || data.ownerName || data.customerName || 'Valued Seller',
       seller_email: data.sellerEmail || data.email || '',
       temporary_password: data.temporaryPassword || data.tempPassword || '',

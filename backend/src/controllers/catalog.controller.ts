@@ -18,7 +18,11 @@ export class CatalogController {
     }
   };
 
-  public createCategory = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public createCategory = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const tenantId = req.context?.tenantId || 1;
       const storeId = req.context?.storeId || 1;
@@ -29,7 +33,11 @@ export class CatalogController {
     }
   };
 
-  public updateCategory = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public updateCategory = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const tenantId = req.context?.tenantId || 1;
       const id = Number(req.params.id);
@@ -40,7 +48,11 @@ export class CatalogController {
     }
   };
 
-  public deleteCategory = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public deleteCategory = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const tenantId = req.context?.tenantId || 1;
       const id = Number(req.params.id);
@@ -74,7 +86,11 @@ export class CatalogController {
   };
 
   // Collections
-  public getCollections = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public getCollections = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const tenantId = req.headers.authorization ? req.context?.tenantId || 1 : null;
       const collections = await this.service.getCollections(tenantId, req.query);
@@ -84,7 +100,11 @@ export class CatalogController {
     }
   };
 
-  public createCollection = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public createCollection = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const tenantId = req.context?.tenantId || 1;
       const storeId = req.context?.storeId || 1;
@@ -106,7 +126,11 @@ export class CatalogController {
     }
   };
 
-  public createAttribute = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public createAttribute = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const tenantId = req.context?.tenantId || 1;
       const storeId = req.context?.storeId || 1;
@@ -140,7 +164,11 @@ export class CatalogController {
   };
 
   // Dynamic Filters Engine
-  public getCatalogFilters = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public getCatalogFilters = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const tenantId = req.headers.authorization ? req.context?.tenantId || 1 : null;
       const filters = await this.service.getCatalogFilters(tenantId);

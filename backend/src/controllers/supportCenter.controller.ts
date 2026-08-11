@@ -6,19 +6,19 @@ import { Customer } from '../database/models';
 function getTenantAndStore(req: Request) {
   const tenantId = Number(
     (req as any).context?.tenantId ||
-    (req as any).user?.tenantId ||
-    req.headers['x-tenant-id'] ||
-    req.query.tenantId ||
-    req.body.tenantId ||
-    1
+      (req as any).user?.tenantId ||
+      req.headers['x-tenant-id'] ||
+      req.query.tenantId ||
+      req.body.tenantId ||
+      1
   );
 
   const storeId = Number(
     (req as any).user?.storeId ||
-    req.headers['x-store-id'] ||
-    req.query.storeId ||
-    req.body.storeId ||
-    1
+      req.headers['x-store-id'] ||
+      req.query.storeId ||
+      req.body.storeId ||
+      1
   );
 
   return { tenantId, storeId };
@@ -30,12 +30,7 @@ async function getCustomerId(req: Request): Promise<number> {
     const cust: any = await Customer.findOne({ where: { userId: reqUserId } }).catch(() => null);
     if (cust) return cust.id;
   }
-  return Number(
-    req.query.customerId ||
-    req.body.customerId ||
-    (req as any).user?.id ||
-    13
-  );
+  return Number(req.query.customerId || req.body.customerId || (req as any).user?.id || 13);
 }
 
 export class SupportCenterController {
@@ -51,10 +46,16 @@ export class SupportCenterController {
         return;
       }
 
-      const result = await AiSupportEngineService.evaluateAndProcessAiChat(tenantId, storeId, customerId, message);
+      const result = await AiSupportEngineService.evaluateAndProcessAiChat(
+        tenantId,
+        storeId,
+        customerId,
+        message
+      );
       res.json({ success: true, data: result });
     } catch (err: any) {
-      const status = err?.name === 'ForbiddenError' || err?.message?.includes('Access Denied') ? 403 : 500;
+      const status =
+        err?.name === 'ForbiddenError' || err?.message?.includes('Access Denied') ? 403 : 500;
       res.status(status).json({ success: false, message: err.message });
     }
   }
@@ -65,10 +66,15 @@ export class SupportCenterController {
       const { tenantId, storeId } = getTenantAndStore(req);
       const customerId = await getCustomerId(req);
 
-      const tickets = await EnterpriseSupportService.getCustomerTickets(tenantId, storeId, customerId);
+      const tickets = await EnterpriseSupportService.getCustomerTickets(
+        tenantId,
+        storeId,
+        customerId
+      );
       res.json({ success: true, data: tickets });
     } catch (err: any) {
-      const status = err?.name === 'ForbiddenError' || err?.message?.includes('Access Denied') ? 403 : 500;
+      const status =
+        err?.name === 'ForbiddenError' || err?.message?.includes('Access Denied') ? 403 : 500;
       res.status(status).json({ success: false, message: err.message });
     }
   }
@@ -80,7 +86,12 @@ export class SupportCenterController {
       const customerId = await getCustomerId(req);
       const ticketId = Number(req.params.id);
 
-      const details = await EnterpriseSupportService.getCustomerTicketDetails(tenantId, storeId, customerId, ticketId);
+      const details = await EnterpriseSupportService.getCustomerTicketDetails(
+        tenantId,
+        storeId,
+        customerId,
+        ticketId
+      );
       res.json({ success: true, data: details });
     } catch (err: any) {
       res.status(403).json({ success: false, message: err.message || 'Access Denied' });
@@ -93,10 +104,16 @@ export class SupportCenterController {
       const { tenantId, storeId } = getTenantAndStore(req);
       const customerId = await getCustomerId(req);
 
-      const ticket = await EnterpriseSupportService.createCustomerTicket(tenantId, storeId, customerId, req.body);
+      const ticket = await EnterpriseSupportService.createCustomerTicket(
+        tenantId,
+        storeId,
+        customerId,
+        req.body
+      );
       res.status(201).json({ success: true, data: ticket });
     } catch (err: any) {
-      const status = err?.name === 'ForbiddenError' || err?.message?.includes('Access Denied') ? 403 : 500;
+      const status =
+        err?.name === 'ForbiddenError' || err?.message?.includes('Access Denied') ? 403 : 500;
       res.status(status).json({ success: false, message: err.message });
     }
   }
@@ -109,10 +126,18 @@ export class SupportCenterController {
       const ticketId = Number(req.params.id);
       const { message, attachments } = req.body;
 
-      const reply = await EnterpriseSupportService.addCustomerReply(tenantId, storeId, customerId, ticketId, message, attachments);
+      const reply = await EnterpriseSupportService.addCustomerReply(
+        tenantId,
+        storeId,
+        customerId,
+        ticketId,
+        message,
+        attachments
+      );
       res.json({ success: true, data: reply });
     } catch (err: any) {
-      const status = err?.name === 'ForbiddenError' || err?.message?.includes('Access Denied') ? 403 : 500;
+      const status =
+        err?.name === 'ForbiddenError' || err?.message?.includes('Access Denied') ? 403 : 500;
       res.status(status).json({ success: false, message: err.message });
     }
   }
@@ -125,10 +150,18 @@ export class SupportCenterController {
       const ticketId = Number(req.params.id);
       const { score, feedback } = req.body;
 
-      const ticket = await EnterpriseSupportService.rateCustomerTicket(tenantId, storeId, customerId, ticketId, score, feedback);
+      const ticket = await EnterpriseSupportService.rateCustomerTicket(
+        tenantId,
+        storeId,
+        customerId,
+        ticketId,
+        score,
+        feedback
+      );
       res.json({ success: true, data: ticket });
     } catch (err: any) {
-      const status = err?.name === 'ForbiddenError' || err?.message?.includes('Access Denied') ? 403 : 500;
+      const status =
+        err?.name === 'ForbiddenError' || err?.message?.includes('Access Denied') ? 403 : 500;
       res.status(status).json({ success: false, message: err.message });
     }
   }
@@ -142,7 +175,8 @@ export class SupportCenterController {
       const tickets = await EnterpriseSupportService.getSellerTickets(tenantId, storeId, status);
       res.json({ success: true, data: tickets });
     } catch (err: any) {
-      const status = err?.name === 'ForbiddenError' || err?.message?.includes('Access Denied') ? 403 : 500;
+      const status =
+        err?.name === 'ForbiddenError' || err?.message?.includes('Access Denied') ? 403 : 500;
       res.status(status).json({ success: false, message: err.message });
     }
   }
@@ -153,7 +187,11 @@ export class SupportCenterController {
       const { tenantId, storeId } = getTenantAndStore(req);
       const ticketId = Number(req.params.id);
 
-      const details = await EnterpriseSupportService.getSellerTicketDetails(tenantId, storeId, ticketId);
+      const details = await EnterpriseSupportService.getSellerTicketDetails(
+        tenantId,
+        storeId,
+        ticketId
+      );
       res.json({ success: true, data: details });
     } catch (err: any) {
       res.status(403).json({ success: false, message: err.message || 'Access Denied' });
@@ -165,14 +203,25 @@ export class SupportCenterController {
     try {
       const { tenantId, storeId } = getTenantAndStore(req);
       const staffUserId = Number((req as any).user?.id || 1);
-      const staffName = (req as any).user?.firstName ? `${(req as any).user.firstName} ${(req as any).user.lastName || ''}`.trim() : 'Store Support Agent';
+      const staffName = (req as any).user?.firstName
+        ? `${(req as any).user.firstName} ${(req as any).user.lastName || ''}`.trim()
+        : 'Store Support Agent';
       const ticketId = Number(req.params.id);
       const { message, attachments } = req.body;
 
-      const reply = await EnterpriseSupportService.sellerReplyTicket(tenantId, storeId, staffUserId, staffName, ticketId, message, attachments);
+      const reply = await EnterpriseSupportService.sellerReplyTicket(
+        tenantId,
+        storeId,
+        staffUserId,
+        staffName,
+        ticketId,
+        message,
+        attachments
+      );
       res.json({ success: true, data: reply });
     } catch (err: any) {
-      const status = err?.name === 'ForbiddenError' || err?.message?.includes('Access Denied') ? 403 : 500;
+      const status =
+        err?.name === 'ForbiddenError' || err?.message?.includes('Access Denied') ? 403 : 500;
       res.status(status).json({ success: false, message: err.message });
     }
   }
@@ -182,14 +231,24 @@ export class SupportCenterController {
     try {
       const { tenantId, storeId } = getTenantAndStore(req);
       const staffUserId = Number((req as any).user?.id || 1);
-      const staffName = (req as any).user?.firstName ? `${(req as any).user.firstName} ${(req as any).user.lastName || ''}`.trim() : 'Store Staff';
+      const staffName = (req as any).user?.firstName
+        ? `${(req as any).user.firstName} ${(req as any).user.lastName || ''}`.trim()
+        : 'Store Staff';
       const ticketId = Number(req.params.id);
       const { note } = req.body;
 
-      const internalNote = await EnterpriseSupportService.addInternalNote(tenantId, storeId, staffUserId, staffName, ticketId, note);
+      const internalNote = await EnterpriseSupportService.addInternalNote(
+        tenantId,
+        storeId,
+        staffUserId,
+        staffName,
+        ticketId,
+        note
+      );
       res.json({ success: true, data: internalNote });
     } catch (err: any) {
-      const status = err?.name === 'ForbiddenError' || err?.message?.includes('Access Denied') ? 403 : 500;
+      const status =
+        err?.name === 'ForbiddenError' || err?.message?.includes('Access Denied') ? 403 : 500;
       res.status(status).json({ success: false, message: err.message });
     }
   }
@@ -202,10 +261,18 @@ export class SupportCenterController {
       const ticketId = Number(req.params.id);
       const { status, priority } = req.body;
 
-      const ticket = await EnterpriseSupportService.updateTicketStatusPriority(tenantId, storeId, staffUserId, ticketId, status, priority);
+      const ticket = await EnterpriseSupportService.updateTicketStatusPriority(
+        tenantId,
+        storeId,
+        staffUserId,
+        ticketId,
+        status,
+        priority
+      );
       res.json({ success: true, data: ticket });
     } catch (err: any) {
-      const status = err?.name === 'ForbiddenError' || err?.message?.includes('Access Denied') ? 403 : 500;
+      const status =
+        err?.name === 'ForbiddenError' || err?.message?.includes('Access Denied') ? 403 : 500;
       res.status(status).json({ success: false, message: err.message });
     }
   }
@@ -218,7 +285,8 @@ export class SupportCenterController {
       const analytics = await EnterpriseSupportService.getSellerSupportAnalytics(tenantId, storeId);
       res.json({ success: true, data: analytics });
     } catch (err: any) {
-      const status = err?.name === 'ForbiddenError' || err?.message?.includes('Access Denied') ? 403 : 500;
+      const status =
+        err?.name === 'ForbiddenError' || err?.message?.includes('Access Denied') ? 403 : 500;
       res.status(status).json({ success: false, message: err.message });
     }
   }
@@ -231,7 +299,8 @@ export class SupportCenterController {
       const list = await EnterpriseSupportService.getCannedResponses(tenantId, storeId);
       res.json({ success: true, data: list });
     } catch (err: any) {
-      const status = err?.name === 'ForbiddenError' || err?.message?.includes('Access Denied') ? 403 : 500;
+      const status =
+        err?.name === 'ForbiddenError' || err?.message?.includes('Access Denied') ? 403 : 500;
       res.status(status).json({ success: false, message: err.message });
     }
   }
@@ -241,7 +310,14 @@ export class SupportCenterController {
       const { tenantId, storeId } = getTenantAndStore(req);
       const { title, shortcut, content, category } = req.body;
 
-      const item = await EnterpriseSupportService.createCannedResponse(tenantId, storeId, title, shortcut, content, category);
+      const item = await EnterpriseSupportService.createCannedResponse(
+        tenantId,
+        storeId,
+        title,
+        shortcut,
+        content,
+        category
+      );
       res.status(201).json({ success: true, data: item });
     } catch (err: any) {
       res.status(500).json({ success: false, message: err.message });

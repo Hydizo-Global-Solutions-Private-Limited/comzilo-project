@@ -2,7 +2,14 @@
 import { CustomerRepository } from '../repositories/customer.repository';
 import { CustomerPreferenceRepository } from '../repositories/customerPreference.repository';
 import { CustomerAddressRepository } from '../repositories/customerAddress.repository';
-import { Customer, CustomerPreference, CustomerAddress, CustomerTag, Tenant, Store } from '../database/models';
+import {
+  Customer,
+  CustomerPreference,
+  CustomerAddress,
+  CustomerTag,
+  Tenant,
+  Store,
+} from '../database/models';
 import { BaseService } from '../core/BaseService';
 import { sequelize } from '../config/database';
 import { ConflictError, NotFoundError } from '../shared/errors/AppError';

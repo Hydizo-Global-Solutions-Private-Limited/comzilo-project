@@ -18,7 +18,9 @@ export const runStoreContextVerification = async () => {
   });
 
   if (loginRes.status !== 200 || !loginRes.body?.data?.accessToken) {
-    throw new Error(`Login failed with status ${loginRes.status}: ${JSON.stringify(loginRes.body)}`);
+    throw new Error(
+      `Login failed with status ${loginRes.status}: ${JSON.stringify(loginRes.body)}`
+    );
   }
 
   const token = loginRes.body.data.accessToken;
@@ -51,7 +53,9 @@ export const runStoreContextVerification = async () => {
     throw new Error(`Warehouse with code ${testCode} not found in DB!`);
   }
 
-  console.log(`✅ Warehouse created and store context resolved automatically! Store ID: ${dbRecord.storeId}`);
+  console.log(
+    `✅ Warehouse created and store context resolved automatically! Store ID: ${dbRecord.storeId}`
+  );
 
   console.log('\n====================================================');
   console.log('🎉 STORE CONTEXT FIX VERIFIED 100% SUCCESS!');

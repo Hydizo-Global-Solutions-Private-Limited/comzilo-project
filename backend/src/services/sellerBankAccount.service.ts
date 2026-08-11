@@ -165,16 +165,18 @@ export class SellerBankAccountService {
       }
 
       // Queue Notification to Super Admin
-      await this.emailQueueManager.addJob({
-        tenantId: tid,
-        triggerEvent: 'admin_bank_verification_requested',
-        recipient: 'admin@comzilo.com',
-        payload: {
-          accountHolder: accountHolderName,
-          bankName,
-          ifscCode,
-        },
-      }).catch(() => null);
+      await this.emailQueueManager
+        .addJob({
+          tenantId: tid,
+          triggerEvent: 'admin_bank_verification_requested',
+          recipient: 'admin@comzilo.com',
+          payload: {
+            accountHolder: accountHolderName,
+            bankName,
+            ifscCode,
+          },
+        })
+        .catch(() => null);
 
       logger.info(`✅ Bank Account Details Submitted for Tenant #${tid} | Status: PENDING`);
       return this.getBankAccount(tid);
@@ -237,17 +239,19 @@ export class SellerBankAccountService {
     await this.ensureTableExists();
 
     try {
-      const rows: any = await sequelize.query(
-        `SELECT * FROM seller_bank_accounts WHERE id = :id`,
-        { replacements: { id: Number(id) }, type: QueryTypes.SELECT }
-      );
+      const rows: any = await sequelize.query(`SELECT * FROM seller_bank_accounts WHERE id = :id`, {
+        replacements: { id: Number(id) },
+        type: QueryTypes.SELECT,
+      });
       if (!rows || rows.length === 0) {
         throw new NotFoundError(`Seller Bank Account with ID #${id} not found.`);
       }
       const bankAcc = rows[0];
 
       if (status === 'REJECTED' && (!remarks || !remarks.trim())) {
-        throw new ValidationError('Rejection reason/remarks are required when rejecting a bank account.');
+        throw new ValidationError(
+          'Rejection reason/remarks are required when rejecting a bank account.'
+        );
       }
 
       await sequelize.query(
@@ -270,19 +274,23 @@ export class SellerBankAccountService {
       if (status === 'REJECTED') eventName = 'seller_bank_rejected';
       if (status === 'NEEDS_CHANGES') eventName = 'seller_bank_needs_changes';
 
-      await this.emailQueueManager.addJob({
-        tenantId: bankAcc.tenant_id,
-        triggerEvent: eventName,
-        recipient: 'seller@comzilo.com',
-        payload: {
-          bankName: bankAcc.bank_name,
-          status,
-          remarks: remarks || 'N/A',
-        },
-      }).catch(() => null);
+      await this.emailQueueManager
+        .addJob({
+          tenantId: bankAcc.tenant_id,
+          triggerEvent: eventName,
+          recipient: 'seller@comzilo.com',
+          payload: {
+            bankName: bankAcc.bank_name,
+            status,
+            remarks: remarks || 'N/A',
+          },
+        })
+        .catch(() => null);
 
-      logger.info(`✅ Bank Account #${id} (Tenant #${bankAcc.tenant_id}) updated to status '${status}' by Admin #${adminUserId}`);
-      
+      logger.info(
+        `✅ Bank Account #${id} (Tenant #${bankAcc.tenant_id}) updated to status '${status}' by Admin #${adminUserId}`
+      );
+
       return this.getBankAccount(bankAcc.tenant_id);
     } catch (error: any) {
       logger.error(`[SellerBankAccountService.verifyBankAccount Failed] ${error.message}`, {

@@ -7,7 +7,9 @@ export class PaymentController {
   private paymentService = new PaymentService();
 
   private getStoreId(req: Request): number {
-    const storeId = Number(req.headers['x-store-id'] || req.query.storeId || req.body.storeId || req.context?.storeId);
+    const storeId = Number(
+      req.headers['x-store-id'] || req.query.storeId || req.body.storeId || req.context?.storeId
+    );
     if (storeId && !isNaN(storeId)) {
       return storeId;
     }
@@ -214,7 +216,11 @@ export class PaymentController {
   // RAZORPAY & WEBHOOK EXTENSIONS
   // ==========================================
 
-  public createRazorpayOrder = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public createRazorpayOrder = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const tenantId = req.context?.tenantId || 1;
       const storeId = Number(req.headers['x-store-id'] || 1);
@@ -258,7 +264,11 @@ export class PaymentController {
     }
   };
 
-  public verifyRazorpayPayment = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public verifyRazorpayPayment = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const tenantId = req.context?.tenantId || 1;
       const storeId = Number(req.headers['x-store-id'] || 1);
@@ -287,7 +297,11 @@ export class PaymentController {
     }
   };
 
-  public handleRazorpayWebhook = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public handleRazorpayWebhook = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const event = req.body?.event;
       const payload = req.body?.payload;
@@ -304,4 +318,3 @@ export class PaymentController {
     }
   };
 }
-

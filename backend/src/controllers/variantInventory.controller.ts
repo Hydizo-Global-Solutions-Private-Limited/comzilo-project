@@ -5,7 +5,11 @@ import { success } from '../shared/responses';
 const service = new VariantInventoryService();
 
 export class VariantInventoryController {
-  public getVariantInventories = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public getVariantInventories = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const variantId = Number(req.params.variantId);
       const tenantId = (req as any).tenantId || null;
@@ -16,11 +20,20 @@ export class VariantInventoryController {
     }
   };
 
-  public allocateWarehouse = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public allocateWarehouse = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const tenantId = (req as any).tenantId || null;
       const storeId = (req as any).storeId || null;
-      const inventory = await service.allocateWarehouse(tenantId, storeId, req.body, (req as any).context);
+      const inventory = await service.allocateWarehouse(
+        tenantId,
+        storeId,
+        req.body,
+        (req as any).context
+      );
       success(res, 'Warehouse allocated successfully', inventory, 201);
     } catch (error) {
       next(error);
@@ -47,7 +60,11 @@ export class VariantInventoryController {
     }
   };
 
-  public bulkUpdateInventory = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public bulkUpdateInventory = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const tenantId = (req as any).tenantId || null;
       await service.bulkUpdateInventory(tenantId, req.body.updates || [], (req as any).context);

@@ -12,7 +12,11 @@ router.use(authenticate);
 router.use(authorize);
 
 router.get('/providers', requirePermission('tenant.read'), controller.getGlobalProviders);
-router.patch('/providers/:id/status', requirePermission('tenant.update'), controller.updateProviderStatus);
+router.patch(
+  '/providers/:id/status',
+  requirePermission('tenant.update'),
+  controller.updateProviderStatus
+);
 router.get('/analytics', requirePermission('tenant.read'), controller.getGlobalAnalytics);
 
 export default router;

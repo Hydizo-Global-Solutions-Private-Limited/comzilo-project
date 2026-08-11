@@ -49,7 +49,11 @@ export class VariantAnalyticsController {
       const storeId = (req as any).storeId || 1;
       const warehouseId = req.query.warehouseId ? Number(req.query.warehouseId) : undefined;
 
-      const records = await analyticsService.getVariantInventoryReport(tenantId, storeId, warehouseId);
+      const records = await analyticsService.getVariantInventoryReport(
+        tenantId,
+        storeId,
+        warehouseId
+      );
       return res.status(200).json({ success: true, data: records });
     } catch (err) {
       return next(err);

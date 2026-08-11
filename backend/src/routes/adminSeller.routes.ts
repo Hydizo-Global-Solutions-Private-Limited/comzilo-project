@@ -20,7 +20,11 @@ router.patch('/:id/status', requirePermission('tenant.update'), controller.updat
 router.patch('/:id/suspend', requirePermission('tenant.update'), controller.suspendSeller);
 router.patch('/:id/activate', requirePermission('tenant.update'), controller.activateSeller);
 router.patch('/:id/reset-password', requirePermission('tenant.update'), controller.resetPassword);
-router.post('/:id/resend-credentials', requirePermission('tenant.update'), controller.resendCredentials);
+router.post(
+  '/:id/resend-credentials',
+  requirePermission('tenant.update'),
+  controller.resendCredentials
+);
 router.post('/:id/impersonate', requirePermission('tenant.update'), controller.impersonateSeller);
 router.delete('/:id', requirePermission('tenant.update'), controller.deleteSeller);
 

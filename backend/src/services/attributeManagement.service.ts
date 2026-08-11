@@ -1,9 +1,4 @@
-import {
-  AttributeGroup,
-  CategoryAttribute,
-  AttributeValue,
-  Category,
-} from '../database/models';
+import { AttributeGroup, CategoryAttribute, AttributeValue, Category } from '../database/models';
 import { NotFoundError, ValidationError } from '../shared/errors/AppError';
 import { createAuditLog } from '../utils/auditHelper';
 
@@ -19,7 +14,10 @@ export class AttributeManagementService {
         { model: AttributeValue, as: 'values' },
         { model: CategoryAttribute, as: 'categoryAttributes' },
       ],
-      order: [['displayOrder', 'ASC'], ['id', 'ASC']],
+      order: [
+        ['displayOrder', 'ASC'],
+        ['id', 'ASC'],
+      ],
     });
   }
 
@@ -43,13 +41,16 @@ export class AttributeManagementService {
       status: data.status || 'active',
     });
 
-    await createAuditLog({
-      tenantId,
-      action: 'ATTRIBUTE_GROUP_CREATED',
-      entityType: 'AttributeGroup',
-      entityId: String(group.id),
-      newValues: group.get({ plain: true }),
-    }, context);
+    await createAuditLog(
+      {
+        tenantId,
+        action: 'ATTRIBUTE_GROUP_CREATED',
+        entityType: 'AttributeGroup',
+        entityId: String(group.id),
+        newValues: group.get({ plain: true }),
+      },
+      context
+    );
 
     return group;
   }
@@ -68,14 +69,17 @@ export class AttributeManagementService {
     const oldValues = group.get({ plain: true });
     await group.update(data);
 
-    await createAuditLog({
-      tenantId,
-      action: 'ATTRIBUTE_GROUP_UPDATED',
-      entityType: 'AttributeGroup',
-      entityId: String(id),
-      previousValues: oldValues,
-      newValues: group.get({ plain: true }),
-    }, context);
+    await createAuditLog(
+      {
+        tenantId,
+        action: 'ATTRIBUTE_GROUP_UPDATED',
+        entityType: 'AttributeGroup',
+        entityId: String(id),
+        previousValues: oldValues,
+        newValues: group.get({ plain: true }),
+      },
+      context
+    );
 
     return group;
   }
@@ -87,13 +91,16 @@ export class AttributeManagementService {
     const oldValues = group.get({ plain: true });
     await group.destroy();
 
-    await createAuditLog({
-      tenantId,
-      action: 'ATTRIBUTE_GROUP_DELETED',
-      entityType: 'AttributeGroup',
-      entityId: String(id),
-      previousValues: oldValues,
-    }, context);
+    await createAuditLog(
+      {
+        tenantId,
+        action: 'ATTRIBUTE_GROUP_DELETED',
+        entityType: 'AttributeGroup',
+        entityId: String(id),
+        previousValues: oldValues,
+      },
+      context
+    );
 
     return true;
   }
@@ -102,7 +109,10 @@ export class AttributeManagementService {
   public async getAttributeValues(groupId: number) {
     return await AttributeValue.findAll({
       where: { attributeGroupId: groupId },
-      order: [['displayOrder', 'ASC'], ['id', 'ASC']],
+      order: [
+        ['displayOrder', 'ASC'],
+        ['id', 'ASC'],
+      ],
     });
   }
 
@@ -126,13 +136,16 @@ export class AttributeManagementService {
       displayOrder: data.displayOrder || 0,
     });
 
-    await createAuditLog({
-      tenantId,
-      action: 'ATTRIBUTE_VALUE_CREATED',
-      entityType: 'AttributeValue',
-      entityId: String(val.id),
-      newValues: val.get({ plain: true }),
-    }, context);
+    await createAuditLog(
+      {
+        tenantId,
+        action: 'ATTRIBUTE_VALUE_CREATED',
+        entityType: 'AttributeValue',
+        entityId: String(val.id),
+        newValues: val.get({ plain: true }),
+      },
+      context
+    );
 
     return val;
   }
@@ -145,20 +158,24 @@ export class AttributeManagementService {
       const existing = await AttributeValue.findOne({
         where: { attributeGroupId: val.attributeGroupId, value: data.value },
       });
-      if (existing) throw new ValidationError(`Attribute Value "${data.value}" already exists in this group`);
+      if (existing)
+        throw new ValidationError(`Attribute Value "${data.value}" already exists in this group`);
     }
 
     const oldValues = val.get({ plain: true });
     await val.update(data);
 
-    await createAuditLog({
-      tenantId,
-      action: 'ATTRIBUTE_VALUE_UPDATED',
-      entityType: 'AttributeValue',
-      entityId: String(id),
-      previousValues: oldValues,
-      newValues: val.get({ plain: true }),
-    }, context);
+    await createAuditLog(
+      {
+        tenantId,
+        action: 'ATTRIBUTE_VALUE_UPDATED',
+        entityType: 'AttributeValue',
+        entityId: String(id),
+        previousValues: oldValues,
+        newValues: val.get({ plain: true }),
+      },
+      context
+    );
 
     return val;
   }
@@ -170,13 +187,16 @@ export class AttributeManagementService {
     const oldValues = val.get({ plain: true });
     await val.destroy();
 
-    await createAuditLog({
-      tenantId,
-      action: 'ATTRIBUTE_VALUE_DELETED',
-      entityType: 'AttributeValue',
-      entityId: String(id),
-      previousValues: oldValues,
-    }, context);
+    await createAuditLog(
+      {
+        tenantId,
+        action: 'ATTRIBUTE_VALUE_DELETED',
+        entityType: 'AttributeValue',
+        entityId: String(id),
+        previousValues: oldValues,
+      },
+      context
+    );
 
     return true;
   }
@@ -189,8 +209,13 @@ export class AttributeManagementService {
 
     return await CategoryAttribute.findAll({
       where: whereClause,
-      include: [{ model: AttributeGroup, as: 'group', include: [{ model: AttributeValue, as: 'values' }] }],
-      order: [['displayOrder', 'ASC'], ['id', 'ASC']],
+      include: [
+        { model: AttributeGroup, as: 'group', include: [{ model: AttributeValue, as: 'values' }] },
+      ],
+      order: [
+        ['displayOrder', 'ASC'],
+        ['id', 'ASC'],
+      ],
     });
   }
 
@@ -205,7 +230,9 @@ export class AttributeManagementService {
       where: { categoryId: data.categoryId, attributeName: data.attributeName },
     });
     if (existingAttr) {
-      throw new ValidationError(`Attribute "${data.attributeName}" is already assigned to this category`);
+      throw new ValidationError(
+        `Attribute "${data.attributeName}" is already assigned to this category`
+      );
     }
 
     let groupId = data.attributeGroupId || null;
@@ -247,32 +274,43 @@ export class AttributeManagementService {
       status: data.status || 'active',
     });
 
-    await createAuditLog({
-      tenantId,
-      action: 'CATEGORY_ATTRIBUTE_ASSIGNED',
-      entityType: 'CategoryAttribute',
-      entityId: String(attr.id),
-      newValues: attr.get({ plain: true }),
-    }, context);
+    await createAuditLog(
+      {
+        tenantId,
+        action: 'CATEGORY_ATTRIBUTE_ASSIGNED',
+        entityType: 'CategoryAttribute',
+        entityId: String(attr.id),
+        newValues: attr.get({ plain: true }),
+      },
+      context
+    );
 
     return attr;
   }
 
-  public async updateCategoryAttribute(id: number, tenantId: number | null, data: any, context?: any) {
+  public async updateCategoryAttribute(
+    id: number,
+    tenantId: number | null,
+    data: any,
+    context?: any
+  ) {
     const attr = await CategoryAttribute.findByPk(id);
     if (!attr) throw new NotFoundError('Category Attribute not found');
 
     const oldValues = attr.get({ plain: true });
     await attr.update(data);
 
-    await createAuditLog({
-      tenantId,
-      action: 'ATTRIBUTE_UPDATED',
-      entityType: 'CategoryAttribute',
-      entityId: String(id),
-      previousValues: oldValues,
-      newValues: attr.get({ plain: true }),
-    }, context);
+    await createAuditLog(
+      {
+        tenantId,
+        action: 'ATTRIBUTE_UPDATED',
+        entityType: 'CategoryAttribute',
+        entityId: String(id),
+        previousValues: oldValues,
+        newValues: attr.get({ plain: true }),
+      },
+      context
+    );
 
     return attr;
   }
@@ -284,13 +322,16 @@ export class AttributeManagementService {
     const oldValues = attr.get({ plain: true });
     await attr.destroy();
 
-    await createAuditLog({
-      tenantId,
-      action: 'CATEGORY_ATTRIBUTE_REMOVED',
-      entityType: 'CategoryAttribute',
-      entityId: String(id),
-      previousValues: oldValues,
-    }, context);
+    await createAuditLog(
+      {
+        tenantId,
+        action: 'CATEGORY_ATTRIBUTE_REMOVED',
+        entityType: 'CategoryAttribute',
+        entityId: String(id),
+        previousValues: oldValues,
+      },
+      context
+    );
 
     return true;
   }

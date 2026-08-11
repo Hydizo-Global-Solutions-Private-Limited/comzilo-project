@@ -25,7 +25,11 @@ export class StoreInventoryManagementController {
     }
   };
 
-  public createWarehouse = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public createWarehouse = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const tenantId = req.context.tenantId!;
       const warehouse = await inventoryService.createWarehouse(tenantId, req.body);
@@ -46,7 +50,11 @@ export class StoreInventoryManagementController {
     }
   };
 
-  public createLocation = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public createLocation = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const tenantId = req.context.tenantId!;
       const location = await inventoryService.createLocation(tenantId, req.body);
@@ -76,7 +84,11 @@ export class StoreInventoryManagementController {
     }
   };
 
-  public createTransfer = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public createTransfer = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const tenantId = req.context.tenantId!;
       const transfer = await inventoryService.createTransfer(tenantId, req.body);
@@ -86,7 +98,11 @@ export class StoreInventoryManagementController {
     }
   };
 
-  public getAdjustments = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public getAdjustments = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const tenantId = req.context.tenantId!;
       const adjustments = await inventoryService.getAdjustments(tenantId);
@@ -96,7 +112,11 @@ export class StoreInventoryManagementController {
     }
   };
 
-  public createAdjustment = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public createAdjustment = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const tenantId = req.context.tenantId!;
       const adjustment = await inventoryService.createAdjustment(tenantId, req.body);
@@ -106,7 +126,11 @@ export class StoreInventoryManagementController {
     }
   };
 
-  public getAdjustmentById = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public getAdjustmentById = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const tenantId = req.context.tenantId!;
       const id = Number(req.params.id);
@@ -117,7 +141,11 @@ export class StoreInventoryManagementController {
     }
   };
 
-  public updateAdjustment = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public updateAdjustment = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const tenantId = req.context.tenantId!;
       const id = Number(req.params.id);
@@ -128,7 +156,11 @@ export class StoreInventoryManagementController {
     }
   };
 
-  public deleteAdjustment = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public deleteAdjustment = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const tenantId = req.context.tenantId!;
       const id = Number(req.params.id);
@@ -149,7 +181,11 @@ export class StoreInventoryManagementController {
     }
   };
 
-  public createSupplier = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public createSupplier = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const tenantId = req.context.tenantId!;
       const supplier = await inventoryService.createSupplier(tenantId, req.body);
@@ -159,7 +195,11 @@ export class StoreInventoryManagementController {
     }
   };
 
-  public updateSupplier = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public updateSupplier = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const tenantId = req.context.tenantId!;
       const id = Number(req.params.id);
@@ -170,7 +210,11 @@ export class StoreInventoryManagementController {
     }
   };
 
-  public deleteSupplier = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public deleteSupplier = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const tenantId = req.context.tenantId!;
       const id = Number(req.params.id);
@@ -181,7 +225,11 @@ export class StoreInventoryManagementController {
     }
   };
 
-  public getPurchaseOrders = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public getPurchaseOrders = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const tenantId = req.context.tenantId!;
       const pos = await inventoryService.getPurchaseOrders(tenantId);
@@ -191,7 +239,11 @@ export class StoreInventoryManagementController {
     }
   };
 
-  public createPurchaseOrder = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public createPurchaseOrder = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const tenantId = req.context.tenantId!;
       const po = await inventoryService.createPurchaseOrder(tenantId, req.body);
@@ -201,7 +253,11 @@ export class StoreInventoryManagementController {
     }
   };
 
-  public updatePurchaseOrder = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public updatePurchaseOrder = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const tenantId = req.context.tenantId!;
       const id = Number(req.params.id);
@@ -212,7 +268,11 @@ export class StoreInventoryManagementController {
     }
   };
 
-  public deletePurchaseOrder = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public deletePurchaseOrder = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const tenantId = req.context.tenantId!;
       const id = Number(req.params.id);
@@ -223,7 +283,11 @@ export class StoreInventoryManagementController {
     }
   };
 
-  public getGoodsReceipts = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public getGoodsReceipts = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const tenantId = req.context.tenantId!;
       const grns = await inventoryService.getGoodsReceipts(tenantId);
@@ -233,7 +297,11 @@ export class StoreInventoryManagementController {
     }
   };
 
-  public createGoodsReceipt = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public createGoodsReceipt = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const tenantId = req.context.tenantId!;
       const grn = await inventoryService.createGoodsReceipt(tenantId, req.body);
@@ -243,7 +311,11 @@ export class StoreInventoryManagementController {
     }
   };
 
-  public getGoodsIssues = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public getGoodsIssues = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const tenantId = req.context.tenantId!;
       const gins = await inventoryService.getGoodsIssues(tenantId);
@@ -253,7 +325,11 @@ export class StoreInventoryManagementController {
     }
   };
 
-  public createGoodsIssue = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public createGoodsIssue = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const tenantId = req.context.tenantId!;
       const gin = await inventoryService.createGoodsIssue(tenantId, req.body);

@@ -30,13 +30,29 @@ export async function auditAndMigrateOrphanCustomers(): Promise<{
     if (orderStore) {
       await sequelize.query(
         `UPDATE customers SET tenant_id = :tenantId, store_id = :storeId WHERE id = :custId`,
-        { replacements: { tenantId: orderStore.tenant_id, storeId: orderStore.store_id, custId: cust.id } }
+        {
+          replacements: {
+            tenantId: orderStore.tenant_id,
+            storeId: orderStore.store_id,
+            custId: cust.id,
+          },
+        }
       );
       automaticallyMigrated++;
-      report.push({ customerId: cust.id, email: cust.email, action: 'AUTOMATICALLY_RESOLVED_FROM_ORDER', storeId: orderStore.store_id });
+      report.push({
+        customerId: cust.id,
+        email: cust.email,
+        action: 'AUTOMATICALLY_RESOLVED_FROM_ORDER',
+        storeId: orderStore.store_id,
+      });
     } else {
       manualReviewRequired++;
-      report.push({ customerId: cust.id, email: cust.email, action: 'MANUAL_REVIEW_REQUIRED', reason: 'No prior order store context found' });
+      report.push({
+        customerId: cust.id,
+        email: cust.email,
+        action: 'MANUAL_REVIEW_REQUIRED',
+        reason: 'No prior order store context found',
+      });
     }
   }
 

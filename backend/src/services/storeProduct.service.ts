@@ -45,7 +45,9 @@ export class StoreProductService {
         { description: { [Op.like]: searchPattern } },
       ];
 
-      const singularTerm = trimmedSearch.toLowerCase().endsWith('s') ? trimmedSearch.slice(0, -1) : trimmedSearch;
+      const singularTerm = trimmedSearch.toLowerCase().endsWith('s')
+        ? trimmedSearch.slice(0, -1)
+        : trimmedSearch;
       if (singularTerm && singularTerm.length > 2 && singularTerm !== trimmedSearch) {
         const singularPattern = `%${singularTerm}%`;
         orConditions.push(

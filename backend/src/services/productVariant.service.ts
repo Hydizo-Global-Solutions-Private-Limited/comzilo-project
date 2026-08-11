@@ -129,7 +129,8 @@ export class ProductVariantService {
       sku: data.sku !== undefined ? data.sku : variant.sku,
       barcode: data.barcode !== undefined ? data.barcode : variant.barcode,
       price: data.price !== undefined ? data.price : variant.price,
-      compareAtPrice: data.compareAtPrice !== undefined ? data.compareAtPrice : variant.compareAtPrice,
+      compareAtPrice:
+        data.compareAtPrice !== undefined ? data.compareAtPrice : variant.compareAtPrice,
       costPrice: data.costPrice !== undefined ? data.costPrice : variant.costPrice,
       stockQuantity: data.stockQuantity !== undefined ? data.stockQuantity : variant.stockQuantity,
       status: data.status !== undefined ? data.status : variant.status,
@@ -147,7 +148,7 @@ export class ProductVariantService {
     }
 
     if (data.stockQuantity !== undefined) {
-      let inv = await VariantInventory.findOne({ where: { variantId } });
+      const inv = await VariantInventory.findOne({ where: { variantId } });
       if (inv) {
         await inv.update({
           quantityOnHand: data.stockQuantity,

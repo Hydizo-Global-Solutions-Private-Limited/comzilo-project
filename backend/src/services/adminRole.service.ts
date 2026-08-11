@@ -1,6 +1,11 @@
 import { Role, Permission, RolePermission, UserRole, User } from '../database/models';
 import { sequelize } from '../config/database';
-import { NotFoundError, ValidationError, ConflictError, ForbiddenError } from '../shared/errors/AppError';
+import {
+  NotFoundError,
+  ValidationError,
+  ConflictError,
+  ForbiddenError,
+} from '../shared/errors/AppError';
 import { createAuditLog } from '../utils/auditHelper';
 import { Op } from 'sequelize';
 
@@ -236,7 +241,9 @@ export class AdminRoleService {
     // Protection 2: Cannot delete role assigned to active users
     const userCount = await UserRole.count({ where: { roleId: id } });
     if (userCount > 0) {
-      throw new ForbiddenError(`Cannot delete role '${role.name}' because it is assigned to ${userCount} active users.`);
+      throw new ForbiddenError(
+        `Cannot delete role '${role.name}' because it is assigned to ${userCount} active users.`
+      );
     }
 
     const t = await sequelize.transaction();

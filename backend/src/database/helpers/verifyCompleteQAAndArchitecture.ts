@@ -64,7 +64,9 @@ export const runCompleteQAVerification = async () => {
     throw new Error('Image upload failed!');
   }
   const uploadedImg = uploadRes.body.data;
-  console.log(`✅ Real Image Uploaded & Stored in MySQL! ID: ${uploadedImg.id}, URL: ${uploadedImg.imageUrl}`);
+  console.log(
+    `✅ Real Image Uploaded & Stored in MySQL! ID: ${uploadedImg.id}, URL: ${uploadedImg.imageUrl}`
+  );
 
   // 4. Test GET /api/v1/products/:id/images
   console.log(`\n[4] Testing GET /api/v1/products/${product.id}/images...`);
@@ -78,7 +80,9 @@ export const runCompleteQAVerification = async () => {
   const deleteImgRes = await req
     .delete(`/api/v1/products/${product.id}/images/${uploadedImg.id}`)
     .set('Authorization', `Bearer ${token}`);
-  console.log(`DELETE /api/v1/products/${product.id}/images/${uploadedImg.id} Status: ${deleteImgRes.status}`);
+  console.log(
+    `DELETE /api/v1/products/${product.id}/images/${uploadedImg.id} Status: ${deleteImgRes.status}`
+  );
   if (deleteImgRes.status !== 200) {
     throw new Error('Image delete failed!');
   }
@@ -87,10 +91,14 @@ export const runCompleteQAVerification = async () => {
   // 6. Test Storefront Listing & Details API
   console.log('\n[6] Testing Customer Storefront Product Listing & Details APIs...');
   const catalogRes = await req.get('/api/v1/products?limit=10');
-  console.log(`GET /api/v1/products Status: ${catalogRes.status}, Count: ${catalogRes.body?.data?.length || 0}`);
+  console.log(
+    `GET /api/v1/products Status: ${catalogRes.status}, Count: ${catalogRes.body?.data?.length || 0}`
+  );
 
   const detailsRes = await req.get(`/api/v1/products/${product.id}`);
-  console.log(`GET /api/v1/products/${product.id} Status: ${detailsRes.status}, Name: "${detailsRes.body?.data?.name}"`);
+  console.log(
+    `GET /api/v1/products/${product.id} Status: ${detailsRes.status}, Name: "${detailsRes.body?.data?.name}"`
+  );
 
   // 7. Verify MySQL Relationships
   console.log('\n[7] Database Audit for Product Relationships:');

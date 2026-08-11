@@ -12,7 +12,12 @@ describe('Unit Tests: Settings & Configuration Module', () => {
 
   describe('Settings Resolution Hierarchy', () => {
     it('should return default fallback value when no key exists in any scope', async () => {
-      const value = await settingsService.resolveSetting(999, 999, 'non_existent_key_xyz', 'default_val');
+      const value = await settingsService.resolveSetting(
+        999,
+        999,
+        'non_existent_key_xyz',
+        'default_val'
+      );
       expect(value).toBe('default_val');
     });
   });

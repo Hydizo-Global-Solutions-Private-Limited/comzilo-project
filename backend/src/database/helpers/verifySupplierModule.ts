@@ -18,7 +18,9 @@ export const runSupplierModuleVerification = async () => {
   });
 
   if (loginRes.status !== 200 || !loginRes.body?.data?.accessToken) {
-    throw new Error(`Login failed with status ${loginRes.status}: ${JSON.stringify(loginRes.body)}`);
+    throw new Error(
+      `Login failed with status ${loginRes.status}: ${JSON.stringify(loginRes.body)}`
+    );
   }
 
   const token = loginRes.body.data.accessToken;
@@ -86,7 +88,9 @@ export const runSupplierModuleVerification = async () => {
     throw new Error(`Supplier ID ${supplierId} not found in MySQL database!`);
   }
 
-  console.log(`✅ Supplier persisted in DB! ID: ${dbSupplier.id}, Name: "${dbSupplier.name}", Code: "${dbSupplier.code}"`);
+  console.log(
+    `✅ Supplier persisted in DB! ID: ${dbSupplier.id}, Name: "${dbSupplier.name}", Code: "${dbSupplier.code}"`
+  );
 
   console.log('\n====================================================');
   console.log('🎉 SUPPLIER MODULE VERIFIED 100% SUCCESS!');

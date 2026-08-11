@@ -8,7 +8,11 @@ export class CustomerRepository extends BaseRepository<Customer> {
     super(Customer);
   }
 
-  private applyStoreScope(tenantId?: number | null, storeId?: number | null, options: any = {}): any {
+  private applyStoreScope(
+    tenantId?: number | null,
+    storeId?: number | null,
+    options: any = {}
+  ): any {
     const opts = { ...options };
     const whereScope: any = { ...opts.where };
     if (tenantId) {

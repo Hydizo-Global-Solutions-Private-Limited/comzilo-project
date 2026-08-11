@@ -5,17 +5,28 @@ import { success } from '../shared/responses';
 export class FinancialDashboardController {
   private service = new FinancialDashboardService();
 
-  public getFinancialOverview = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public getFinancialOverview = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const { startDate, endDate } = req.query;
-      const overview = await this.service.getFinancialOverview(startDate as string, endDate as string);
+      const overview = await this.service.getFinancialOverview(
+        startDate as string,
+        endDate as string
+      );
       success(res, 'Financial overview metrics retrieved successfully', overview);
     } catch (err) {
       next(err);
     }
   };
 
-  public getGatewayLogs = async (_req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public getGatewayLogs = async (
+    _req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const logs = await this.service.getGatewayLogs();
       success(res, 'Payment gateway logs retrieved successfully', logs);
@@ -24,7 +35,11 @@ export class FinancialDashboardController {
     }
   };
 
-  public getWebhookLogs = async (_req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public getWebhookLogs = async (
+    _req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const logs = await this.service.getWebhookLogs();
       success(res, 'Webhook event logs retrieved successfully', logs);
@@ -33,7 +48,11 @@ export class FinancialDashboardController {
     }
   };
 
-  public getPayoutLogs = async (_req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public getPayoutLogs = async (
+    _req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const logs = await this.service.getPayoutLogs();
       success(res, 'Payout audit logs retrieved successfully', logs);
@@ -42,7 +61,11 @@ export class FinancialDashboardController {
     }
   };
 
-  public exportFinancialData = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public exportFinancialData = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const format = (req.query.format as string) || 'csv';
       const overview = await this.service.getFinancialOverview();
@@ -60,7 +83,10 @@ export class FinancialDashboardController {
         ];
 
         res.setHeader('Content-Type', format === 'csv' ? 'text/csv' : 'application/vnd.ms-excel');
-        res.setHeader('Content-Disposition', `attachment; filename="financial_report_${Date.now()}.${format === 'csv' ? 'csv' : 'xls'}"`);
+        res.setHeader(
+          'Content-Disposition',
+          `attachment; filename="financial_report_${Date.now()}.${format === 'csv' ? 'csv' : 'xls'}"`
+        );
         res.send(csvRows.join('\n'));
         return;
       }

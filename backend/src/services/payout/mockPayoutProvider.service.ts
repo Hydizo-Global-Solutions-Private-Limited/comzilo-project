@@ -17,7 +17,9 @@ export class MockPayoutProvider implements IPayoutProvider {
     };
   }
 
-  public async createFundAccount(payload: CreateFundAccountPayload): Promise<{ id: string; contact_id: string }> {
+  public async createFundAccount(
+    payload: CreateFundAccountPayload
+  ): Promise<{ id: string; contact_id: string }> {
     const fundAccountId = `fa_mock_${Date.now().toString().slice(-8)}`;
     return {
       id: fundAccountId,

@@ -18,7 +18,9 @@ export const runPurchaseOrderModuleVerification = async () => {
   });
 
   if (loginRes.status !== 200 || !loginRes.body?.data?.accessToken) {
-    throw new Error(`Login failed with status ${loginRes.status}: ${JSON.stringify(loginRes.body)}`);
+    throw new Error(
+      `Login failed with status ${loginRes.status}: ${JSON.stringify(loginRes.body)}`
+    );
   }
 
   const token = loginRes.body.data.accessToken;
@@ -78,7 +80,9 @@ export const runPurchaseOrderModuleVerification = async () => {
   console.log(`✅ Purchase Order Created Successfully! ID: ${poId}, PO Number: "${poNumber}"`);
 
   // 3. Verify Database Record Persistence in purchase_orders & purchase_order_items
-  console.log('\n[3/4] Verifying Database Record Persistence in purchase_orders & purchase_order_items...');
+  console.log(
+    '\n[3/4] Verifying Database Record Persistence in purchase_orders & purchase_order_items...'
+  );
   const dbPo = await PurchaseOrder.findOne({ where: { id: poId } });
   if (!dbPo) {
     throw new Error(`Purchase order ID ${poId} not found in MySQL purchase_orders table!`);
@@ -86,11 +90,17 @@ export const runPurchaseOrderModuleVerification = async () => {
 
   const dbItems = await PurchaseOrderItem.findAll({ where: { poId } });
   if (dbItems.length === 0) {
-    throw new Error(`No purchase order items found for PO ID ${poId} in purchase_order_items table!`);
+    throw new Error(
+      `No purchase order items found for PO ID ${poId} in purchase_order_items table!`
+    );
   }
 
-  console.log(`✅ PO persisted in DB! ID: ${dbPo.id}, PO Number: "${dbPo.poNumber}", Items Count: ${dbItems.length}`);
-  console.log(`First Line Item: Product ID ${dbItems[0].productId}, Qty: ${dbItems[0].orderedQuantity}, Unit Price: ₹${dbItems[0].unitPrice}`);
+  console.log(
+    `✅ PO persisted in DB! ID: ${dbPo.id}, PO Number: "${dbPo.poNumber}", Items Count: ${dbItems.length}`
+  );
+  console.log(
+    `First Line Item: Product ID ${dbItems[0].productId}, Qty: ${dbItems[0].orderedQuantity}, Unit Price: ₹${dbItems[0].unitPrice}`
+  );
 
   // 4. UPDATE & DELETE Purchase Order
   console.log('\n[4/4] Testing DELETE /api/v1/store/inventory-management/purchase-orders/:id...');

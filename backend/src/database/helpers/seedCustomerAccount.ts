@@ -53,7 +53,9 @@ export const seedCustomer = async () => {
   // Ensure CUSTOMER role is assigned
   const customerRole = await Role.findOne({ where: { name: 'CUSTOMER' } });
   if (customerRole) {
-    const userRoleExists = await UserRole.findOne({ where: { userId: user.id, roleId: customerRole.id } });
+    const userRoleExists = await UserRole.findOne({
+      where: { userId: user.id, roleId: customerRole.id },
+    });
     if (!userRoleExists) {
       await UserRole.create({
         tenantId: 1,

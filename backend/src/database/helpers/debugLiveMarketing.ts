@@ -67,7 +67,10 @@ export const debugLiveMarketing = async () => {
       if (res.status !== 200) {
         console.error(`❌ FAILURE on ${ep.name}:`, JSON.stringify(res.body, null, 2));
       } else {
-        console.log(`✅ SUCCESS on ${ep.name}! Sample Data:`, JSON.stringify(res.body?.data || res.body, null, 2).slice(0, 300));
+        console.log(
+          `✅ SUCCESS on ${ep.name}! Sample Data:`,
+          JSON.stringify(res.body?.data || res.body, null, 2).slice(0, 300)
+        );
       }
     } catch (err: any) {
       console.error(`💥 EXCEPTION on ${ep.name}:`, err);

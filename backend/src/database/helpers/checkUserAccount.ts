@@ -36,9 +36,14 @@ export const checkUser = async () => {
   }
 
   // Also list all existing users and customers in DB
-  const allUsers = await User.findAll({ attributes: ['id', 'email', 'status', 'tenantId'], limit: 10 });
+  const allUsers = await User.findAll({
+    attributes: ['id', 'email', 'status', 'tenantId'],
+    limit: 10,
+  });
   console.log('\n--- Sample Users in Database ---');
-  allUsers.forEach((u) => console.log(`User ID ${u.id}: ${u.email} (Tenant: ${u.tenantId}, Status: ${u.status})`));
+  allUsers.forEach((u) =>
+    console.log(`User ID ${u.id}: ${u.email} (Tenant: ${u.tenantId}, Status: ${u.status})`)
+  );
 };
 
 checkUser()

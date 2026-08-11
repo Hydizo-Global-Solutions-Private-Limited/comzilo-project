@@ -35,7 +35,11 @@ export class BulkVariantController {
         req,
       });
 
-      return res.status(200).json({ success: true, message: `Successfully updated prices for ${result.affectedRecords} variants.`, data: result });
+      return res.status(200).json({
+        success: true,
+        message: `Successfully updated prices for ${result.affectedRecords} variants.`,
+        data: result,
+      });
     } catch (err) {
       return next(err);
     }
@@ -58,7 +62,11 @@ export class BulkVariantController {
         req,
       });
 
-      return res.status(200).json({ success: true, message: `Successfully updated stock for ${result.affectedRecords} variants.`, data: result });
+      return res.status(200).json({
+        success: true,
+        message: `Successfully updated stock for ${result.affectedRecords} variants.`,
+        data: result,
+      });
     } catch (err) {
       return next(err);
     }
@@ -81,7 +89,11 @@ export class BulkVariantController {
         req,
       });
 
-      return res.status(200).json({ success: true, message: `Successfully updated SKU/Barcode for ${result.affectedRecords} variants.`, data: result });
+      return res.status(200).json({
+        success: true,
+        message: `Successfully updated SKU/Barcode for ${result.affectedRecords} variants.`,
+        data: result,
+      });
     } catch (err) {
       return next(err);
     }

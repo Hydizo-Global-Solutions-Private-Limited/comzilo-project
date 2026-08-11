@@ -8,7 +8,9 @@ export const runDatabaseAudit = async () => {
   console.log('STEP 2 - DATABASE VERIFICATION & AUDIT QUERIES');
   console.log('====================================================');
 
-  console.log('\n[Query 1] Executing SELECT id, tenant_id, store_id, name, product_type, status, visibility FROM products ORDER BY id DESC;');
+  console.log(
+    '\n[Query 1] Executing SELECT id, tenant_id, store_id, name, product_type, status, visibility FROM products ORDER BY id DESC;'
+  );
   const productsList: any[] = await sequelize.query(
     `SELECT id, tenant_id, store_id, name, product_type, status, visibility FROM products ORDER BY id DESC LIMIT 20`,
     { type: QueryTypes.SELECT }
@@ -16,7 +18,9 @@ export const runDatabaseAudit = async () => {
 
   console.table(productsList);
 
-  console.log('\n[Query 2] Executing SELECT product_type, COUNT(*) FROM products GROUP BY product_type;');
+  console.log(
+    '\n[Query 2] Executing SELECT product_type, COUNT(*) FROM products GROUP BY product_type;'
+  );
   const typeCounts: any[] = await sequelize.query(
     `SELECT product_type, COUNT(*) as count FROM products GROUP BY product_type`,
     { type: QueryTypes.SELECT }

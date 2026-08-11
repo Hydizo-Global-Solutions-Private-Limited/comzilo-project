@@ -64,8 +64,8 @@ export const runEnterpriseInventoryVerification = async () => {
       name: 'Automated Test Product',
       slug: 'automated-test-product-' + Date.now(),
       sku: 'SKU-TEST-' + Date.now().toString().slice(-4),
-      price: 199.00,
-      costPrice: 100.00,
+      price: 199.0,
+      costPrice: 100.0,
     });
   }
 
@@ -75,7 +75,7 @@ export const runEnterpriseInventoryVerification = async () => {
     movementType: 'purchase',
     quantity: 100,
     reason: 'Initial Stock Deposit via Verification Suite',
-    unitCost: 120.00,
+    unitCost: 120.0,
   });
   console.log(`✅ Stock Balance Updated: On Hand = ${(movResult.balance as any).onHandQuantity}`);
   console.log(`✅ Movement Log Created: Ref = ${(movResult.movement as any).referenceNumber}`);
@@ -118,8 +118,8 @@ export const runEnterpriseInventoryVerification = async () => {
   const po = await service.createPurchaseOrder(tenantId, {
     supplierId: supplier.id,
     warehouseId: wh.id,
-    totalAmount: 12000.00,
-    items: [{ productId: product.id, quantity: 100, unitPrice: 120.00 }],
+    totalAmount: 12000.0,
+    items: [{ productId: product.id, quantity: 100, unitPrice: 120.0 }],
   });
   console.log(`✅ Purchase Order Created: ${(po as any)?.poNumber}`);
 
@@ -128,7 +128,7 @@ export const runEnterpriseInventoryVerification = async () => {
   const grn = await service.createGoodsReceipt(tenantId, {
     poId: (po as any)?.id || 1,
     warehouseId: wh.id,
-    items: [{ productId: product.id, quantity: 50, unitPrice: 120.00 }],
+    items: [{ productId: product.id, quantity: 50, unitPrice: 120.0 }],
   });
   console.log(`✅ Goods Receipt Note Created: ${grn.grnNumber}`);
 
@@ -143,17 +143,21 @@ export const runEnterpriseInventoryVerification = async () => {
   // 7. Verify Super Admin & Seller HTTP Endpoints
   console.log('\n[7/7] Verifying Super Admin & Seller Panel HTTP APIs...');
   const req = supertest(app);
-  const adminRes = await req.post('/api/v1/auth/login').send({ email: 'admin@comzilo.com', password: 'SuperAdminSecurePassword2026!' });
+  const adminRes = await req
+    .post('/api/v1/auth/login')
+    .send({ email: 'admin@comzilo.com', password: 'SuperAdminSecurePassword2026!' });
   const adminToken = adminRes.body.data.accessToken;
 
-  const adminAnalyticsRes = await req.get('/api/v1/admin/inventory/analytics')
+  const adminAnalyticsRes = await req
+    .get('/api/v1/admin/inventory/analytics')
     .set('Authorization', 'Bearer ' + adminToken)
     .set('X-Tenant-UUID', '00000000-0000-0000-0000-000000000001');
 
   console.log(`GET /admin/inventory/analytics Status: ${adminAnalyticsRes.status}`);
   console.log(`Platform Inventory Value: ₹${adminAnalyticsRes.body.data?.totalInventoryValue}`);
 
-  const sellerDashRes = await req.get('/api/v1/store/inventory-management/dashboard')
+  const sellerDashRes = await req
+    .get('/api/v1/store/inventory-management/dashboard')
     .set('Authorization', 'Bearer ' + adminToken);
 
   console.log(`GET /store/inventory-management/dashboard Status: ${sellerDashRes.status}`);
@@ -165,8 +169,10 @@ export const runEnterpriseInventoryVerification = async () => {
 };
 
 if (require.main === module) {
-  runEnterpriseInventoryVerification().then(() => process.exit(0)).catch((err) => {
-    console.error('Verification Error:', err);
-    process.exit(1);
-  });
+  runEnterpriseInventoryVerification()
+    .then(() => process.exit(0))
+    .catch((err) => {
+      console.error('Verification Error:', err);
+      process.exit(1);
+    });
 }

@@ -25,7 +25,11 @@ export class SellerBankAccountController {
     return 47;
   }
 
-  public getSellerBankAccount = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public getSellerBankAccount = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const tenantId = this.extractTenantId(req);
       const account = await this.service.getBankAccount(tenantId);
@@ -35,7 +39,11 @@ export class SellerBankAccountController {
     }
   };
 
-  public submitSellerBankAccount = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public submitSellerBankAccount = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const tenantId = this.extractTenantId(req);
       const account = await this.service.submitBankAccount(tenantId, req.body);
@@ -45,7 +53,11 @@ export class SellerBankAccountController {
     }
   };
 
-  public listAllBankAccounts = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public listAllBankAccounts = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const { status, search } = req.query;
       const accounts = await this.service.listAllBankAccounts({
@@ -58,7 +70,11 @@ export class SellerBankAccountController {
     }
   };
 
-  public verifyBankAccount = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public verifyBankAccount = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const id = Number(req.params.id);
       const adminUserId = (req as any).user?.id || 1;

@@ -5,17 +5,27 @@ import { success, created } from '../shared/responses';
 export class AutomaticSettlementController {
   private service = new AutomaticSettlementService();
 
-  public processEligibleSettlements = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public processEligibleSettlements = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const tenantId = req.body.tenantId || req.context?.tenantId;
-      const result = await this.service.processEligibleSettlements(tenantId ? Number(tenantId) : undefined);
+      const result = await this.service.processEligibleSettlements(
+        tenantId ? Number(tenantId) : undefined
+      );
       success(res, 'Batch automated settlement run completed successfully', result);
     } catch (err) {
       next(err);
     }
   };
 
-  public getSettlements = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public getSettlements = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const tenantId = req.context?.tenantId || undefined;
       const settlements = await this.service.getSettlements(tenantId);
@@ -25,7 +35,11 @@ export class AutomaticSettlementController {
     }
   };
 
-  public getSettlementReports = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public getSettlementReports = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const tenantId = req.context?.tenantId || undefined;
       const reports = await this.service.getSettlementReports(tenantId);

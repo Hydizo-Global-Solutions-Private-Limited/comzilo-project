@@ -28,7 +28,8 @@ export const requestPasswordResetSchema = {
   }),
 };
 
-export const passwordComplexityPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$/;
+export const passwordComplexityPattern =
+  /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$/;
 
 export const validatePasswordPolicy = (password: string): boolean => {
   return passwordComplexityPattern.test(password);

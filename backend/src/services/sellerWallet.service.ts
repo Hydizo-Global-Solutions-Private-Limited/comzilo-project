@@ -178,7 +178,12 @@ export class SellerWalletService {
   /**
    * Customer Order Placed -> Hold Money in Escrow (Pending Balance)
    */
-  public async onOrderCreated(tenantId: number, storeId: number, orderId: number, amount: number): Promise<void> {
+  public async onOrderCreated(
+    tenantId: number,
+    storeId: number,
+    orderId: number,
+    amount: number
+  ): Promise<void> {
     const wallet = await this.getWallet(tenantId, storeId);
     const newPending = wallet.pendingBalance + amount;
     const newTotal = wallet.totalBalance + amount;
@@ -219,7 +224,12 @@ export class SellerWalletService {
   /**
    * Order Delivered -> Escrow Release: Move funds from Pending to Available (Minus Platform Fee)
    */
-  public async onOrderDelivered(tenantId: number, storeId: number, orderId: number, orderTotal: number): Promise<void> {
+  public async onOrderDelivered(
+    tenantId: number,
+    storeId: number,
+    orderId: number,
+    orderTotal: number
+  ): Promise<void> {
     const wallet = await this.getWallet(tenantId, storeId);
     const platformCommission = Math.round(orderTotal * 0.05 * 100) / 100; // 5% Commission
     const netSellerPayout = orderTotal - platformCommission;
@@ -264,7 +274,12 @@ export class SellerWalletService {
   /**
    * Seller Requests Withdrawal of Available Funds
    */
-  public async requestWithdrawal(tenantId: number, storeId = 1, amount: number, bankDetails?: any): Promise<any> {
+  public async requestWithdrawal(
+    tenantId: number,
+    storeId = 1,
+    amount: number,
+    bankDetails?: any
+  ): Promise<any> {
     const wallet = await this.getWallet(tenantId, storeId);
 
     if (amount <= 0) {
@@ -272,7 +287,9 @@ export class SellerWalletService {
     }
 
     if (amount > wallet.availableBalance) {
-      throw new ValidationError(`Insufficient available balance for withdrawal. Maximum available: INR ${wallet.availableBalance.toFixed(2)}`);
+      throw new ValidationError(
+        `Insufficient available balance for withdrawal. Maximum available: INR ${wallet.availableBalance.toFixed(2)}`
+      );
     }
 
     const bank = bankDetails || wallet.bankDetails;
@@ -438,7 +455,9 @@ export class SellerWalletService {
     }
 
     if (withdrawal.status === 'paid') {
-      throw new ValidationError(`Withdrawal request #${withdrawalId} has already been marked as paid.`);
+      throw new ValidationError(
+        `Withdrawal request #${withdrawalId} has already been marked as paid.`
+      );
     }
 
     // Update Withdrawal Status
@@ -454,7 +473,10 @@ export class SellerWalletService {
       `UPDATE seller_wallets 
        SET total_withdrawn = total_withdrawn + :amount, updated_at = NOW() 
        WHERE id = :walletId`,
-      { replacements: { amount: withdrawal.amount, walletId: withdrawal.wallet_id }, type: QueryTypes.UPDATE }
+      {
+        replacements: { amount: withdrawal.amount, walletId: withdrawal.wallet_id },
+        type: QueryTypes.UPDATE,
+      }
     );
 
     return {
@@ -468,7 +490,10 @@ export class SellerWalletService {
   /**
    * Super Admin Rejects Withdrawal Request (Pending/Approved -> Rejected + Refund to Seller Available Balance)
    */
-  public async rejectWithdrawal(withdrawalId: number, reason = 'Request rejected by admin'): Promise<any> {
+  public async rejectWithdrawal(
+    withdrawalId: number,
+    reason = 'Request rejected by admin'
+  ): Promise<any> {
     const [withdrawal]: any = await sequelize.query(
       `SELECT * FROM seller_withdrawals WHERE id = :withdrawalId LIMIT 1`,
       { replacements: { withdrawalId }, type: QueryTypes.SELECT }
@@ -499,7 +524,10 @@ export class SellerWalletService {
       `UPDATE seller_wallets 
        SET available_balance = available_balance + :amount, total_balance = total_balance + :amount, updated_at = NOW() 
        WHERE id = :walletId`,
-      { replacements: { amount: withdrawal.amount, walletId: withdrawal.wallet_id }, type: QueryTypes.UPDATE }
+      {
+        replacements: { amount: withdrawal.amount, walletId: withdrawal.wallet_id },
+        type: QueryTypes.UPDATE,
+      }
     );
 
     // Log transaction refund

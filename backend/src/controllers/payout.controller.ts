@@ -24,7 +24,11 @@ export class PayoutController {
     }
   };
 
-  public getPayoutQueue = async (_req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public getPayoutQueue = async (
+    _req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const queue = await this.payoutService.getPayoutQueue();
       success(res, 'Payout queue retrieved successfully', queue);
@@ -33,7 +37,11 @@ export class PayoutController {
     }
   };
 
-  public getPayoutHistory = async (_req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public getPayoutHistory = async (
+    _req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const history = await this.payoutService.getPayoutHistory();
       success(res, 'Payout history retrieved successfully', history);
@@ -42,7 +50,11 @@ export class PayoutController {
     }
   };
 
-  public getPayoutLogs = async (_req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public getPayoutLogs = async (
+    _req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const logs = await this.payoutService.getPayoutLogs();
       success(res, 'Payout audit logs retrieved successfully', logs);
@@ -51,7 +63,11 @@ export class PayoutController {
     }
   };
 
-  public getPayoutStatus = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public getPayoutStatus = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const payoutId = req.params.payoutId;
       const status = await this.payoutService.getPayoutStatus(payoutId);

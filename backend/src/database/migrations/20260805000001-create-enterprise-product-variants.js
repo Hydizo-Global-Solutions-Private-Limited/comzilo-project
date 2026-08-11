@@ -178,12 +178,27 @@ module.exports = {
     }
 
     // Add Indexes to product_variants
-    await queryInterface.addIndex('product_variants', ['tenant_id'], { name: 'idx_pv_tenant_id' }).catch(() => {});
-    await queryInterface.addIndex('product_variants', ['store_id'], { name: 'idx_pv_store_id' }).catch(() => {});
-    await queryInterface.addIndex('product_variants', ['product_id'], { name: 'idx_pv_product_id' }).catch(() => {});
-    await queryInterface.addIndex('product_variants', ['barcode'], { name: 'idx_pv_barcode' }).catch(() => {});
-    await queryInterface.addIndex('product_variants', ['status'], { name: 'idx_pv_status' }).catch(() => {});
-    await queryInterface.addIndex('product_variants', ['tenant_id', 'sku'], { name: 'idx_pv_tenant_sku', unique: true }).catch(() => {});
+    await queryInterface
+      .addIndex('product_variants', ['tenant_id'], { name: 'idx_pv_tenant_id' })
+      .catch(() => {});
+    await queryInterface
+      .addIndex('product_variants', ['store_id'], { name: 'idx_pv_store_id' })
+      .catch(() => {});
+    await queryInterface
+      .addIndex('product_variants', ['product_id'], { name: 'idx_pv_product_id' })
+      .catch(() => {});
+    await queryInterface
+      .addIndex('product_variants', ['barcode'], { name: 'idx_pv_barcode' })
+      .catch(() => {});
+    await queryInterface
+      .addIndex('product_variants', ['status'], { name: 'idx_pv_status' })
+      .catch(() => {});
+    await queryInterface
+      .addIndex('product_variants', ['tenant_id', 'sku'], {
+        name: 'idx_pv_tenant_sku',
+        unique: true,
+      })
+      .catch(() => {});
 
     // 5. Variant Attributes Table
     await queryInterface.createTable('variant_attributes', {
@@ -223,10 +238,12 @@ module.exports = {
       },
     });
 
-    await queryInterface.addIndex('variant_attributes', ['variant_id', 'attribute_name', 'attribute_value'], {
-      name: 'idx_va_unique_combination',
-      unique: true,
-    }).catch(() => {});
+    await queryInterface
+      .addIndex('variant_attributes', ['variant_id', 'attribute_name', 'attribute_value'], {
+        name: 'idx_va_unique_combination',
+        unique: true,
+      })
+      .catch(() => {});
 
     // 6. Variant Images Table
     await queryInterface.createTable('variant_images', {
@@ -332,9 +349,11 @@ module.exports = {
       },
     });
 
-    await queryInterface.addIndex('variant_inventories', ['tenant_id', 'variant_id', 'warehouse_id'], {
-      name: 'idx_vi_tenant_variant_warehouse',
-    }).catch(() => {});
+    await queryInterface
+      .addIndex('variant_inventories', ['tenant_id', 'variant_id', 'warehouse_id'], {
+        name: 'idx_vi_tenant_variant_warehouse',
+      })
+      .catch(() => {});
   },
 
   down: async (queryInterface, Sequelize) => {

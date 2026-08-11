@@ -58,7 +58,9 @@ export const verifyLiveE2E = async () => {
     throw new Error('Product creation failed!');
   }
   const product = createRes.body.data;
-  console.log(`✅ Product Saved in MySQL! ID: ${product.id}, Name: "${product.name}", Status: "${product.status}"`);
+  console.log(
+    `✅ Product Saved in MySQL! ID: ${product.id}, Name: "${product.name}", Status: "${product.status}"`
+  );
 
   // STEP 3: MySQL Database Verification Query for products table
   console.log('\n[3] Open MySQL -> Query products table:');
@@ -83,12 +85,16 @@ export const verifyLiveE2E = async () => {
   console.log('\n[5] Open Customer Storefront (http://localhost:3000/products)...');
   const storefrontRes = await req.get('/api/v1/products?limit=100');
   console.log(`GET /api/v1/products Status: ${storefrontRes.status}`);
-  
+
   const publicProducts = storefrontRes.body.data || [];
-  const foundLiveProduct = publicProducts.find((p: any) => p.id === product.id || p.name === 'zz-live-product');
-  
+  const foundLiveProduct = publicProducts.find(
+    (p: any) => p.id === product.id || p.name === 'zz-live-product'
+  );
+
   if (!foundLiveProduct) {
-    throw new Error('CRITICAL FAILURE: Seller-created product "zz-live-product" is NOT returned to Customer Storefront!');
+    throw new Error(
+      'CRITICAL FAILURE: Seller-created product "zz-live-product" is NOT returned to Customer Storefront!'
+    );
   }
   console.log('🎉 CRITICAL SUCCESS: Seller product appears IMMEDIATELY on Customer Storefront!');
   console.log(`   - Product ID: ${foundLiveProduct.id}`);

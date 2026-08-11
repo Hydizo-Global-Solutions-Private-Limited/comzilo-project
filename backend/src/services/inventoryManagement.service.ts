@@ -85,15 +85,21 @@ export class InventoryManagementService {
       else if (current <= Number(item.reorderPoint || 10)) lowStockCount++;
     }
 
-    const pendingPOs = await PurchaseOrder.count({ where: { tenantId, status: ['pending', 'approved'] } });
+    const pendingPOs = await PurchaseOrder.count({
+      where: { tenantId, status: ['pending', 'approved'] },
+    });
     const recentMovements = await StockMovement.findAll({
       where: { tenantId },
       order: [['id', 'DESC']],
       limit: 10,
     });
 
-    const incomingCount = await StockMovement.count({ where: { tenantId, movementType: 'IN' } as any }).catch(() => 0);
-    const outgoingCount = await StockMovement.count({ where: { tenantId, movementType: 'OUT' } as any }).catch(() => 0);
+    const incomingCount = await StockMovement.count({
+      where: { tenantId, movementType: 'IN' } as any,
+    }).catch(() => 0);
+    const outgoingCount = await StockMovement.count({
+      where: { tenantId, movementType: 'OUT' } as any,
+    }).catch(() => 0);
 
     return {
       totalWarehouses,
@@ -152,7 +158,16 @@ export class InventoryManagementService {
     params: {
       productId: number;
       warehouseId: number;
-      movementType: 'purchase' | 'sale' | 'transfer' | 'adjustment' | 'return' | 'damage' | 'lost' | 'production' | 'manual';
+      movementType:
+        | 'purchase'
+        | 'sale'
+        | 'transfer'
+        | 'adjustment'
+        | 'return'
+        | 'damage'
+        | 'lost'
+        | 'production'
+        | 'manual';
       quantity: number;
       reason: string;
       referenceNumber?: string;
@@ -314,7 +329,8 @@ export class InventoryManagementService {
     const t = await sequelize.transaction();
     try {
       const adjustmentNumber = 'ADJ-' + Date.now().toString().slice(-6);
-      const qtyChange = data.type === 'decrease' ? -Math.abs(data.quantity) : Math.abs(data.quantity);
+      const qtyChange =
+        data.type === 'decrease' ? -Math.abs(data.quantity) : Math.abs(data.quantity);
 
       const adjustment = await StockAdjustment.create(
         {
@@ -433,7 +449,9 @@ export class InventoryManagementService {
           productId: item.productId || 1,
           quantityOrdered: item.quantity || item.orderedQuantity || item.quantityOrdered || 1,
           unitCost: item.unitPrice || item.unitCost || 50.0,
-          subtotal: (item.quantity || item.orderedQuantity || item.quantityOrdered || 1) * (item.unitPrice || item.unitCost || 50.0),
+          subtotal:
+            (item.quantity || item.orderedQuantity || item.quantityOrdered || 1) *
+            (item.unitPrice || item.unitCost || 50.0),
         });
       }
     }

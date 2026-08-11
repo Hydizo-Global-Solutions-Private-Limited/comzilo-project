@@ -60,7 +60,10 @@ export class ShippingProviderService {
         const avgResult = await Shipment.findAll({
           where: { status: 'delivered' },
           attributes: [
-            [sequelize.fn('AVG', sequelize.literal('TIMESTAMPDIFF(HOUR, created_at, updated_at)')), 'avgHours'],
+            [
+              sequelize.fn('AVG', sequelize.literal('TIMESTAMPDIFF(HOUR, created_at, updated_at)')),
+              'avgHours',
+            ],
           ],
           raw: true,
         });
@@ -77,7 +80,8 @@ export class ShippingProviderService {
       cancelled,
       rto,
       codOrders,
-      deliverySuccessRate: totalShipments > 0 ? ((delivered / totalShipments) * 100).toFixed(1) + '%' : '0.0%',
+      deliverySuccessRate:
+        totalShipments > 0 ? ((delivered / totalShipments) * 100).toFixed(1) + '%' : '0.0%',
       averageDeliveryTimeDays,
       mostUsedProvider,
     };
@@ -151,7 +155,8 @@ export class ShippingProviderService {
       if (data.defaultCourier !== undefined) config.defaultCourier = data.defaultCourier;
       if (data.isCodEnabled !== undefined) config.isCodEnabled = data.isCodEnabled;
       if (data.isTrackingEnabled !== undefined) config.isTrackingEnabled = data.isTrackingEnabled;
-      if (data.shippingChargesConfig !== undefined) config.shippingChargesConfig = data.shippingChargesConfig;
+      if (data.shippingChargesConfig !== undefined)
+        config.shippingChargesConfig = data.shippingChargesConfig;
       await config.save();
     }
 
@@ -169,7 +174,9 @@ export class ShippingProviderService {
 
   public async testProviderConnection(tenantId: number, providerCode: string) {
     const adapter = ShippingAdapterRegistry.getAdapter(providerCode);
-    const config = await TenantShippingProviderConfig.findOne({ where: { tenantId, providerCode } });
+    const config = await TenantShippingProviderConfig.findOne({
+      where: { tenantId, providerCode },
+    });
 
     const isConnected = await adapter.authenticate({
       apiKey: config?.apiKey || 'test_api_key',
@@ -184,7 +191,11 @@ export class ShippingProviderService {
       responseData: { isConnected },
     });
 
-    return { success: isConnected, providerCode, message: isConnected ? 'Connection successful' : 'Authentication failed' };
+    return {
+      success: isConnected,
+      providerCode,
+      message: isConnected ? 'Connection successful' : 'Authentication failed',
+    };
   }
 
   // --- SHIPPING ZONES, METHODS, PICKUP ADDRESSES, PACKAGES ---
@@ -227,7 +238,10 @@ export class ShippingProviderService {
   }
 
   // --- RATE CALCULATION ENGINE ---
-  public async calculateShippingRate(tenantId: number, params: { weightKg: number; pincode: string; orderValue: number }) {
+  public async calculateShippingRate(
+    tenantId: number,
+    params: { weightKg: number; pincode: string; orderValue: number }
+  ) {
     const rules = await ShippingRateRule.findAll({ where: { tenantId, isActive: true } });
 
     if (rules.length > 0) {
@@ -240,22 +254,35 @@ export class ShippingProviderService {
 
     // Default Rate Strategy Calculation
     const calculatedRate = Math.max(49.0, Math.round(params.weightKg * 40.0));
-    return { rate: calculatedRate, ruleName: 'Standard Regional Weight Rate', type: 'weight_based' };
+    return {
+      rate: calculatedRate,
+      ruleName: 'Standard Regional Weight Rate',
+      type: 'weight_based',
+    };
   }
 
   // --- SHIPMENT OPERATIONS ---
   public async createShipment(tenantId: number, data: any) {
     const adapter = ShippingAdapterRegistry.getAdapter(data.providerCode || 'shiprocket');
 
-    const result = await adapter.createShipment({
-      orderNumber: data.orderNumber,
-      pickupAddress: data.pickupAddress,
-      destinationAddress: data.destinationAddress,
-      packageInfo: data.packageInfo || { weightKg: 1, lengthCm: 10, widthCm: 10, heightCm: 10, itemsCount: 1 },
-      isCod: data.isCod || false,
-      codAmount: data.codAmount || 0,
-      courierName: data.courierName,
-    }, data);
+    const result = await adapter.createShipment(
+      {
+        orderNumber: data.orderNumber,
+        pickupAddress: data.pickupAddress,
+        destinationAddress: data.destinationAddress,
+        packageInfo: data.packageInfo || {
+          weightKg: 1,
+          lengthCm: 10,
+          widthCm: 10,
+          heightCm: 10,
+          itemsCount: 1,
+        },
+        isCod: data.isCod || false,
+        codAmount: data.codAmount || 0,
+        courierName: data.courierName,
+      },
+      data
+    );
 
     const shipment = await Shipment.create({
       tenantId,
@@ -360,7 +387,9 @@ export class ShippingProviderService {
 
   public async deleteProvider(tenantId: number, providerIdOrCode: string | number) {
     if (!isNaN(Number(providerIdOrCode))) {
-      await TenantShippingProviderConfig.destroy({ where: { id: Number(providerIdOrCode), tenantId } });
+      await TenantShippingProviderConfig.destroy({
+        where: { id: Number(providerIdOrCode), tenantId },
+      });
     } else {
       const prov = await ShippingProvider.findOne({ where: { code: String(providerIdOrCode) } });
       if (prov) {

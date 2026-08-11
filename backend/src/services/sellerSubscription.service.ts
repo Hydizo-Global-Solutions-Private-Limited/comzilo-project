@@ -23,10 +23,13 @@ export class SellerSubscriptionService {
 
     // Auto-provision 14-day trial if no subscription exists yet
     if (!sub) {
-      const defaultPlan: any = (await Plan.findOne({ where: { code: 'starter' } })) || (await Plan.findByPk(1));
+      const defaultPlan: any =
+        (await Plan.findOne({ where: { code: 'starter' } })) || (await Plan.findByPk(1));
       if (defaultPlan) {
         const now = new Date();
-        const trialEnd = new Date(now.getTime() + (defaultPlan.trialDays || 14) * 24 * 60 * 60 * 1000);
+        const trialEnd = new Date(
+          now.getTime() + (defaultPlan.trialDays || 14) * 24 * 60 * 60 * 1000
+        );
         sub = await Subscription.create({
           tenantId,
           planId: defaultPlan.id,
@@ -83,16 +86,20 @@ export class SellerSubscriptionService {
     );
     const usersUsed = Number(userRes?.count || 0);
 
-    const [whRes]: any = await sequelize.query(
-      'SELECT COUNT(*) as count FROM warehouse_locations WHERE tenant_id = :tenantId',
-      { replacements: { tenantId }, type: QueryTypes.SELECT }
-    ).catch(() => [{ count: 1 }]);
+    const [whRes]: any = await sequelize
+      .query('SELECT COUNT(*) as count FROM warehouse_locations WHERE tenant_id = :tenantId', {
+        replacements: { tenantId },
+        type: QueryTypes.SELECT,
+      })
+      .catch(() => [{ count: 1 }]);
     const warehousesUsed = Number(whRes?.[0]?.count || 1);
 
-    const [prodRes]: any = await sequelize.query(
-      'SELECT COUNT(*) as count FROM products WHERE tenant_id = :tenantId AND deleted_at IS NULL',
-      { replacements: { tenantId }, type: QueryTypes.SELECT }
-    ).catch(() => [{ count: 0 }]);
+    const [prodRes]: any = await sequelize
+      .query(
+        'SELECT COUNT(*) as count FROM products WHERE tenant_id = :tenantId AND deleted_at IS NULL',
+        { replacements: { tenantId }, type: QueryTypes.SELECT }
+      )
+      .catch(() => [{ count: 0 }]);
     const productsUsed = Number(prodRes?.[0]?.count || 0);
 
     const plan = sub?.plan || {};
@@ -118,7 +125,11 @@ export class SellerSubscriptionService {
   /**
    * Initiate Razorpay Checkout for Plan Upgrade/Purchase
    */
-  public async createCheckoutSession(tenantId: number, planId: number, billingCycle: 'monthly' | 'yearly'): Promise<any> {
+  public async createCheckoutSession(
+    tenantId: number,
+    planId: number,
+    billingCycle: 'monthly' | 'yearly'
+  ): Promise<any> {
     const plan: any = await Plan.findByPk(planId);
     if (!plan) {
       throw new NotFoundError('Subscription plan not found');
@@ -156,11 +167,17 @@ export class SellerSubscriptionService {
     const billingCycle = data.billingCycle || data.billing_cycle || 'monthly';
 
     if (!razorpayOrderId || !razorpayPaymentId || !razorpaySignature) {
-      throw new ValidationError('Razorpay payment credentials (order_id, payment_id, signature) are required');
+      throw new ValidationError(
+        'Razorpay payment credentials (order_id, payment_id, signature) are required'
+      );
     }
 
     // Verify HMAC SHA256 Signature
-    const isValidSignature = this.razorpayProvider.verifySignature(razorpayOrderId, razorpayPaymentId, razorpaySignature);
+    const isValidSignature = this.razorpayProvider.verifySignature(
+      razorpayOrderId,
+      razorpayPaymentId,
+      razorpaySignature
+    );
     if (!isValidSignature) {
       throw new ValidationError('Invalid Razorpay signature. Subscription activation denied.');
     }
@@ -174,7 +191,8 @@ export class SellerSubscriptionService {
       const now = new Date();
       const periodDays = billingCycle === 'yearly' ? 365 : 30;
       const currentPeriodEnd = new Date(now.getTime() + periodDays * 24 * 60 * 60 * 1000);
-      const amount = billingCycle === 'yearly' ? Number(plan.priceYearly) : Number(plan.priceMonthly);
+      const amount =
+        billingCycle === 'yearly' ? Number(plan.priceYearly) : Number(plan.priceMonthly);
 
       // Cancel old subscriptions for tenant
       await Subscription.update(
@@ -237,21 +255,25 @@ export class SellerSubscriptionService {
       const tenant: any = await Tenant.findByPk(tenantId);
 
       // Queue confirmation email
-      await this.emailQueueManager.addJob({
-        tenantId,
-        triggerEvent: 'seller_subscription_activated',
-        recipient: tenant?.email || 'seller@comzilo.com',
-        payload: {
-          tenantName: tenant?.name || 'Valued Merchant',
-          planName: plan.name,
-          billingCycle,
-          amount,
-          invoiceNumber: invoiceNum,
-          periodEnd: currentPeriodEnd.toLocaleDateString(),
-        },
-      }).catch(() => null);
+      await this.emailQueueManager
+        .addJob({
+          tenantId,
+          triggerEvent: 'seller_subscription_activated',
+          recipient: tenant?.email || 'seller@comzilo.com',
+          payload: {
+            tenantName: tenant?.name || 'Valued Merchant',
+            planName: plan.name,
+            billingCycle,
+            amount,
+            invoiceNumber: invoiceNum,
+            periodEnd: currentPeriodEnd.toLocaleDateString(),
+          },
+        })
+        .catch(() => null);
 
-      logger.info(`✅ Subscription Activated for Tenant #${tenantId} | Plan: ${plan.name} (${billingCycle})`);
+      logger.info(
+        `✅ Subscription Activated for Tenant #${tenantId} | Plan: ${plan.name} (${billingCycle})`
+      );
 
       const currentSubDetails = await this.getCurrentSubscription(tenantId);
       return {
@@ -262,13 +284,16 @@ export class SellerSubscriptionService {
         invoiceNumber: invoiceNum,
       };
     } catch (error: any) {
-      logger.error(`[SellerSubscriptionService.verifyAndActivateSubscription Failed] ${error.message}`, {
-        tenantId,
-        sql: error.sql,
-        code: error.original?.code || error.code,
-        name: error.name,
-        stack: error.stack,
-      });
+      logger.error(
+        `[SellerSubscriptionService.verifyAndActivateSubscription Failed] ${error.message}`,
+        {
+          tenantId,
+          sql: error.sql,
+          code: error.original?.code || error.code,
+          name: error.name,
+          stack: error.stack,
+        }
+      );
       throw error;
     }
   }
@@ -311,8 +336,8 @@ export class SellerSubscriptionService {
     return {
       mrr,
       arr,
-      statusCounts: Array.isArray(subCounts) ? subCounts : (subCounts ? [subCounts] : []),
-      planPopularity: Array.isArray(planPop) ? planPop : (planPop ? [planPop] : []),
+      statusCounts: Array.isArray(subCounts) ? subCounts : subCounts ? [subCounts] : [],
+      planPopularity: Array.isArray(planPop) ? planPop : planPop ? [planPop] : [],
     };
   }
 }

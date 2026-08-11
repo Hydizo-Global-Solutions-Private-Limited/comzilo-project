@@ -73,9 +73,17 @@ export class CustomerController {
       const qStoreId = req.query.storeId ? Number(req.query.storeId) : null;
 
       const tenantId = qTenantId || req.context?.tenantId || 1;
-      const storeId = qStoreId || (req.headers['x-store-id'] ? Number(req.headers['x-store-id']) : req.context?.storeId || null);
+      const storeId =
+        qStoreId ||
+        (req.headers['x-store-id']
+          ? Number(req.headers['x-store-id'])
+          : req.context?.storeId || null);
 
-      const result = await this.customerService.listCustomers(tenantId as any, storeId as any, req.query);
+      const result = await this.customerService.listCustomers(
+        tenantId as any,
+        storeId as any,
+        req.query
+      );
       success(res, 'Customers listed successfully', result);
     } catch (error) {
       next(error);

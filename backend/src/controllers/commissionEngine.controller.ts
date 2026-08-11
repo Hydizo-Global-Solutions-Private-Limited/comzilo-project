@@ -5,7 +5,11 @@ import { success, created } from '../shared/responses';
 export class CommissionEngineController {
   private service = new CommissionEngineService();
 
-  public getCommissionConfig = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public getCommissionConfig = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const tenantId = req.context?.tenantId || 1;
       const config = await this.service.getCommissionConfig(tenantId);
@@ -15,7 +19,11 @@ export class CommissionEngineController {
     }
   };
 
-  public updateCommissionConfig = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public updateCommissionConfig = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const tenantId = req.context?.tenantId || 1;
       const updated = await this.service.updateCommissionConfig(tenantId, req.body);
@@ -25,7 +33,11 @@ export class CommissionEngineController {
     }
   };
 
-  public calculatePayout = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public calculatePayout = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const tenantId = req.context?.tenantId || 1;
       const { orderId, orderTotal, subtotal } = req.body;
@@ -41,7 +53,11 @@ export class CommissionEngineController {
     }
   };
 
-  public getOrderCommissionBreakdown = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public getOrderCommissionBreakdown = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const tenantId = req.context?.tenantId || 1;
       const orderId = Number(req.params.orderId);
@@ -52,7 +68,11 @@ export class CommissionEngineController {
     }
   };
 
-  public getCommissionReport = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public getCommissionReport = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const tenantId = req.context?.tenantId || undefined;
       const report = await this.service.getCommissionReport(tenantId);

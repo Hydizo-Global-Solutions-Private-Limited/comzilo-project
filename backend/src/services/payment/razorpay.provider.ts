@@ -10,18 +10,23 @@ export class RazorpayPaymentProvider implements IPaymentProvider {
     this.keySecret = process.env.RAZORPAY_KEY_SECRET || 'gjwzI3mm19CcyaShfXgheJSR';
   }
 
-  public async createRazorpayOrder(amount: number, currency: string, receiptId: string): Promise<any> {
+  public async createRazorpayOrder(
+    amount: number,
+    currency: string,
+    receiptId: string
+  ): Promise<any> {
     const amountInPaise = Math.round(amount * 100);
-    
+
     // Call official Razorpay Orders API if credentials exist
     if (this.keyId && this.keySecret && !this.keyId.includes('mock')) {
       try {
-        const authHeader = 'Basic ' + Buffer.from(`${this.keyId}:${this.keySecret}`).toString('base64');
+        const authHeader =
+          'Basic ' + Buffer.from(`${this.keyId}:${this.keySecret}`).toString('base64');
         const response = await fetch('https://api.razorpay.com/v1/orders', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': authHeader,
+            Authorization: authHeader,
           },
           body: JSON.stringify({
             amount: amountInPaise,
@@ -61,12 +66,20 @@ export class RazorpayPaymentProvider implements IPaymentProvider {
       .createHmac('sha256', this.keySecret)
       .update(body.toString())
       .digest('hex');
-    
+
     return expectedSignature === signature;
   }
 
-  public async authorize(amount: number, currency: string, options?: any): Promise<PaymentResponse> {
-    const razorpayOrder = await this.createRazorpayOrder(amount, currency, options?.receiptId || 'REC123');
+  public async authorize(
+    amount: number,
+    currency: string,
+    options?: any
+  ): Promise<PaymentResponse> {
+    const razorpayOrder = await this.createRazorpayOrder(
+      amount,
+      currency,
+      options?.receiptId || 'REC123'
+    );
     return {
       success: true,
       transactionReference: razorpayOrder.id,
@@ -76,7 +89,11 @@ export class RazorpayPaymentProvider implements IPaymentProvider {
     };
   }
 
-  public async capture(transactionReference: string, amount: number, options?: any): Promise<PaymentResponse> {
+  public async capture(
+    transactionReference: string,
+    amount: number,
+    options?: any
+  ): Promise<PaymentResponse> {
     return {
       success: true,
       transactionReference,
@@ -86,7 +103,11 @@ export class RazorpayPaymentProvider implements IPaymentProvider {
     };
   }
 
-  public async refund(transactionReference: string, amount: number, options?: any): Promise<PaymentResponse> {
+  public async refund(
+    transactionReference: string,
+    amount: number,
+    options?: any
+  ): Promise<PaymentResponse> {
     return {
       success: true,
       transactionReference: `rfnd_${Date.now()}`,

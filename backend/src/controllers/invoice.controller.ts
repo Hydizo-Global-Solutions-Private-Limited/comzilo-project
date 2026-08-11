@@ -7,7 +7,9 @@ export class InvoiceController {
   private invoiceService = new InvoiceService();
 
   private getStoreId(req: Request): number {
-    const storeId = Number(req.headers['x-store-id'] || req.query.storeId || req.body.storeId || req.context?.storeId);
+    const storeId = Number(
+      req.headers['x-store-id'] || req.query.storeId || req.body.storeId || req.context?.storeId
+    );
     if (storeId && !isNaN(storeId)) {
       return storeId;
     }

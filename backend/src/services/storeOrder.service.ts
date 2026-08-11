@@ -29,9 +29,7 @@ export class StoreOrderService {
       where.orderStatus = query.status;
     }
     if (query.search) {
-      where[Op.or] = [
-        { orderNumber: { [Op.like]: `%${query.search}%` } },
-      ];
+      where[Op.or] = [{ orderNumber: { [Op.like]: `%${query.search}%` } }];
     }
 
     let { rows, count } = await Order.findAndCountAll({
@@ -51,9 +49,9 @@ export class StoreOrderService {
         paymentStatus: 'paid',
         fulfillmentStatus: 'fulfilled',
         currency: 'INR',
-        subtotalAmount: 3499.00,
-        taxAmount: 250.00,
-        totalAmount: 3749.00,
+        subtotalAmount: 3499.0,
+        taxAmount: 250.0,
+        totalAmount: 3749.0,
         placedAt: new Date(),
       } as any);
 
@@ -65,9 +63,9 @@ export class StoreOrderService {
         paymentStatus: 'paid',
         fulfillmentStatus: 'unfulfilled',
         currency: 'INR',
-        subtotalAmount: 1890.00,
-        taxAmount: 110.00,
-        totalAmount: 2000.00,
+        subtotalAmount: 1890.0,
+        taxAmount: 110.0,
+        totalAmount: 2000.0,
         placedAt: new Date(),
       } as any);
 

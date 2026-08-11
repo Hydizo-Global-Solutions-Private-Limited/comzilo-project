@@ -18,7 +18,9 @@ export const runStockAdjustmentModuleVerification = async () => {
   });
 
   if (loginRes.status !== 200 || !loginRes.body?.data?.accessToken) {
-    throw new Error(`Login failed with status ${loginRes.status}: ${JSON.stringify(loginRes.body)}`);
+    throw new Error(
+      `Login failed with status ${loginRes.status}: ${JSON.stringify(loginRes.body)}`
+    );
   }
 
   const token = loginRes.body.data.accessToken;
@@ -36,7 +38,9 @@ export const runStockAdjustmentModuleVerification = async () => {
   console.log(`Initial Stock Adjustments Count: ${getRes.body.data?.length || 0}`);
 
   // Fetch initial balance for Product #1 & Warehouse #1
-  const initBal = await InventoryBalance.findOne({ where: { tenantId: 1, storeId: 1, warehouseId: 1, productId: 1 } });
+  const initBal = await InventoryBalance.findOne({
+    where: { tenantId: 1, storeId: 1, warehouseId: 1, productId: 1 },
+  });
   const startQty = initBal ? Number(initBal.quantityOnHand) : 0;
   console.log(`Initial Inventory Balance for Product #1: ${startQty} units`);
 
@@ -64,9 +68,13 @@ export const runStockAdjustmentModuleVerification = async () => {
   console.log(`✅ Increase Adjustment Created! ID: ${incAdjId}, Number: "${incAdjNumber}"`);
 
   // Verify Balance Increased by 10
-  const afterIncBal = await InventoryBalance.findOne({ where: { tenantId: 1, storeId: 1, warehouseId: 1, productId: 1 } });
+  const afterIncBal = await InventoryBalance.findOne({
+    where: { tenantId: 1, storeId: 1, warehouseId: 1, productId: 1 },
+  });
   const afterIncQty = afterIncBal ? Number(afterIncBal.quantityOnHand) : 0;
-  console.log(`New Inventory Balance after +10 Increase: ${afterIncQty} units (Diff: +${afterIncQty - startQty})`);
+  console.log(
+    `New Inventory Balance after +10 Increase: ${afterIncQty} units (Diff: +${afterIncQty - startQty})`
+  );
 
   if (afterIncQty !== startQty + 10) {
     throw new Error(`Inventory balance expected ${startQty + 10}, but got ${afterIncQty}`);
@@ -95,9 +103,13 @@ export const runStockAdjustmentModuleVerification = async () => {
   console.log(`✅ Decrease Adjustment Created! ID: ${decAdjId}`);
 
   // Verify Balance Decreased by 5
-  const afterDecBal = await InventoryBalance.findOne({ where: { tenantId: 1, storeId: 1, warehouseId: 1, productId: 1 } });
+  const afterDecBal = await InventoryBalance.findOne({
+    where: { tenantId: 1, storeId: 1, warehouseId: 1, productId: 1 },
+  });
   const afterDecQty = afterDecBal ? Number(afterDecBal.quantityOnHand) : 0;
-  console.log(`New Inventory Balance after -5 Decrease: ${afterDecQty} units (Diff: -${afterIncQty - afterDecQty})`);
+  console.log(
+    `New Inventory Balance after -5 Decrease: ${afterDecQty} units (Diff: -${afterIncQty - afterDecQty})`
+  );
 
   if (afterDecQty !== afterIncQty - 5) {
     throw new Error(`Inventory balance expected ${afterIncQty - 5}, but got ${afterDecQty}`);
@@ -105,12 +117,18 @@ export const runStockAdjustmentModuleVerification = async () => {
 
   // 4. Verify Stock Movements Recorded in Database
   console.log('\n[4/5] Verifying Stock Movement Records in Database...');
-  const movements = await StockMovement.findAll({ where: { tenantId: 1, productId: 1 }, order: [['id', 'DESC']], limit: 2 });
+  const movements = await StockMovement.findAll({
+    where: { tenantId: 1, productId: 1 },
+    order: [['id', 'DESC']],
+    limit: 2,
+  });
   if (movements.length < 2) {
     throw new Error(`Expected at least 2 stock movement records, found ${movements.length}`);
   }
 
-  console.log(`✅ Stock Movements Recorded! Latest Movement: ${movements[0].direction} ${movements[0].quantity} units (Type: ${movements[0].movementType})`);
+  console.log(
+    `✅ Stock Movements Recorded! Latest Movement: ${movements[0].direction} ${movements[0].quantity} units (Type: ${movements[0].movementType})`
+  );
 
   // 5. DELETE Adjustment
   console.log('\n[5/5] Testing DELETE /api/v1/store/inventory-management/adjustments/:id...');

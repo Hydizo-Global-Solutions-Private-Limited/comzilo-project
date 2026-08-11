@@ -50,7 +50,8 @@ export class StoreController {
   public listStores = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const userRole = req.context?.userRole || req.user?.role;
-      const isSuperAdmin = userRole === 'SUPER_ADMIN' || userRole === 'ADMIN' || req.query.all === 'true';
+      const isSuperAdmin =
+        userRole === 'SUPER_ADMIN' || userRole === 'ADMIN' || req.query.all === 'true';
 
       const tenantId = isSuperAdmin ? null : req.context?.tenantId;
       const stores = await this.storeService.listStores(tenantId);

@@ -15,7 +15,11 @@ router.use(tenantResolver);
 
 // Public storefront catalog & review endpoints
 router.get('/types', controller.getProductTypes);
-router.get('/', validateRequest({ query: productValidation.listProducts }), controller.listProducts);
+router.get(
+  '/',
+  validateRequest({ query: productValidation.listProducts }),
+  controller.listProducts
+);
 router.get('/:id/reviews', controller.getProductReviews);
 router.post('/:id/reviews', controller.createProductReview);
 router.post('/reviews/:reviewId/helpful', controller.markReviewHelpful);
@@ -58,7 +62,11 @@ router.post(
 
 // Product Image Management Endpoints
 router.get('/:id/images', controller.getProductImages);
-router.post('/:id/images', uploadProductImageMiddleware.single('image'), controller.uploadProductImage);
+router.post(
+  '/:id/images',
+  uploadProductImageMiddleware.single('image'),
+  controller.uploadProductImage
+);
 router.delete('/:id/images/:imageId', controller.deleteProductImage);
 
 export { router as productRoutes };

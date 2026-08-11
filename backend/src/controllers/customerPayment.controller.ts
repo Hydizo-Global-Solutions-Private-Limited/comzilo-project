@@ -45,7 +45,11 @@ export class CustomerPaymentController {
     }
   };
 
-  public sendEmailReceipt = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public sendEmailReceipt = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const orderId = Number(req.params.orderId);
       const { email } = req.body;
@@ -56,7 +60,11 @@ export class CustomerPaymentController {
     }
   };
 
-  public sendWhatsAppReceipt = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public sendWhatsAppReceipt = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const orderId = Number(req.params.orderId);
       const { phone } = req.body;

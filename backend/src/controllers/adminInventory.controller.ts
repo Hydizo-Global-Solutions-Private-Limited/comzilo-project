@@ -15,7 +15,11 @@ export class AdminInventoryController {
     }
   };
 
-  public getWarehouseMonitoring = async (_req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public getWarehouseMonitoring = async (
+    _req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const warehouses = await Warehouse.findAll({ order: [['id', 'ASC']] });
       success(res, 'Warehouse monitoring data retrieved successfully', warehouses);
@@ -24,7 +28,11 @@ export class AdminInventoryController {
     }
   };
 
-  public getPurchaseOrders = async (_req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public getPurchaseOrders = async (
+    _req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const pos = await inventoryService.getGlobalPurchaseOrders();
       success(res, 'Global purchase orders retrieved successfully', pos);
@@ -33,7 +41,11 @@ export class AdminInventoryController {
     }
   };
 
-  public updatePurchaseOrderStatus = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public updatePurchaseOrderStatus = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const { id } = req.params;
       const { status } = req.body;

@@ -77,7 +77,15 @@ module.exports = {
         onDelete: 'CASCADE',
       },
       code: {
-        type: Sequelize.ENUM('standard', 'express', 'same_day', 'next_day', 'economy', 'store_pickup', 'local_delivery'),
+        type: Sequelize.ENUM(
+          'standard',
+          'express',
+          'same_day',
+          'next_day',
+          'economy',
+          'store_pickup',
+          'local_delivery'
+        ),
         allowNull: false,
       },
       name: {
@@ -285,7 +293,19 @@ module.exports = {
         allowNull: true,
       },
       status: {
-        type: Sequelize.ENUM('created', 'pickup_assigned', 'picked_up', 'in_transit', 'out_for_delivery', 'delivered', 'cancelled', 'returned', 'failed_delivery', 'lost', 'damaged'),
+        type: Sequelize.ENUM(
+          'created',
+          'pickup_assigned',
+          'picked_up',
+          'in_transit',
+          'out_for_delivery',
+          'delivered',
+          'cancelled',
+          'returned',
+          'failed_delivery',
+          'lost',
+          'damaged'
+        ),
         allowNull: false,
         defaultValue: 'created',
       },
@@ -525,7 +545,15 @@ module.exports = {
         allowNull: false,
       },
       type: {
-        type: Sequelize.ENUM('flat', 'weight_based', 'distance_based', 'order_value_based', 'free', 'courier_api', 'custom_formula'),
+        type: Sequelize.ENUM(
+          'flat',
+          'weight_based',
+          'distance_based',
+          'order_value_based',
+          'free',
+          'courier_api',
+          'custom_formula'
+        ),
         allowNull: false,
         defaultValue: 'flat',
       },

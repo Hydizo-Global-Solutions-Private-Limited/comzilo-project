@@ -9,7 +9,14 @@ import { InventoryBalanceRepository } from '../repositories/inventoryBalance.rep
 import { StockMovementRepository } from '../repositories/stockMovement.repository';
 import { PaymentRepository } from '../repositories/payment.repository';
 import { InvoiceRepository } from '../repositories/invoice.repository';
-import { POSRegister, POSSession, Receipt, Customer, Product, InventoryBalance } from '../database/models';
+import {
+  POSRegister,
+  POSSession,
+  Receipt,
+  Customer,
+  Product,
+  InventoryBalance,
+} from '../database/models';
 import { BaseService } from '../core/BaseService';
 import { sequelize } from '../config/database';
 import { NotFoundError, ValidationError } from '../shared/errors/AppError';
@@ -432,9 +439,14 @@ export class POSService extends BaseService {
 
         if (!session) {
           // Auto-open session on target register
-          let register = await this.registerRepo.findScopedById(tenantId, storeId, targetRegisterId, {
-            transaction: t,
-          });
+          let register = await this.registerRepo.findScopedById(
+            tenantId,
+            storeId,
+            targetRegisterId,
+            {
+              transaction: t,
+            }
+          );
           if (!register) {
             register = await this.registerRepo.createScoped(
               tenantId,

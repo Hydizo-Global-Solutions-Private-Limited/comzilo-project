@@ -11,7 +11,11 @@ export abstract class BaseShippingAdapter implements IShippingProviderAdapter {
   abstract providerCode: string;
   abstract providerName: string;
 
-  async authenticate(config: { apiKey?: string; apiSecret?: string; environment?: string }): Promise<boolean> {
+  async authenticate(config: {
+    apiKey?: string;
+    apiSecret?: string;
+    environment?: string;
+  }): Promise<boolean> {
     if (!config.apiKey && !config.apiSecret) {
       return false;
     }
@@ -59,7 +63,10 @@ export abstract class BaseShippingAdapter implements IShippingProviderAdapter {
     return `AWB-${this.providerCode.toUpperCase()}-${orderNumber}-${Date.now().toString().slice(-4)}`;
   }
 
-  async generateLabel(awbNumber: string, _config: any): Promise<{ labelUrl: string; barcode: string; qrCode: string }> {
+  async generateLabel(
+    awbNumber: string,
+    _config: any
+  ): Promise<{ labelUrl: string; barcode: string; qrCode: string }> {
     return {
       labelUrl: `https://cdn.comzilo.com/labels/${awbNumber}.pdf`,
       barcode: `*${awbNumber}*`,
@@ -76,20 +83,36 @@ export abstract class BaseShippingAdapter implements IShippingProviderAdapter {
       activity: 'Shipment processed and out for transit',
       updatedAt: now,
       history: [
-        { status: 'created', location: 'Merchant Warehouse', activity: 'Shipment created and package labeled', timestamp: now },
-        { status: 'in_transit', location: 'Central Logistics Hub', activity: 'Shipment processed and out for transit', timestamp: now },
+        {
+          status: 'created',
+          location: 'Merchant Warehouse',
+          activity: 'Shipment created and package labeled',
+          timestamp: now,
+        },
+        {
+          status: 'in_transit',
+          location: 'Central Logistics Hub',
+          activity: 'Shipment processed and out for transit',
+          timestamp: now,
+        },
       ],
     };
   }
 
-  async createPickup(awbNumber: string, pickupDate: string, _config: any): Promise<{ success: boolean; pickupToken: string }> {
+  async createPickup(
+    awbNumber: string,
+    pickupDate: string,
+    _config: any
+  ): Promise<{ success: boolean; pickupToken: string }> {
     return {
       success: true,
       pickupToken: `PICKUP-${awbNumber}-${pickupDate}`,
     };
   }
 
-  async webhookHandler(payload: any): Promise<{ eventType: string; awbNumber: string; status: string; raw: any }> {
+  async webhookHandler(
+    payload: any
+  ): Promise<{ eventType: string; awbNumber: string; status: string; raw: any }> {
     return {
       eventType: payload?.event || 'tracking_update',
       awbNumber: payload?.awb || payload?.awbNumber || 'AWB-UNKNOWN',

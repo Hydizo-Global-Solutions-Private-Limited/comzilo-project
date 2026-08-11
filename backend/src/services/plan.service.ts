@@ -25,7 +25,11 @@ export class PlanService {
     if (!data.name || !data.name.trim()) {
       throw new ValidationError('Plan name is required.');
     }
-    if (data.priceMonthly === undefined || data.priceMonthly === null || Number(data.priceMonthly) < 0) {
+    if (
+      data.priceMonthly === undefined ||
+      data.priceMonthly === null ||
+      Number(data.priceMonthly) < 0
+    ) {
       throw new ValidationError('Monthly price must be a non-negative number.');
     }
 
@@ -36,20 +40,30 @@ export class PlanService {
       throw new ConflictError(`A plan with the name '${data.name.trim()}' already exists.`);
     }
 
-    const code = data.code || data.name.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
+    const code =
+      data.code ||
+      data.name
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '_')
+        .replace(/^_+|_+$/g, '');
 
     return Plan.create({
       code,
       name: data.name.trim(),
       description: data.description || null,
       priceMonthly: Number(data.priceMonthly),
-      priceYearly: data.priceYearly !== undefined ? Number(data.priceYearly) : Number(data.priceMonthly) * 10,
+      priceYearly:
+        data.priceYearly !== undefined ? Number(data.priceYearly) : Number(data.priceMonthly) * 10,
       currency: data.currency || 'USD',
       trialDays: Number(data.trialDays || 0),
       storeLimit: Number(data.storeLimit || 1),
       userLimit: Number(data.userLimit || 5),
       warehouseLimit: Number(data.warehouseLimit || 1),
-      features: Array.isArray(data.features) ? data.features : (typeof data.features === 'string' ? JSON.parse(data.features) : []),
+      features: Array.isArray(data.features)
+        ? data.features
+        : typeof data.features === 'string'
+          ? JSON.parse(data.features)
+          : [],
       sortOrder: Number(data.sortOrder || 0),
       isActive: data.isActive !== undefined ? Boolean(data.isActive) : true,
     });
@@ -92,7 +106,11 @@ export class PlanService {
     if (data.userLimit !== undefined) plan.userLimit = Number(data.userLimit);
     if (data.warehouseLimit !== undefined) plan.warehouseLimit = Number(data.warehouseLimit);
     if (data.features !== undefined) {
-      plan.features = Array.isArray(data.features) ? data.features : (typeof data.features === 'string' ? JSON.parse(data.features) : []);
+      plan.features = Array.isArray(data.features)
+        ? data.features
+        : typeof data.features === 'string'
+          ? JSON.parse(data.features)
+          : [];
     }
     if (data.sortOrder !== undefined) plan.sortOrder = Number(data.sortOrder);
     if (data.isActive !== undefined) plan.isActive = Boolean(data.isActive);

@@ -27,7 +27,17 @@ export interface OrderItemAttributes {
 
 export type OrderItemCreationAttributes = Optional<
   OrderItemAttributes,
-  'id' | 'uuid' | 'productVariantId' | 'variantId' | 'variantSku' | 'variantAttributes' | 'warehouseId' | 'discount' | 'tax' | 'subtotal' | 'total'
+  | 'id'
+  | 'uuid'
+  | 'productVariantId'
+  | 'variantId'
+  | 'variantSku'
+  | 'variantAttributes'
+  | 'warehouseId'
+  | 'discount'
+  | 'tax'
+  | 'subtotal'
+  | 'total'
 >;
 
 export class OrderItem

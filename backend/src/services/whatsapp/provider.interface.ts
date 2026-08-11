@@ -10,6 +10,11 @@ export interface WhatsAppMessageResponse {
 
 export interface IWhatsAppProvider {
   sendTextMessage(to: string, message: string, options?: any): Promise<WhatsAppMessageResponse>;
-  sendTemplateMessage(to: string, templateName: string, parameters: Record<string, any>, options?: any): Promise<WhatsAppMessageResponse>;
+  sendTemplateMessage(
+    to: string,
+    templateName: string,
+    parameters: Record<string, any>,
+    options?: any
+  ): Promise<WhatsAppMessageResponse>;
   testConnection(config: any): Promise<boolean>;
 }

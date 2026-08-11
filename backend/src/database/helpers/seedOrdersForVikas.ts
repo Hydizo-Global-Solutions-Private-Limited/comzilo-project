@@ -39,7 +39,7 @@ export const seedOrdersForVikas = async () => {
       paymentStatus: 'paid',
       fulfillmentStatus: 'fulfilled',
       currency: 'INR',
-      totalAmount: 2679.00,
+      totalAmount: 2679.0,
       placedAt: new Date(Date.now() - 86400000 * 2),
     } as any);
 
@@ -53,7 +53,7 @@ export const seedOrdersForVikas = async () => {
       paymentStatus: 'paid',
       fulfillmentStatus: 'fulfilled',
       currency: 'INR',
-      totalAmount: 1499.00,
+      totalAmount: 1499.0,
       placedAt: new Date(Date.now() - 86400000 * 5),
     } as any);
 
@@ -62,10 +62,10 @@ export const seedOrdersForVikas = async () => {
       storeId: 1,
       orderId: o1.id,
       invoiceNumber: 'INV-982341-2026',
-      subtotal: 2499.00,
-      tax: 180.00,
+      subtotal: 2499.0,
+      tax: 180.0,
       discount: 0,
-      total: 2679.00,
+      total: 2679.0,
       invoiceStatus: 'paid',
       issuedAt: new Date(Date.now() - 86400000 * 2),
     } as any);
@@ -75,10 +75,10 @@ export const seedOrdersForVikas = async () => {
       storeId: 1,
       orderId: o2.id,
       invoiceNumber: 'INV-982342-2026',
-      subtotal: 1399.00,
-      tax: 100.00,
+      subtotal: 1399.0,
+      tax: 100.0,
       discount: 0,
-      total: 1499.00,
+      total: 1499.0,
       invoiceStatus: 'paid',
       issuedAt: new Date(Date.now() - 86400000 * 5),
     } as any);
@@ -90,7 +90,7 @@ export const seedOrdersForVikas = async () => {
       paymentNumber: 'PAY-982341',
       paymentMethod: 'razorpay',
       gateway: 'razorpay',
-      amount: 2679.00,
+      amount: 2679.0,
       currency: 'INR',
       paymentStatus: 'paid',
       transactionReference: 'pay_Nz982341x9a',
@@ -104,7 +104,7 @@ export const seedOrdersForVikas = async () => {
       paymentNumber: 'PAY-982342',
       paymentMethod: 'razorpay',
       gateway: 'razorpay',
-      amount: 1499.00,
+      amount: 1499.0,
       currency: 'INR',
       paymentStatus: 'paid',
       transactionReference: 'pay_Nz982342x9b',

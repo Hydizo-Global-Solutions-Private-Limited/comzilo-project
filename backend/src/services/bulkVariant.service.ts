@@ -88,7 +88,10 @@ export class BulkVariantService {
           const delta = (currentPrice * payload.value) / 100;
           newPrice = payload.direction === 'increase' ? currentPrice + delta : currentPrice - delta;
         } else {
-          newPrice = payload.direction === 'increase' ? currentPrice + payload.value : currentPrice - payload.value;
+          newPrice =
+            payload.direction === 'increase'
+              ? currentPrice + payload.value
+              : currentPrice - payload.value;
         }
 
         newPrice = Math.max(0, Math.round(newPrice * 100) / 100);
@@ -129,18 +132,31 @@ export class BulkVariantService {
       for (const variantId of payload.variantIds) {
         const [inv] = await VariantInventory.findOrCreate({
           where: { variantId, warehouseId: payload.warehouseId, tenantId },
-          defaults: { tenantId, storeId, quantityOnHand: 0, reservedStock: 0, quantityAvailable: 0, lowStockThreshold: 5 },
+          defaults: {
+            tenantId,
+            storeId,
+            quantityOnHand: 0,
+            reservedStock: 0,
+            quantityAvailable: 0,
+            lowStockThreshold: 5,
+          },
           transaction: t,
         });
 
         let newStock = Number(inv.quantityOnHand || 0);
 
         if (payload.operation === 'add') newStock += payload.quantity;
-        else if (payload.operation === 'subtract') newStock = Math.max(0, newStock - payload.quantity);
+        else if (payload.operation === 'subtract')
+          newStock = Math.max(0, newStock - payload.quantity);
         else newStock = Math.max(0, payload.quantity);
 
         const availStock = Math.max(0, newStock - (inv.reservedStock || 0));
-        const status = availStock <= 0 ? 'out_of_stock' : availStock <= (inv.lowStockThreshold || 5) ? 'low_stock' : 'in_stock';
+        const status =
+          availStock <= 0
+            ? 'out_of_stock'
+            : availStock <= (inv.lowStockThreshold || 5)
+              ? 'low_stock'
+              : 'in_stock';
 
         await inv.update(
           {
@@ -156,7 +172,10 @@ export class BulkVariantService {
           where: { variantId },
           transaction: t,
         });
-        await ProductVariant.update({ stockQuantity: totalStock || 0 }, { where: { id: variantId }, transaction: t });
+        await ProductVariant.update(
+          { stockQuantity: totalStock || 0 },
+          { where: { id: variantId }, transaction: t }
+        );
 
         updatedCount++;
       }

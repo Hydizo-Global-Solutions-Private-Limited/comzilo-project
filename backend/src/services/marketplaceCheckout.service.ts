@@ -65,7 +65,8 @@ export class MarketplaceCheckoutService {
     // 2. Group items by Seller Tenant ID
     const sellerItemsMap = new Map<number, typeof items>();
     for (const item of items) {
-      const sellerTenantId = productTenantMap.get(item.productId) || Number(mainOrder.tenantId || 1);
+      const sellerTenantId =
+        productTenantMap.get(item.productId) || Number(mainOrder.tenantId || 1);
       if (!sellerItemsMap.has(sellerTenantId)) {
         sellerItemsMap.set(sellerTenantId, []);
       }
@@ -130,7 +131,10 @@ export class MarketplaceCheckoutService {
             email: customer.email,
             firstName: customer.firstName || 'Valued',
             lastName: customer.lastName || 'Customer',
-            fullName: customer.fullName || `${customer.firstName || ''} ${customer.lastName || ''}`.trim() || customer.email,
+            fullName:
+              customer.fullName ||
+              `${customer.firstName || ''} ${customer.lastName || ''}`.trim() ||
+              customer.email,
             phone: customer.phone || '+915221187774',
             status: 'active',
           } as any,
@@ -157,7 +161,8 @@ export class MarketplaceCheckoutService {
           shippingAmount: sellerShipping,
           totalAmount: sellerTotal,
           paymentMethod: paymentDetails.paymentMethod || 'razorpay',
-          notes: paymentDetails.notes || `Marketplace Checkout Order (Parent #${mainOrder.orderNumber})`,
+          notes:
+            paymentDetails.notes || `Marketplace Checkout Order (Parent #${mainOrder.orderNumber})`,
         } as any,
         { transaction: t }
       );
@@ -239,9 +244,12 @@ export class MarketplaceCheckoutService {
       );
 
       // f. Commission Calculation & Seller Wallet Entry
-      const platformCommissionRate = 0.10; // 10% Platform Commission
+      const platformCommissionRate = 0.1; // 10% Platform Commission
       const platformCommission = Math.round(sellerTotal * platformCommissionRate * 100) / 100;
-      const netSellerPayout = Math.max(0, Math.round((sellerTotal - platformCommission) * 100) / 100);
+      const netSellerPayout = Math.max(
+        0,
+        Math.round((sellerTotal - platformCommission) * 100) / 100
+      );
 
       const lastWalletTx: any = await WalletTransaction.findOne({
         where: { tenantId: sellerTenantId },

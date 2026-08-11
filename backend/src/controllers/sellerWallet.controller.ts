@@ -16,7 +16,11 @@ export class SellerWalletController {
     }
   };
 
-  public updateBankDetails = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public updateBankDetails = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const tenantId = req.context?.tenantId || 1;
       const wallet = await this.service.updateBankDetails(tenantId, req.body);
@@ -26,19 +30,32 @@ export class SellerWalletController {
     }
   };
 
-  public requestWithdrawal = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public requestWithdrawal = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const tenantId = req.context?.tenantId || 1;
       const storeId = 1;
       const { amount, bankDetails } = req.body;
-      const result = await this.service.requestWithdrawal(tenantId, storeId, Number(amount), bankDetails);
+      const result = await this.service.requestWithdrawal(
+        tenantId,
+        storeId,
+        Number(amount),
+        bankDetails
+      );
       created(res, 'Withdrawal request submitted successfully', result);
     } catch (err) {
       next(err);
     }
   };
 
-  public getTransactions = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public getTransactions = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const tenantId = req.context?.tenantId || 1;
       const txs = await this.service.getTransactions(tenantId);
@@ -48,7 +65,11 @@ export class SellerWalletController {
     }
   };
 
-  public getWithdrawals = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public getWithdrawals = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const tenantId = req.context?.tenantId || 1;
       const withdrawals = await this.service.getWithdrawals(tenantId);
@@ -58,7 +79,11 @@ export class SellerWalletController {
     }
   };
 
-  public getAllWithdrawals = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public getAllWithdrawals = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const statusFilter = (req.query.status as string) || undefined;
       const withdrawals = await this.service.getAllWithdrawals(statusFilter);
@@ -68,7 +93,11 @@ export class SellerWalletController {
     }
   };
 
-  public approveWithdrawal = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public approveWithdrawal = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const withdrawalId = Number(req.params.id);
       const result = await this.service.approveWithdrawal(withdrawalId);
@@ -78,7 +107,11 @@ export class SellerWalletController {
     }
   };
 
-  public markWithdrawalPaid = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public markWithdrawalPaid = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const withdrawalId = Number(req.params.id);
       const payoutRef = req.body.payoutReference || 'SETTLE_PO_123';
@@ -89,7 +122,11 @@ export class SellerWalletController {
     }
   };
 
-  public rejectWithdrawal = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public rejectWithdrawal = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const withdrawalId = Number(req.params.id);
       const reason = req.body.reason || 'Withdrawal request rejected by admin';
@@ -100,7 +137,11 @@ export class SellerWalletController {
     }
   };
 
-  public getWithdrawalReports = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public getWithdrawalReports = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const reports = await this.service.getWithdrawalReports();
       success(res, 'Withdrawal financial reports generated successfully', reports);
@@ -109,7 +150,11 @@ export class SellerWalletController {
     }
   };
 
-  public getSellerFinancialDashboard = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public getSellerFinancialDashboard = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const tenantId = req.context?.tenantId || 1;
       const data = await this.service.getSellerFinancialDashboard(tenantId);
@@ -119,7 +164,11 @@ export class SellerWalletController {
     }
   };
 
-  public exportFinancialData = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public exportFinancialData = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const tenantId = req.context?.tenantId || 1;
       const format = (req.query.format as string) || 'csv';
@@ -136,7 +185,10 @@ export class SellerWalletController {
         ];
 
         res.setHeader('Content-Type', format === 'csv' ? 'text/csv' : 'application/vnd.ms-excel');
-        res.setHeader('Content-Disposition', `attachment; filename="seller_financial_report_${Date.now()}.${format === 'csv' ? 'csv' : 'xls'}"`);
+        res.setHeader(
+          'Content-Disposition',
+          `attachment; filename="seller_financial_report_${Date.now()}.${format === 'csv' ? 'csv' : 'xls'}"`
+        );
         res.send(csvRows.join('\n'));
         return;
       }

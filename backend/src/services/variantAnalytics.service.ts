@@ -1,6 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { sequelize } from '../config/database';
-import { ProductVariant, VariantInventory, OrderItem, Product, CategoryAttribute, AttributeValue } from '../database/models';
+import {
+  ProductVariant,
+  VariantInventory,
+  OrderItem,
+  Product,
+  CategoryAttribute,
+  AttributeValue,
+} from '../database/models';
 import { Op } from 'sequelize';
 
 export class VariantAnalyticsService {
@@ -125,7 +132,9 @@ export class VariantAnalyticsService {
         quantityAvailable: Math.max(0, avail),
         unitPrice,
         stockValue: Math.max(0, avail) * unitPrice,
-        status: r.status || (avail <= 0 ? 'out_of_stock' : avail <= r.lowStockThreshold ? 'low_stock' : 'in_stock'),
+        status:
+          r.status ||
+          (avail <= 0 ? 'out_of_stock' : avail <= r.lowStockThreshold ? 'low_stock' : 'in_stock'),
       };
     });
   }
@@ -176,10 +185,15 @@ export class VariantAnalyticsService {
   /**
    * CSV Export Generator
    */
-  public async generateReportCSV(tenantId: number, storeId: number, reportType: string): Promise<string> {
+  public async generateReportCSV(
+    tenantId: number,
+    storeId: number,
+    reportType: string
+  ): Promise<string> {
     if (reportType === 'inventory') {
       const invData = await this.getVariantInventoryReport(tenantId, storeId);
-      let csv = 'ID,Variant ID,SKU,Warehouse ID,On Hand,Reserved,Available,Unit Price,Stock Value,Status\n';
+      let csv =
+        'ID,Variant ID,SKU,Warehouse ID,On Hand,Reserved,Available,Unit Price,Stock Value,Status\n';
       invData.forEach((row) => {
         csv += `${row.id},${row.variantId},${row.sku},${row.warehouseId},${row.quantityOnHand},${row.reservedStock},${row.quantityAvailable},${row.unitPrice},${row.stockValue},${row.status}\n`;
       });

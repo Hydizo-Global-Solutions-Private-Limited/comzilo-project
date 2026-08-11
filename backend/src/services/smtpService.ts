@@ -59,7 +59,10 @@ export class SmtpService {
   /**
    * Get active SMTP Transporter for a Tenant
    */
-  public async getTransporter(tenantId: number, overrideConfig?: SmtpConfig): Promise<{ transporter: nodemailer.Transporter; senderName: string; senderEmail: string }> {
+  public async getTransporter(
+    tenantId: number,
+    overrideConfig?: SmtpConfig
+  ): Promise<{ transporter: nodemailer.Transporter; senderName: string; senderEmail: string }> {
     let config: SmtpConfig | null = null;
 
     // Fetch DB record for fallback
@@ -79,7 +82,8 @@ export class SmtpService {
     let dbParsed: any = {};
     if (dbRow && dbRow.config_json) {
       try {
-        dbParsed = typeof dbRow.config_json === 'string' ? JSON.parse(dbRow.config_json) : dbRow.config_json;
+        dbParsed =
+          typeof dbRow.config_json === 'string' ? JSON.parse(dbRow.config_json) : dbRow.config_json;
       } catch (e) {
         console.warn('[SmtpService] Failed to parse db config_json:', e);
       }
@@ -88,20 +92,42 @@ export class SmtpService {
     if (overrideConfig && (overrideConfig.host || (overrideConfig as any).smtpHost)) {
       const rawObj: any = overrideConfig;
       let rawPass = rawObj.smtpPassword || rawObj.password || '';
-      
+
       // If password passed is masked or empty, fallback to DB password
       if (!rawPass || rawPass === '******') {
         rawPass = dbParsed.smtpPassword || dbParsed.password || dbParsed.smtpPass || '';
       }
 
       config = {
-        host: rawObj.smtpHost || rawObj.host || dbParsed.smtpHost || dbParsed.host || 'smtp.gmail.com',
+        host:
+          rawObj.smtpHost || rawObj.host || dbParsed.smtpHost || dbParsed.host || 'smtp.gmail.com',
         port: Number(rawObj.smtpPort || rawObj.port || dbParsed.smtpPort || dbParsed.port || 587),
-        username: rawObj.smtpUsername || rawObj.username || rawObj.smtpUser || dbParsed.smtpUsername || dbParsed.username || '',
+        username:
+          rawObj.smtpUsername ||
+          rawObj.username ||
+          rawObj.smtpUser ||
+          dbParsed.smtpUsername ||
+          dbParsed.username ||
+          '',
         password: SmtpService.decryptPassword(rawPass),
-        encryption: rawObj.encryption || dbParsed.encryption || (Number(rawObj.smtpPort || rawObj.port) === 465 ? 'ssl' : 'tls'),
-        senderName: rawObj.senderName || rawObj.fromName || dbParsed.senderName || dbParsed.fromName || 'Comzilo Store',
-        senderEmail: rawObj.senderEmail || rawObj.fromEmail || dbParsed.senderEmail || dbParsed.fromEmail || rawObj.smtpUsername || rawObj.username || '',
+        encryption:
+          rawObj.encryption ||
+          dbParsed.encryption ||
+          (Number(rawObj.smtpPort || rawObj.port) === 465 ? 'ssl' : 'tls'),
+        senderName:
+          rawObj.senderName ||
+          rawObj.fromName ||
+          dbParsed.senderName ||
+          dbParsed.fromName ||
+          'Comzilo Store',
+        senderEmail:
+          rawObj.senderEmail ||
+          rawObj.fromEmail ||
+          dbParsed.senderEmail ||
+          dbParsed.fromEmail ||
+          rawObj.smtpUsername ||
+          rawObj.username ||
+          '',
         providerType: rawObj.providerType || 'smtp',
       };
     } else if (dbRow && dbRow.config_json) {
@@ -109,10 +135,19 @@ export class SmtpService {
         host: dbParsed.smtpHost || dbParsed.host || 'smtp.gmail.com',
         port: Number(dbParsed.smtpPort || dbParsed.port || 587),
         username: dbParsed.smtpUsername || dbParsed.username || dbParsed.smtpUser || '',
-        password: SmtpService.decryptPassword(dbParsed.smtpPassword || dbParsed.password || dbParsed.smtpPass || ''),
-        encryption: dbParsed.encryption || (Number(dbParsed.smtpPort || dbParsed.port) === 465 ? 'ssl' : 'tls'),
+        password: SmtpService.decryptPassword(
+          dbParsed.smtpPassword || dbParsed.password || dbParsed.smtpPass || ''
+        ),
+        encryption:
+          dbParsed.encryption ||
+          (Number(dbParsed.smtpPort || dbParsed.port) === 465 ? 'ssl' : 'tls'),
         senderName: dbParsed.senderName || dbParsed.fromName || 'Comzilo Store',
-        senderEmail: dbParsed.senderEmail || dbParsed.fromEmail || dbParsed.smtpUsername || dbParsed.username || '',
+        senderEmail:
+          dbParsed.senderEmail ||
+          dbParsed.fromEmail ||
+          dbParsed.smtpUsername ||
+          dbParsed.username ||
+          '',
         providerType: dbRow.provider_type || 'smtp',
       };
     }
@@ -124,7 +159,9 @@ export class SmtpService {
 
     // Default Ethereal / Test SMTP fallback if no seller SMTP is configured yet
     if (!config || !config.host || !config.username || !config.password) {
-      console.log('[SmtpService] No custom SMTP credentials configured yet. Using Ethereal Test Account fallback.');
+      console.log(
+        '[SmtpService] No custom SMTP credentials configured yet. Using Ethereal Test Account fallback.'
+      );
       const testAccount = await nodemailer.createTestAccount();
       const testTransporter = nodemailer.createTransport({
         host: 'smtp.ethereal.email',
@@ -183,8 +220,14 @@ export class SmtpService {
       return true;
     } catch (err: any) {
       const msg = err?.message || String(err);
-      if (msg.includes('535') || msg.includes('BadCredentials') || msg.includes('Username and Password not accepted')) {
-        throw new Error('Invalid Gmail Username or App Password. Google requires a 16-character "App Password" (generated from Google Account Security with 2-Step Verification ON). Regular Gmail passwords are rejected by Google.');
+      if (
+        msg.includes('535') ||
+        msg.includes('BadCredentials') ||
+        msg.includes('Username and Password not accepted')
+      ) {
+        throw new Error(
+          'Invalid Gmail Username or App Password. Google requires a 16-character "App Password" (generated from Google Account Security with 2-Step Verification ON). Regular Gmail passwords are rejected by Google.'
+        );
       }
       throw new Error(msg);
     }
@@ -202,7 +245,15 @@ export class SmtpService {
     providerType?: string;
     overrideConfig?: SmtpConfig;
   }): Promise<{ success: boolean; messageId: string }> {
-    const { tenantId, to, subject, html, templateName = 'general', providerType = 'smtp', overrideConfig } = params;
+    const {
+      tenantId,
+      to,
+      subject,
+      html,
+      templateName = 'general',
+      providerType = 'smtp',
+      overrideConfig,
+    } = params;
 
     let transporter: nodemailer.Transporter;
     let senderName: string;
@@ -270,7 +321,11 @@ export class SmtpService {
   /**
    * Send Real Test Email (Feature 1 Workflow)
    */
-  public async sendTestEmail(tenantId: number, recipientEmail: string, config?: SmtpConfig): Promise<{ success: boolean; messageId: string }> {
+  public async sendTestEmail(
+    tenantId: number,
+    recipientEmail: string,
+    config?: SmtpConfig
+  ): Promise<{ success: boolean; messageId: string }> {
     const testSubject = 'Comzilo SMTP Test Email';
     const testHtml = `
       <div style="font-family: Arial, sans-serif; padding: 20px; color: #333; max-width: 600px; margin: 0 auto; border: 1px solid #e0e0e0; border-radius: 8px;">
@@ -329,7 +384,9 @@ export class SmtpService {
             retryCount: logData.retryCount || 0,
             failureReason: logData.failureReason || null,
             messageId: logData.messageId || null,
-            sentAt: logData.sentAt ? logData.sentAt.toISOString().slice(0, 19).replace('T', ' ') : null,
+            sentAt: logData.sentAt
+              ? logData.sentAt.toISOString().slice(0, 19).replace('T', ' ')
+              : null,
           },
         }
       );

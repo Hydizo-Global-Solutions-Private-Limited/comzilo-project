@@ -15,7 +15,8 @@ export class ProductController {
   }
 
   private async getStoreId(req: Request): Promise<number> {
-    const rawStoreId = req.headers['x-store-id'] || req.query.storeId || req.body.storeId || req.context?.storeId;
+    const rawStoreId =
+      req.headers['x-store-id'] || req.query.storeId || req.body.storeId || req.context?.storeId;
     if (rawStoreId) {
       const parsed = Number(rawStoreId);
       if (!isNaN(parsed) && parsed > 0) return parsed;
@@ -134,7 +135,11 @@ export class ProductController {
     }
   };
 
-  public getProductTypes = async (_req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public getProductTypes = async (
+    _req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const types = await this.productService.getProductTypes();
       success(res, 'Product types retrieved successfully', types);
@@ -264,7 +269,11 @@ export class ProductController {
     }
   };
 
-  public uploadProductImage = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public uploadProductImage = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const productId = parseInt(req.params.id, 10);
       const file = req.file;
@@ -297,13 +306,20 @@ export class ProductController {
     }
   };
 
-  public getProductImages = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public getProductImages = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const productId = parseInt(req.params.id, 10);
       const { ProductImage } = require('../database/models');
       const images = await ProductImage.findAll({
         where: { productId },
-        order: [['displayOrder', 'ASC'], ['id', 'ASC']],
+        order: [
+          ['displayOrder', 'ASC'],
+          ['id', 'ASC'],
+        ],
       });
       success(res, RESPONSE_MESSAGES.SUCCESS, images);
     } catch (error) {
@@ -311,7 +327,11 @@ export class ProductController {
     }
   };
 
-  public deleteProductImage = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public deleteProductImage = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const productId = parseInt(req.params.id, 10);
       const imageId = parseInt(req.params.imageId, 10);
@@ -329,7 +349,11 @@ export class ProductController {
     }
   };
 
-  public getProductReviews = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public getProductReviews = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const productId = parseInt(req.params.id, 10);
       const { ProductReview } = require('../database/models');
@@ -362,7 +386,11 @@ export class ProductController {
     }
   };
 
-  public createProductReview = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public createProductReview = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const productId = parseInt(req.params.id, 10);
       const { ProductReview } = require('../database/models');
@@ -376,7 +404,11 @@ export class ProductController {
         throw new ValidationError('Review comment body is required');
       }
 
-      const nameToUse = customerName || (req.context?.authenticatedUserId ? `Customer #${req.context.authenticatedUserId}` : 'Valued Customer');
+      const nameToUse =
+        customerName ||
+        (req.context?.authenticatedUserId
+          ? `Customer #${req.context.authenticatedUserId}`
+          : 'Valued Customer');
 
       const review = await ProductReview.create({
         tenantId: req.context?.tenantId || 1,
@@ -399,7 +431,11 @@ export class ProductController {
     }
   };
 
-  public markReviewHelpful = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public markReviewHelpful = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const reviewId = parseInt(req.params.reviewId, 10);
       const { ProductReview } = require('../database/models');

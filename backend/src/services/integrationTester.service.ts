@@ -17,7 +17,8 @@ export class IntegrationTesterService {
    */
   public async testStripe(apiKey?: string): Promise<IntegrationTestResult> {
     const start = Date.now();
-    const testKey = apiKey || process.env.STRIPE_SECRET_KEY || 'sk_test_51MockStripeTestKeyForDevelopment2026';
+    const testKey =
+      apiKey || process.env.STRIPE_SECRET_KEY || 'sk_test_51MockStripeTestKeyForDevelopment2026';
 
     try {
       if (testKey.includes('MockStripeTestKey')) {
@@ -103,7 +104,8 @@ export class IntegrationTesterService {
         status: 'Connected',
         environment: 'Local Storage',
         responseTimeMs: Math.max(elapsed, 5),
-        message: 'Local File Storage is Active & Writable! (Fallback for AWS Free Development Mode)',
+        message:
+          'Local File Storage is Active & Writable! (Fallback for AWS Free Development Mode)',
         details: {
           storagePath: uploadsDir,
           readWriteCheck: content.includes('Storage Test') ? 'PASSED' : 'FAILED',
@@ -135,7 +137,8 @@ export class IntegrationTesterService {
         status: 'Disabled Gracefully',
         environment: 'Disabled',
         responseTimeMs: Date.now() - start,
-        message: 'OpenAI API key not configured. AI features are gracefully disabled (No paid account required for local testing).',
+        message:
+          'OpenAI API key not configured. AI features are gracefully disabled (No paid account required for local testing).',
       };
     }
 

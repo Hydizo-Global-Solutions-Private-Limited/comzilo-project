@@ -96,7 +96,10 @@ const PRODUCTS_22_LIST: ProductSeedItem[] = [
     status: 'published',
     shortDescription: 'Comprehensive Guide to Spring Boot & Microservices PDF eBook',
     imageUrl: 'https://images.unsplash.com/photo-1532012197267-da84d127e765?w=500',
-    dynamicAttributes: { fileUrl: 'https://cdn.comzilo.com/files/java-ebook.pdf', downloadExpiryDays: 30 },
+    dynamicAttributes: {
+      fileUrl: 'https://cdn.comzilo.com/files/java-ebook.pdf',
+      downloadExpiryDays: 30,
+    },
   },
   {
     name: 'Flutter Complete App Source Code',
@@ -107,7 +110,10 @@ const PRODUCTS_22_LIST: ProductSeedItem[] = [
     status: 'published',
     shortDescription: 'Full Stack Cross-Platform Mobile Shopping App Codebase',
     imageUrl: 'https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=500',
-    dynamicAttributes: { fileUrl: 'https://cdn.comzilo.com/files/flutter-src.zip', downloadExpiryDays: 60 },
+    dynamicAttributes: {
+      fileUrl: 'https://cdn.comzilo.com/files/flutter-src.zip',
+      downloadExpiryDays: 60,
+    },
   },
 
   // 5. Print On Demand
@@ -150,7 +156,10 @@ export const seed22Products = async () => {
   for (const item of PRODUCTS_22_LIST) {
     let prod = await Product.findOne({ where: { sku: item.sku } });
     if (!prod) {
-      const slug = item.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+      const slug = item.name
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-|-$/g, '');
       prod = await Product.create({
         tenantId,
         storeId,
@@ -167,7 +176,9 @@ export const seed22Products = async () => {
         seoDescription: item.shortDescription,
       });
       createdCount++;
-      console.log(`✅ Created Product [ID ${prod.id}] [${item.productType.toUpperCase()}]: "${item.name}"`);
+      console.log(
+        `✅ Created Product [ID ${prod.id}] [${item.productType.toUpperCase()}]: "${item.name}"`
+      );
     } else {
       await prod.update({
         productType: item.productType,
@@ -176,7 +187,9 @@ export const seed22Products = async () => {
         name: item.name,
         shortDescription: item.shortDescription,
       });
-      console.log(`ℹ️ Updated Product [ID ${prod.id}] [${item.productType.toUpperCase()}]: "${item.name}"`);
+      console.log(
+        `ℹ️ Updated Product [ID ${prod.id}] [${item.productType.toUpperCase()}]: "${item.name}"`
+      );
     }
 
     // Attach Media Image
@@ -194,7 +207,9 @@ export const seed22Products = async () => {
       });
     }
 
-    const existingPM = await ProductMedia.findOne({ where: { productId: prod.id, mediaId: media.id } });
+    const existingPM = await ProductMedia.findOne({
+      where: { productId: prod.id, mediaId: media.id },
+    });
     if (!existingPM) {
       await ProductMedia.create({
         tenantId,

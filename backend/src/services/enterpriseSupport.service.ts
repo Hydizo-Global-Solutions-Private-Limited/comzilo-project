@@ -1,5 +1,19 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { SupportTicket, TicketMessage, TicketAttachment, TicketInternalNote, SupportCannedResponse, SupportKnowledgeBase, SupportAuditLog, Customer, Order, Shipment, Invoice, Payment, Store } from '../database/models';
+import {
+  SupportTicket,
+  TicketMessage,
+  TicketAttachment,
+  TicketInternalNote,
+  SupportCannedResponse,
+  SupportKnowledgeBase,
+  SupportAuditLog,
+  Customer,
+  Order,
+  Shipment,
+  Invoice,
+  Payment,
+  Store,
+} from '../database/models';
 import { SmtpService } from './smtpService';
 import { Op } from 'sequelize';
 import { ForbiddenError } from '../shared/errors/AppError';
@@ -19,7 +33,12 @@ export class EnterpriseSupportService {
   /**
    * CUSTOMER PANEL: Get single ticket details with full timeline & messages
    */
-  static async getCustomerTicketDetails(tenantId: number, storeId: number, customerId: number, ticketId: number) {
+  static async getCustomerTicketDetails(
+    tenantId: number,
+    storeId: number,
+    customerId: number,
+    ticketId: number
+  ) {
     const ticket = await SupportTicket.findOne({
       where: { id: ticketId, customerId },
     });
@@ -56,13 +75,19 @@ export class EnterpriseSupportService {
   /**
    * CUSTOMER PANEL: Create manual support ticket (Auto-assign tenant_id, store_id, seller_id, customer_id)
    */
-  static async createCustomerTicket(tenantId: number, storeId: number, customerId: number, data: any) {
+  static async createCustomerTicket(
+    tenantId: number,
+    storeId: number,
+    customerId: number,
+    data: any
+  ) {
     const store: any = await Store.findByPk(storeId).catch(() => null);
     const sellerId = store?.userId || store?.ownerId || null;
 
     const ticketNumber = `TCK-${new Date().getFullYear()}-${Math.floor(100000 + Math.random() * 900000)}`;
     const priority = data.priority || 'medium';
-    const hours = priority === 'critical' ? 2 : priority === 'high' ? 6 : priority === 'medium' ? 24 : 48;
+    const hours =
+      priority === 'critical' ? 2 : priority === 'high' ? 6 : priority === 'medium' ? 24 : 48;
     const slaDueAt = new Date(Date.now() + hours * 60 * 60 * 1000);
 
     const ticket = await SupportTicket.create({
@@ -121,8 +146,17 @@ export class EnterpriseSupportService {
   /**
    * CUSTOMER PANEL: Add customer reply to ticket
    */
-  static async addCustomerReply(tenantId: number, storeId: number, customerId: number, ticketId: number, message: string, attachments?: any[]) {
-    const ticket = await SupportTicket.findOne({ where: { id: ticketId, tenantId, storeId, customerId } });
+  static async addCustomerReply(
+    tenantId: number,
+    storeId: number,
+    customerId: number,
+    ticketId: number,
+    message: string,
+    attachments?: any[]
+  ) {
+    const ticket = await SupportTicket.findOne({
+      where: { id: ticketId, tenantId, storeId, customerId },
+    });
     if (!ticket) {
       throw new ForbiddenError('Access Denied: Ticket does not belong to your account.');
     }
@@ -167,8 +201,17 @@ export class EnterpriseSupportService {
   /**
    * CUSTOMER PANEL: Rate closed support ticket (CSAT ⭐ 1-5)
    */
-  static async rateCustomerTicket(tenantId: number, storeId: number, customerId: number, ticketId: number, score: number, feedback?: string) {
-    const ticket = await SupportTicket.findOne({ where: { id: ticketId, tenantId, storeId, customerId } });
+  static async rateCustomerTicket(
+    tenantId: number,
+    storeId: number,
+    customerId: number,
+    ticketId: number,
+    score: number,
+    feedback?: string
+  ) {
+    const ticket = await SupportTicket.findOne({
+      where: { id: ticketId, tenantId, storeId, customerId },
+    });
     if (!ticket) {
       throw new ForbiddenError('Access Denied: Ticket does not belong to your account.');
     }
@@ -210,7 +253,9 @@ export class EnterpriseSupportService {
         const customer: any = await Customer.findByPk(t.customerId).catch(() => null);
         return {
           ...t.toJSON(),
-          customerName: customer ? `${customer.firstName} ${customer.lastName || ''}`.trim() : 'Customer',
+          customerName: customer
+            ? `${customer.firstName} ${customer.lastName || ''}`.trim()
+            : 'Customer',
           customerEmail: customer?.email || 'N/A',
         };
       })
@@ -243,9 +288,15 @@ export class EnterpriseSupportService {
 
     const customer = await Customer.findByPk(ticket.customerId).catch(() => null);
     const order = ticket.orderId ? await Order.findByPk(ticket.orderId).catch(() => null) : null;
-    const invoice = ticket.invoiceId ? await Invoice.findByPk(ticket.invoiceId).catch(() => null) : null;
-    const shipment = ticket.shipmentId ? await Shipment.findByPk(ticket.shipmentId).catch(() => null) : null;
-    const payment = order ? await Payment.findOne({ where: { orderId: order.id } }).catch(() => null) : null;
+    const invoice = ticket.invoiceId
+      ? await Invoice.findByPk(ticket.invoiceId).catch(() => null)
+      : null;
+    const shipment = ticket.shipmentId
+      ? await Shipment.findByPk(ticket.shipmentId).catch(() => null)
+      : null;
+    const payment = order
+      ? await Payment.findOne({ where: { orderId: order.id } }).catch(() => null)
+      : null;
 
     const messages = await TicketMessage.findAll({
       where: { ticketId: ticket.id },
@@ -253,8 +304,14 @@ export class EnterpriseSupportService {
     });
 
     const attachments = await TicketAttachment.findAll({ where: { ticketId: ticket.id } });
-    const internalNotes = await TicketInternalNote.findAll({ where: { ticketId: ticket.id }, order: [['createdAt', 'DESC']] });
-    const auditLogs = await SupportAuditLog.findAll({ where: { ticketId: ticket.id }, order: [['createdAt', 'DESC']] });
+    const internalNotes = await TicketInternalNote.findAll({
+      where: { ticketId: ticket.id },
+      order: [['createdAt', 'DESC']],
+    });
+    const auditLogs = await SupportAuditLog.findAll({
+      where: { ticketId: ticket.id },
+      order: [['createdAt', 'DESC']],
+    });
 
     return {
       ticket,
@@ -273,7 +330,15 @@ export class EnterpriseSupportService {
   /**
    * SELLER PANEL: Seller reply to ticket (STRICT AUTHORIZATION CHECK)
    */
-  static async sellerReplyTicket(tenantId: number, storeId: number, staffUserId: number, staffName: string, ticketId: number, message: string, attachments?: any[]) {
+  static async sellerReplyTicket(
+    tenantId: number,
+    storeId: number,
+    staffUserId: number,
+    staffName: string,
+    ticketId: number,
+    message: string,
+    attachments?: any[]
+  ) {
     const ticket = await SupportTicket.findOne({ where: { id: ticketId, tenantId, storeId } });
     if (!ticket) {
       throw new ForbiddenError('Access Denied: Ticket does not belong to your store.');
@@ -306,12 +371,14 @@ export class EnterpriseSupportService {
       const customer: any = await Customer.findByPk(ticket.customerId);
       if (customer?.email) {
         const smtp = new SmtpService();
-        await smtp.sendEmail({
-          tenantId,
-          to: customer.email,
-          subject: `📩 Reply on Support Ticket #${ticket.ticketNumber}`,
-          html: `<p>Store agent <strong>${staffName}</strong> replied:</p><blockquote>"${message}"</blockquote>`,
-        }).catch(() => {});
+        await smtp
+          .sendEmail({
+            tenantId,
+            to: customer.email,
+            subject: `📩 Reply on Support Ticket #${ticket.ticketNumber}`,
+            html: `<p>Store agent <strong>${staffName}</strong> replied:</p><blockquote>"${message}"</blockquote>`,
+          })
+          .catch(() => {});
       }
     } catch {
       // Ignore non-blocking email errors
@@ -333,7 +400,14 @@ export class EnterpriseSupportService {
   /**
    * SELLER PANEL: Add internal note (STRICT AUTHORIZATION CHECK)
    */
-  static async addInternalNote(tenantId: number, storeId: number, staffUserId: number, staffName: string, ticketId: number, note: string) {
+  static async addInternalNote(
+    tenantId: number,
+    storeId: number,
+    staffUserId: number,
+    staffName: string,
+    ticketId: number,
+    note: string
+  ) {
     const ticket = await SupportTicket.findOne({ where: { id: ticketId, tenantId, storeId } });
     if (!ticket) {
       throw new ForbiddenError('Access Denied: Ticket does not belong to your store.');
@@ -362,7 +436,14 @@ export class EnterpriseSupportService {
   /**
    * SELLER PANEL: Update ticket status or priority (STRICT AUTHORIZATION CHECK)
    */
-  static async updateTicketStatusPriority(tenantId: number, storeId: number, staffUserId: number, ticketId: number, status?: string, priority?: string) {
+  static async updateTicketStatusPriority(
+    tenantId: number,
+    storeId: number,
+    staffUserId: number,
+    ticketId: number,
+    status?: string,
+    priority?: string
+  ) {
     const ticket = await SupportTicket.findOne({ where: { id: ticketId, tenantId, storeId } });
     if (!ticket) {
       throw new ForbiddenError('Access Denied: Ticket does not belong to your store.');
@@ -401,11 +482,17 @@ export class EnterpriseSupportService {
     const humanResolvedCount = resolved - aiResolvedCount;
 
     const ratedTickets = tickets.filter((t) => t.satisfactionScore !== null);
-    const avgCsat = ratedTickets.length > 0
-      ? (ratedTickets.reduce((acc, curr) => acc + (curr.satisfactionScore || 0), 0) / ratedTickets.length).toFixed(1)
-      : '5.0';
+    const avgCsat =
+      ratedTickets.length > 0
+        ? (
+            ratedTickets.reduce((acc, curr) => acc + (curr.satisfactionScore || 0), 0) /
+            ratedTickets.length
+          ).toFixed(1)
+        : '5.0';
 
-    const unreadHighCritical = tickets.filter((t) => (t.priority === 'high' || t.priority === 'critical') && t.status === 'open').length;
+    const unreadHighCritical = tickets.filter(
+      (t) => (t.priority === 'high' || t.priority === 'critical') && t.status === 'open'
+    ).length;
 
     return {
       totalTickets: total,
@@ -430,7 +517,14 @@ export class EnterpriseSupportService {
     return responses;
   }
 
-  static async createCannedResponse(tenantId: number, storeId: number, title: string, shortcut: string, content: string, category?: string) {
+  static async createCannedResponse(
+    tenantId: number,
+    storeId: number,
+    title: string,
+    shortcut: string,
+    content: string,
+    category?: string
+  ) {
     const item = await SupportCannedResponse.create({
       tenantId,
       storeId,
@@ -449,7 +543,9 @@ export class EnterpriseSupportService {
   static async getSuperAdminSupportAnalytics() {
     const totalTickets = await SupportTicket.count();
     const openTickets = await SupportTicket.count({ where: { status: 'open' } });
-    const resolvedTickets = await SupportTicket.count({ where: { status: { [Op.in]: ['resolved', 'closed'] } } });
+    const resolvedTickets = await SupportTicket.count({
+      where: { status: { [Op.in]: ['resolved', 'closed'] } },
+    });
 
     return {
       platformTotalTickets: totalTickets,

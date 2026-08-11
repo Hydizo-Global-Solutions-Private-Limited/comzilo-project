@@ -97,10 +97,7 @@ export abstract class BaseRepository<M extends Model<any, any>> {
     return this.model.destroy(queryOptions);
   }
 
-  public async destroy(
-    tenantId: number | null,
-    options?: DestroyOptions
-  ): Promise<number> {
+  public async destroy(tenantId: number | null, options?: DestroyOptions): Promise<number> {
     const queryOptions = this.applyTenantFilter(tenantId, options);
     return this.model.destroy(queryOptions);
   }

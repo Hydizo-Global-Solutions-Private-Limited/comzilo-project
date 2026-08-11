@@ -20,7 +20,8 @@ export class ReportService extends BaseService {
     const sId = storeId || 1;
     const replacements: any = { tenantId: tId, storeId: sId };
 
-    const storeCondition = '(tenant_id = :tenantId OR tenant_id = 1 OR store_id = :storeId OR store_id = 1 OR store_id IS NULL)';
+    const storeCondition =
+      '(tenant_id = :tenantId OR tenant_id = 1 OR store_id = :storeId OR store_id = 1 OR store_id IS NULL)';
 
     const [salesSummary]: any = await sequelize.query(
       `SELECT 
@@ -103,11 +104,14 @@ export class ReportService extends BaseService {
       lowStockCount,
       outOfStockCount,
       recentOrders: recentOrders || [],
-      chartData: revenueTrends && revenueTrends.length > 0 ? revenueTrends.map((t: any) => ({ month: t.month, sales: Number(t.sales) })) : [
-        { month: 'Jan', sales: 0 },
-        { month: 'Feb', sales: 0 },
-        { month: 'Mar', sales: 0 },
-      ],
+      chartData:
+        revenueTrends && revenueTrends.length > 0
+          ? revenueTrends.map((t: any) => ({ month: t.month, sales: Number(t.sales) }))
+          : [
+              { month: 'Jan', sales: 0 },
+              { month: 'Feb', sales: 0 },
+              { month: 'Mar', sales: 0 },
+            ],
     };
   }
 

@@ -4,7 +4,9 @@ import { AuthorizationError } from '../shared/errors/AppError';
 
 const subService = new SellerSubscriptionService();
 
-export function validateSubscriptionLimit(resourceType: 'warehouses' | 'stores' | 'users' | 'products') {
+export function validateSubscriptionLimit(
+  resourceType: 'warehouses' | 'stores' | 'users' | 'products'
+) {
   return async (req: Request, _res: Response, next: NextFunction): Promise<void> => {
     try {
       const tenantId = req.context?.tenantId;

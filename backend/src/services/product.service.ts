@@ -150,7 +150,14 @@ export class ProductService {
           );
         }
       } else if (productType === 'variable') {
-        const isTech = product.name.toLowerCase().includes('hp') || product.name.toLowerCase().includes('dell') || product.name.toLowerCase().includes('laptop') || product.name.toLowerCase().includes('mac') || product.name.toLowerCase().includes('pc') || product.name.toLowerCase().includes('tech') || product.name.toLowerCase().includes('pro');
+        const isTech =
+          product.name.toLowerCase().includes('hp') ||
+          product.name.toLowerCase().includes('dell') ||
+          product.name.toLowerCase().includes('laptop') ||
+          product.name.toLowerCase().includes('mac') ||
+          product.name.toLowerCase().includes('pc') ||
+          product.name.toLowerCase().includes('tech') ||
+          product.name.toLowerCase().includes('pro');
         const rams = isTech ? ['8GB', '16GB'] : ['S', 'M', 'L'];
         const memories = isTech ? ['12GB', '32GB'] : ['Cotton', 'Polyester'];
         const colours = ['Black', 'Silver', 'Green'];
@@ -167,7 +174,7 @@ export class ProductService {
                   productId: product.id,
                   storeId,
                   sku,
-                  price: product.price || 199.00,
+                  price: product.price || 199.0,
                   stockQuantity: 50,
                   status: 'active',
                   attributes: [
@@ -265,8 +272,17 @@ export class ProductService {
     });
   }
 
-  public async getProduct(tenantId: number | null, storeId: number, productId: number): Promise<Product> {
-    const { ProductImage, ProductVariant, VariantAttribute, VariantImage } = require('../database/models');
+  public async getProduct(
+    tenantId: number | null,
+    storeId: number,
+    productId: number
+  ): Promise<Product> {
+    const {
+      ProductImage,
+      ProductVariant,
+      VariantAttribute,
+      VariantImage,
+    } = require('../database/models');
     const product = await this.productRepo.findOne(null, {
       where: { id: productId },
       include: [
@@ -309,7 +325,22 @@ export class ProductService {
     storeId: number,
     filters: any = {}
   ): Promise<{ rows: Product[]; count: number }> {
-    const { page = 1, limit = 20, search, status, visibility, category, brand, productType, types, minPrice, maxPrice, allStores, sortBy, sort } = filters;
+    const {
+      page = 1,
+      limit = 20,
+      search,
+      status,
+      visibility,
+      category,
+      brand,
+      productType,
+      types,
+      minPrice,
+      maxPrice,
+      allStores,
+      sortBy,
+      sort,
+    } = filters;
     const offset = (page - 1) * limit;
 
     const where: any = {};
@@ -329,7 +360,10 @@ export class ProductService {
     if (rawTypes) {
       const typeList = Array.isArray(rawTypes)
         ? rawTypes
-        : String(rawTypes).split(',').map((t) => t.trim()).filter(Boolean);
+        : String(rawTypes)
+            .split(',')
+            .map((t) => t.trim())
+            .filter(Boolean);
       if (typeList.length > 0) {
         where.productType = { [Op.in]: typeList };
       }
@@ -357,7 +391,9 @@ export class ProductService {
       ];
 
       // Singular/plural term fallback (e.g. 'laptop' <-> 'laptops', 'shoe' <-> 'shoes')
-      const singularTerm = trimmedSearch.toLowerCase().endsWith('s') ? trimmedSearch.slice(0, -1) : trimmedSearch;
+      const singularTerm = trimmedSearch.toLowerCase().endsWith('s')
+        ? trimmedSearch.slice(0, -1)
+        : trimmedSearch;
       if (singularTerm && singularTerm.length > 2 && singularTerm !== trimmedSearch) {
         const singularPattern = `%${singularTerm}%`;
         orConditions.push(
@@ -372,9 +408,17 @@ export class ProductService {
     // Dynamic order clause based on sortBy filter
     let orderClause: any[] = [['createdAt', 'DESC']];
     const effectiveSort = sortBy || sort || filters.sort_by;
-    if (effectiveSort === 'price-low' || effectiveSort === 'price_asc' || effectiveSort === 'price-asc') {
+    if (
+      effectiveSort === 'price-low' ||
+      effectiveSort === 'price_asc' ||
+      effectiveSort === 'price-asc'
+    ) {
       orderClause = [['price', 'ASC']];
-    } else if (effectiveSort === 'price-high' || effectiveSort === 'price_desc' || effectiveSort === 'price-desc') {
+    } else if (
+      effectiveSort === 'price-high' ||
+      effectiveSort === 'price_desc' ||
+      effectiveSort === 'price-desc'
+    ) {
       orderClause = [['price', 'DESC']];
     } else if (effectiveSort === 'name-asc' || effectiveSort === 'name_asc') {
       orderClause = [['name', 'ASC']];

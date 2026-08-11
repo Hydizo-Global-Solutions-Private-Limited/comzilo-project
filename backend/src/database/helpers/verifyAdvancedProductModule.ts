@@ -17,7 +17,9 @@ export const runAdvancedProductModuleVerification = async () => {
   });
 
   if (loginRes.status !== 200 || !loginRes.body?.data?.accessToken) {
-    throw new Error(`Login failed with status ${loginRes.status}: ${JSON.stringify(loginRes.body)}`);
+    throw new Error(
+      `Login failed with status ${loginRes.status}: ${JSON.stringify(loginRes.body)}`
+    );
   }
 
   const token = loginRes.body.data.accessToken;
@@ -30,7 +32,10 @@ export const runAdvancedProductModuleVerification = async () => {
     throw new Error(`GET product types failed with status ${typesRes.status}`);
   }
   const typeCodes = typesRes.body.data.map((t: any) => t.code);
-  console.log(`✅ ${typesRes.body.data.length} Product Types Loaded from Database! Codes:`, typeCodes);
+  console.log(
+    `✅ ${typesRes.body.data.length} Product Types Loaded from Database! Codes:`,
+    typeCodes
+  );
 
   // 2. CREATE Physical Product
   console.log('\n[2/5] Creating Physical Product (productType: physical)...');
@@ -52,7 +57,9 @@ export const runAdvancedProductModuleVerification = async () => {
     console.error('Create Error Response:', JSON.stringify(physRes.body));
     throw new Error(`Create Physical product failed with status ${physRes.status}`);
   }
-  console.log(`✅ Physical Product Created! ID: ${physRes.body.data.id}, SKU: "${physRes.body.data.sku}"`);
+  console.log(
+    `✅ Physical Product Created! ID: ${physRes.body.data.id}, SKU: "${physRes.body.data.sku}"`
+  );
 
   // 3. CREATE Print On Demand Product
   console.log('\n[3/5] Creating Print On Demand Product (productType: print_on_demand)...');
@@ -97,7 +104,9 @@ export const runAdvancedProductModuleVerification = async () => {
   console.log(`✅ Subscription Product Created! ID: ${subRes.body.data.id}`);
 
   // 5. Test Customer MySQL Multi-Type Filtering Query (types=physical,print_on_demand)
-  console.log('\n[5/5] Testing Customer Backend MySQL Multi-Type Filter (types=physical,print_on_demand)...');
+  console.log(
+    '\n[5/5] Testing Customer Backend MySQL Multi-Type Filter (types=physical,print_on_demand)...'
+  );
   const filterRes = await req
     .get('/api/v1/products?types=physical,print_on_demand')
     .set('Authorization', 'Bearer ' + token);
@@ -110,7 +119,9 @@ export const runAdvancedProductModuleVerification = async () => {
   const filteredList = filterRes.body.data || [];
   console.log(`✅ MySQL Multi-Type Filter Returned ${filteredList.length} Matching Products!`);
 
-  const matchingTypes = Array.from(new Set(filteredList.map((p: any) => p.productType || p.product_type)));
+  const matchingTypes = Array.from(
+    new Set(filteredList.map((p: any) => p.productType || p.product_type))
+  );
   console.log(`Product Types Present in Filter Result:`, matchingTypes);
 
   console.log('\n====================================================');

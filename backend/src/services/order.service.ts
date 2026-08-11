@@ -94,7 +94,12 @@ export class OrderService extends BaseService {
     options?: any
   ): Promise<Order> {
     // 1. Validate customer
-    let customer = await this.customerRepo.findScopedById(tenantId, storeId, data.customerId, options);
+    let customer = await this.customerRepo.findScopedById(
+      tenantId,
+      storeId,
+      data.customerId,
+      options
+    );
     if (!customer) {
       customer = await Customer.findByPk(data.customerId, options);
     }
@@ -126,9 +131,9 @@ export class OrderService extends BaseService {
 
           let unitPrice = Number(product.price || 0);
           let itemSku = product.sku;
-          let variantIdVal: number | null = item.variantId || item.productVariantId || null;
+          const variantIdVal: number | null = item.variantId || item.productVariantId || null;
           let variantSkuVal: string | null = null;
-          let variantAttributesVal: any = null;
+          const variantAttributesVal: any = null;
 
           if (variantIdVal) {
             const { ProductVariant } = require('../database/models');
@@ -142,9 +147,13 @@ export class OrderService extends BaseService {
               variantSkuVal = variant.sku;
               itemSku = variant.sku;
 
-              const availStock = Number(variant.stockQuantity ?? (variant as any).stock_quantity ?? 0);
+              const availStock = Number(
+                variant.stockQuantity ?? (variant as any).stock_quantity ?? 0
+              );
               if (availStock < Number(item.quantity || 1)) {
-                throw new ValidationError(`Variant ${variant.sku} has insufficient stock (Available: ${availStock}).`);
+                throw new ValidationError(
+                  `Variant ${variant.sku} has insufficient stock (Available: ${availStock}).`
+                );
               }
 
               // Deduct Variant Inventory stock
@@ -236,7 +245,9 @@ export class OrderService extends BaseService {
     };
 
     const parentTx = options?.transaction;
-    const order = parentTx ? await runOrderLogic(parentTx) : await sequelize.transaction(runOrderLogic);
+    const order = parentTx
+      ? await runOrderLogic(parentTx)
+      : await sequelize.transaction(runOrderLogic);
 
     await createAuditLog(
       {
@@ -267,7 +278,12 @@ export class OrderService extends BaseService {
   /**
    * Retrieves an Order.
    */
-  public async getOrder(tenantId: number, storeId: number, id: number, options: any = {}): Promise<Order> {
+  public async getOrder(
+    tenantId: number,
+    storeId: number,
+    id: number,
+    options: any = {}
+  ): Promise<Order> {
     const { transaction } = options;
     const order = await this.orderRepo.findScopedById(tenantId, storeId, id, {
       include: [
@@ -605,13 +621,7 @@ export class OrderService extends BaseService {
         updatedBy: userId,
       };
 
-      await this.orderRepo.updateScoped(
-        tenantId,
-        storeId,
-        id,
-        updateData,
-        { transaction: t }
-      );
+      await this.orderRepo.updateScoped(tenantId, storeId, id, updateData, { transaction: t });
 
       // 3. Sync Refund record for seller visibility if payment exists
       const payment: any = await Payment.findOne({
@@ -722,7 +732,12 @@ export class OrderService extends BaseService {
     // Release Escrow Funds: Pending Balance -> Available Balance (minus commission)
     try {
       const walletService = new SellerWalletService();
-      await walletService.onOrderDelivered(tenantId, storeId, Number(id), Number(updated.totalAmount || 0));
+      await walletService.onOrderDelivered(
+        tenantId,
+        storeId,
+        Number(id),
+        Number(updated.totalAmount || 0)
+      );
     } catch (e: any) {
       // log and continue
     }

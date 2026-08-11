@@ -142,7 +142,6 @@ import customerAddressRoutes from './routes/customerAddress.routes';
 import customerDocumentRoutes from './routes/customerDocument.routes';
 import customerPortalRoutes from './routes/customerPortal.routes';
 
-
 // Step 14 Routes
 import orderRoutes from './routes/order.routes';
 

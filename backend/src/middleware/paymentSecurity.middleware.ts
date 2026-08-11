@@ -8,9 +8,12 @@ const processedNonces = new Set<string>();
 const processedIdempotencyKeys = new Set<string>();
 
 // Cleanup stale nonces every 10 minutes
-setInterval(() => {
-  processedNonces.clear();
-}, 10 * 60 * 1000);
+setInterval(
+  () => {
+    processedNonces.clear();
+  },
+  10 * 60 * 1000
+);
 
 /**
  * Customer Data Scoping Guard
@@ -18,7 +21,8 @@ setInterval(() => {
  */
 export const verifyCustomerIsolation = (req: Request, _res: Response, next: NextFunction): void => {
   try {
-    const requestCustomerId = req.query.customerId || req.body?.customerId || req.headers['x-customer-id'];
+    const requestCustomerId =
+      req.query.customerId || req.body?.customerId || req.headers['x-customer-id'];
     const authUser = req.user;
 
     // Super Admin can access all customers
@@ -27,8 +31,12 @@ export const verifyCustomerIsolation = (req: Request, _res: Response, next: Next
     }
 
     if (requestCustomerId && authUser && String(authUser.id) !== String(requestCustomerId)) {
-      logger.warn(`[SECURITY AUDIT] Unauthorized Customer Access Attempt: User #${authUser.id} tried accessing Customer #${requestCustomerId}`);
-      throw new ForbiddenError('Access Denied: You cannot view or modify another customer\'s payment records.');
+      logger.warn(
+        `[SECURITY AUDIT] Unauthorized Customer Access Attempt: User #${authUser.id} tried accessing Customer #${requestCustomerId}`
+      );
+      throw new ForbiddenError(
+        "Access Denied: You cannot view or modify another customer's payment records."
+      );
     }
 
     next();
@@ -53,8 +61,12 @@ export const verifySellerIsolation = (req: Request, _res: Response, next: NextFu
     }
 
     if (requestTenantId && authTenantId && String(requestTenantId) !== String(authTenantId)) {
-      logger.warn(`[SECURITY AUDIT] Unauthorized Seller Access Attempt: Tenant #${authTenantId} tried accessing Tenant #${requestTenantId}`);
-      throw new ForbiddenError('Access Denied: You cannot view or modify another seller\'s financial records.');
+      logger.warn(
+        `[SECURITY AUDIT] Unauthorized Seller Access Attempt: Tenant #${authTenantId} tried accessing Tenant #${requestTenantId}`
+      );
+      throw new ForbiddenError(
+        "Access Denied: You cannot view or modify another seller's financial records."
+      );
     }
 
     next();
@@ -67,16 +79,25 @@ export const verifySellerIsolation = (req: Request, _res: Response, next: NextFu
  * Razorpay Webhook HMAC Signature Guard
  * Validates X-Razorpay-Signature header
  */
-export const verifyRazorpayWebhookSignature = (req: Request, _res: Response, next: NextFunction): void => {
+export const verifyRazorpayWebhookSignature = (
+  req: Request,
+  _res: Response,
+  next: NextFunction
+): void => {
   try {
     const signature = req.headers['x-razorpay-signature'] as string;
-    const webhookSecret = process.env.RAZORPAY_WEBHOOK_SECRET || process.env.RAZORPAY_KEY_SECRET || 'gjwzI3mm19CcyaShfXgheJSR';
+    const webhookSecret =
+      process.env.RAZORPAY_WEBHOOK_SECRET ||
+      process.env.RAZORPAY_KEY_SECRET ||
+      'gjwzI3mm19CcyaShfXgheJSR';
 
     if (!signature) {
       // If signature header is missing, require authorization token or reject
       const authHeader = req.headers.authorization;
       if (!authHeader) {
-        throw new UnauthorizedError('Webhook Authorization Failed: Missing X-Razorpay-Signature header');
+        throw new UnauthorizedError(
+          'Webhook Authorization Failed: Missing X-Razorpay-Signature header'
+        );
       }
       return next();
     }
@@ -88,7 +109,9 @@ export const verifyRazorpayWebhookSignature = (req: Request, _res: Response, nex
       .digest('hex');
 
     if (signature !== expectedSignature) {
-      logger.warn(`[SECURITY AUDIT] Invalid Razorpay Webhook Signature Detected! Received: ${signature}`);
+      logger.warn(
+        `[SECURITY AUDIT] Invalid Razorpay Webhook Signature Detected! Received: ${signature}`
+      );
       throw new UnauthorizedError('Webhook Authorization Failed: Invalid HMAC SHA256 Signature');
     }
 
@@ -101,14 +124,20 @@ export const verifyRazorpayWebhookSignature = (req: Request, _res: Response, nex
 /**
  * Duplicate Payment Prevention Guard (Idempotency Key Check)
  */
-export const preventDuplicatePayments = (req: Request, _res: Response, next: NextFunction): void => {
+export const preventDuplicatePayments = (
+  req: Request,
+  _res: Response,
+  next: NextFunction
+): void => {
   try {
     const idempotencyKey = (req.headers['x-idempotency-key'] || req.body?.idempotencyKey) as string;
 
     if (idempotencyKey) {
       if (processedIdempotencyKeys.has(idempotencyKey)) {
         logger.warn(`[SECURITY AUDIT] Duplicate Payment Attempt Blocked! Key: ${idempotencyKey}`);
-        throw new ValidationError(`Duplicate Payment Execution Blocked: Request with Idempotency Key '${idempotencyKey}' was already processed.`);
+        throw new ValidationError(
+          `Duplicate Payment Execution Blocked: Request with Idempotency Key '${idempotencyKey}' was already processed.`
+        );
       }
       processedIdempotencyKeys.add(idempotencyKey);
     }
@@ -131,7 +160,9 @@ export const preventReplayAttacks = (req: Request, _res: Response, next: NextFun
     if (nonceHeader) {
       if (processedNonces.has(nonceHeader)) {
         logger.warn(`[SECURITY AUDIT] Replay Attack Blocked! Duplicate Nonce: ${nonceHeader}`);
-        throw new UnauthorizedError('Replay Attack Protection: Request nonce has already been used.');
+        throw new UnauthorizedError(
+          'Replay Attack Protection: Request nonce has already been used.'
+        );
       }
       processedNonces.add(nonceHeader);
     }
@@ -142,7 +173,9 @@ export const preventReplayAttacks = (req: Request, _res: Response, next: NextFun
       // Allow max 300s (5 minutes) skew
       if (Math.abs(currentTime - reqTime) > 300) {
         logger.warn(`[SECURITY AUDIT] Stale Request Blocked! Skew: ${currentTime - reqTime}s`);
-        throw new UnauthorizedError('Replay Attack Protection: Request timestamp is stale (outside 300s window).');
+        throw new UnauthorizedError(
+          'Replay Attack Protection: Request timestamp is stale (outside 300s window).'
+        );
       }
     }
 

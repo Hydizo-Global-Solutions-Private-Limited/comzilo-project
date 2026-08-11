@@ -14,7 +14,12 @@ export class CategoryController {
   }
 
   private getStoreId(req: Request): number {
-    const raw = req.headers['x-store-id'] || req.headers['X-Store-ID'] || req.query.storeId || req.body.storeId || req.context?.storeId;
+    const raw =
+      req.headers['x-store-id'] ||
+      req.headers['X-Store-ID'] ||
+      req.query.storeId ||
+      req.body.storeId ||
+      req.context?.storeId;
     const storeId = Number(raw || 1);
     if (!storeId || isNaN(storeId)) {
       return 1;

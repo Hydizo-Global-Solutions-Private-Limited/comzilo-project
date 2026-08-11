@@ -2,7 +2,10 @@ import crypto from 'crypto';
 import { env } from '../config/env';
 
 const ALGORITHM = 'aes-256-gcm';
-const SECRET_KEY = crypto.createHash('sha256').update(env.JWT_ACCESS_SECRET || 'comzilo_default_secret_key_2026').digest();
+const SECRET_KEY = crypto
+  .createHash('sha256')
+  .update(env.JWT_ACCESS_SECRET || 'comzilo_default_secret_key_2026')
+  .digest();
 
 export const encryptCredential = (text: string | null | undefined): string | null => {
   if (!text) return null;

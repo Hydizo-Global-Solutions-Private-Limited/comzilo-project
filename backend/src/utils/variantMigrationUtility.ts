@@ -39,7 +39,10 @@ export class VariantMigrationUtility {
 
       // 2. Create Default Initial Variant
       const variantSku = initialVariantData.sku || `${product.sku}-VAR-1`;
-      const variantPrice = initialVariantData.price !== undefined ? initialVariantData.price : Number(product.price || 0);
+      const variantPrice =
+        initialVariantData.price !== undefined
+          ? initialVariantData.price
+          : Number(product.price || 0);
 
       const variant = await ProductVariant.create(
         {

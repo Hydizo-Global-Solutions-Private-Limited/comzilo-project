@@ -45,7 +45,9 @@ export class AuthController {
           email: result.user.email,
           firstName: result.user.firstName,
           lastName: result.user.lastName,
-          fullName: `${result.user.firstName || ''} ${result.user.lastName || ''}`.trim() || result.user.email,
+          fullName:
+            `${result.user.firstName || ''} ${result.user.lastName || ''}`.trim() ||
+            result.user.email,
           avatarUrl,
           profileImage: avatarUrl,
           emailVerifiedAt: result.user.emailVerifiedAt,
@@ -147,7 +149,10 @@ export class AuthController {
       const token = String(req.query.token || '');
       const result = await this.authService.validateResetToken(token);
       if (!result.valid) {
-        res.status(400).json({ success: false, message: result.message || 'This password reset link is invalid or has expired.' });
+        res.status(400).json({
+          success: false,
+          message: result.message || 'This password reset link is invalid or has expired.',
+        });
         return;
       }
       success(res, 'Reset token is valid', { valid: true });
@@ -238,7 +243,8 @@ export class AuthController {
         include: [{ model: Role, as: 'role' }],
       });
 
-      const roleName = (userRole as any)?.role?.name || (userRole as any)?.role?.code || 'Seller Owner';
+      const roleName =
+        (userRole as any)?.role?.name || (userRole as any)?.role?.code || 'Seller Owner';
       const fullName = `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email;
       const tenantName = tenant?.name || 'Comzilo Merchant';
       const storeName = store?.name || 'Main Store';
@@ -313,7 +319,8 @@ export class AuthController {
       if (req.body.firstName) user.firstName = req.body.firstName;
       if (req.body.lastName) user.lastName = req.body.lastName;
       if (req.body.email) user.email = req.body.email;
-      if (req.body.phone || req.body.mobile) (user as any).mobile = req.body.phone || req.body.mobile;
+      if (req.body.phone || req.body.mobile)
+        (user as any).mobile = req.body.phone || req.body.mobile;
 
       const imgUrl = req.body.avatarUrl || req.body.profileImage || req.body.avatar;
       if (imgUrl) {

@@ -21,7 +21,8 @@ const startServer = async () => {
 
     server.on('listening', () => {
       const addr = server.address();
-      const bind = typeof addr === 'string' ? `pipe ${addr}` : `port ${addr?.port} on host ${addr?.address}`;
+      const bind =
+        typeof addr === 'string' ? `pipe ${addr}` : `port ${addr?.port} on host ${addr?.address}`;
       logger.info(`✅ Express server actively LISTENING on ${bind}`);
     });
 

@@ -7,7 +7,11 @@ export class MarketingController {
   private service = new MarketingService();
 
   // Dashboard Stats
-  public getDashboardStats = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public getDashboardStats = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const tenantId = req.headers.authorization ? req.context?.tenantId || 1 : null;
       const stats = await this.service.getMarketingDashboardStats(tenantId);
@@ -18,7 +22,11 @@ export class MarketingController {
   };
 
   // Email Providers
-  public getEmailProviders = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public getEmailProviders = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const tenantId = req.headers.authorization ? req.context?.tenantId || 1 : null;
       const providers = await this.service.getEmailProviders(tenantId);
@@ -28,7 +36,11 @@ export class MarketingController {
     }
   };
 
-  public saveEmailProvider = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public saveEmailProvider = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const tenantId = req.context?.tenantId || 1;
       const result = await this.service.saveEmailProvider(tenantId, req.body);
@@ -38,7 +50,11 @@ export class MarketingController {
     }
   };
 
-  public testSmtpConnection = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public testSmtpConnection = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const tenantId = req.context?.tenantId || 1;
       await this.service.testSmtpConnection(tenantId, req.body);
@@ -59,7 +75,11 @@ export class MarketingController {
     }
   };
 
-  public generateAiEmailContent = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public generateAiEmailContent = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const result = await this.service.generateAiEmailContent(req.body);
       success(res, 'AI Email template generated successfully', result);
@@ -81,7 +101,7 @@ export class MarketingController {
   public getEmailQueue = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const isSuperAdmin = req.context?.userRole?.toUpperCase() === 'SUPER_ADMIN';
-      const tenantId = isSuperAdmin ? null : (req.context?.tenantId || 1);
+      const tenantId = isSuperAdmin ? null : req.context?.tenantId || 1;
       const queue = await this.service.getEmailQueue(tenantId);
       success(res, 'Email queue retrieved successfully', queue);
     } catch (err) {
@@ -89,18 +109,32 @@ export class MarketingController {
     }
   };
 
-  public enqueueCartAbandonment = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public enqueueCartAbandonment = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const tenantId = req.context?.tenantId || 1;
       const { recipient, payload, delayMinutes, cartToken } = req.body;
-      const jobId = await this.service.enqueueCartAbandonment(tenantId, recipient, payload, delayMinutes, cartToken);
+      const jobId = await this.service.enqueueCartAbandonment(
+        tenantId,
+        recipient,
+        payload,
+        delayMinutes,
+        cartToken
+      );
       success(res, 'Cart abandonment email queued successfully', { jobId });
     } catch (err) {
       next(err);
     }
   };
 
-  public processQueueNow = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public processQueueNow = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const result = await this.service.processQueueNow();
       success(res, 'Email queue processed successfully', result);
@@ -110,7 +144,11 @@ export class MarketingController {
   };
 
   // Email Templates
-  public getEmailTemplates = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public getEmailTemplates = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const tenantId = req.headers.authorization ? req.context?.tenantId || 1 : null;
       const templates = await this.service.getEmailTemplates(tenantId);
@@ -120,7 +158,11 @@ export class MarketingController {
     }
   };
 
-  public createEmailTemplate = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public createEmailTemplate = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const tenantId = req.context?.tenantId || 1;
       const storeId = req.context?.storeId || 1;
@@ -142,7 +184,11 @@ export class MarketingController {
     }
   };
 
-  public createCampaign = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public createCampaign = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const tenantId = req.context?.tenantId || 1;
       const storeId = req.context?.storeId || 1;
@@ -176,7 +222,11 @@ export class MarketingController {
   };
 
   // Abandoned Carts
-  public getAbandonedCarts = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public getAbandonedCarts = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const tenantId = req.headers.authorization ? req.context?.tenantId || 1 : null;
       const carts = await this.service.getAbandonedCarts(tenantId);
@@ -187,7 +237,11 @@ export class MarketingController {
   };
 
   // Customer Segments
-  public getCustomerSegments = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public getCustomerSegments = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const tenantId = req.headers.authorization ? req.context?.tenantId || 1 : null;
       const segments = await this.service.getCustomerSegments(tenantId);
@@ -197,7 +251,11 @@ export class MarketingController {
     }
   };
 
-  public createCustomerSegment = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public createCustomerSegment = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const tenantId = req.context?.tenantId || 1;
       const storeId = req.context?.storeId || 1;
@@ -209,7 +267,11 @@ export class MarketingController {
   };
 
   // Automation Rules
-  public getAutomationRules = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public getAutomationRules = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const tenantId = req.headers.authorization ? req.context?.tenantId || 1 : null;
       const rules = await this.service.getAutomationRules(tenantId);
@@ -219,7 +281,11 @@ export class MarketingController {
     }
   };
 
-  public createAutomationRule = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public createAutomationRule = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const tenantId = req.context?.tenantId || 1;
       const storeId = req.context?.storeId || 1;
@@ -231,7 +297,11 @@ export class MarketingController {
   };
 
   // Marketing Analytics
-  public getMarketingAnalytics = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public getMarketingAnalytics = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const tenantId = req.headers.authorization ? req.context?.tenantId || 1 : null;
       const analytics = await this.service.getMarketingAnalytics(tenantId);
@@ -242,7 +312,11 @@ export class MarketingController {
   };
 
   // WhatsApp Automation & Settings
-  public getWhatsAppSettings = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public getWhatsAppSettings = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const tenantId = req.headers.authorization ? req.context?.tenantId || 1 : null;
       const settings = await this.service.getWhatsAppSettings(tenantId);
@@ -252,7 +326,11 @@ export class MarketingController {
     }
   };
 
-  public saveWhatsAppSettings = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public saveWhatsAppSettings = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const tenantId = req.context?.tenantId || 1;
       const result = await this.service.saveWhatsAppSettings(tenantId, req.body);
@@ -262,7 +340,11 @@ export class MarketingController {
     }
   };
 
-  public testWhatsAppConnection = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public testWhatsAppConnection = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const tenantId = req.context?.tenantId || 1;
       await this.service.testWhatsAppConnection(tenantId, req.body);
@@ -272,7 +354,11 @@ export class MarketingController {
     }
   };
 
-  public sendWhatsAppTestMessage = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public sendWhatsAppTestMessage = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const tenantId = req.context?.tenantId || 1;
       const { recipientPhone, config } = req.body;
@@ -283,7 +369,11 @@ export class MarketingController {
     }
   };
 
-  public getWhatsAppTemplates = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public getWhatsAppTemplates = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const tenantId = req.headers.authorization ? req.context?.tenantId || 1 : null;
       const templates = await this.service.getWhatsAppTemplates(tenantId);
@@ -293,7 +383,11 @@ export class MarketingController {
     }
   };
 
-  public createWhatsAppTemplate = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public createWhatsAppTemplate = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const tenantId = req.context?.tenantId || 1;
       const storeId = req.context?.storeId || 1;
@@ -304,7 +398,11 @@ export class MarketingController {
     }
   };
 
-  public getCommunicationLogs = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public getCommunicationLogs = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const tenantId = req.headers.authorization ? req.context?.tenantId || 1 : null;
       const logs = await this.service.getCommunicationLogs(tenantId);
@@ -314,4 +412,3 @@ export class MarketingController {
     }
   };
 }
-

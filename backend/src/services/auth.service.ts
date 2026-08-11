@@ -87,7 +87,9 @@ export class AuthService extends BaseService {
         { replacements: { slug: data.storeSlug.trim() }, type: QueryTypes.SELECT }
       );
       if (!store) {
-        throw new ValidationError(`Store code "${data.storeSlug}" was not found. Please enter a valid seller store code or leave it blank.`);
+        throw new ValidationError(
+          `Store code "${data.storeSlug}" was not found. Please enter a valid seller store code or leave it blank.`
+        );
       }
     }
 
@@ -109,7 +111,10 @@ export class AuthService extends BaseService {
       // If storeSlug or storeName is provided in registration payload, look up store_id and tenant_id
       const storeInput = (data.storeSlug || data.storeName || '').trim();
       if (storeInput) {
-        const slugified = storeInput.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+        const slugified = storeInput
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/^-+|-+$/g, '');
         const fuzzyPattern = `%${storeInput.toLowerCase().replace(/[^a-z0-9]/g, '')}%`;
 
         const [foundStore]: any = await sequelize.query(
@@ -159,7 +164,11 @@ export class AuthService extends BaseService {
           await sequelize.query(
             `INSERT INTO stores (tenant_id, name, slug, status, created_at, updated_at) 
              VALUES (:tId, 'Default Store', :slug, 'active', NOW(), NOW())`,
-            { replacements: { tId: tenantId, slug: storeSlug }, type: QueryTypes.INSERT, transaction: t }
+            {
+              replacements: { tId: tenantId, slug: storeSlug },
+              type: QueryTypes.INSERT,
+              transaction: t,
+            }
           );
           const [createdStore]: any = await sequelize.query(
             'SELECT id FROM stores WHERE slug = :slug LIMIT 1',
@@ -193,7 +202,10 @@ export class AuthService extends BaseService {
 
       // Create Customer Record safely
       try {
-        const existingCustomer = await Customer.findOne({ where: { tenantId: targetTenantId, email: user.email }, transaction: t });
+        const existingCustomer = await Customer.findOne({
+          where: { tenantId: targetTenantId, email: user.email },
+          transaction: t,
+        });
         if (!existingCustomer) {
           await Customer.create(
             {
@@ -524,7 +536,9 @@ export class AuthService extends BaseService {
     clientContext: { ip: string; userAgent: string },
     _context?: RequestContext
   ): Promise<string> {
-    const normalizedEmail = String(email || '').trim().toLowerCase();
+    const normalizedEmail = String(email || '')
+      .trim()
+      .toLowerCase();
     let user = await User.findOne({ where: { email: normalizedEmail, status: 'active' } });
     if (!user) {
       user = await this.userRepository.findByEmail(tenantId || 1, normalizedEmail);
@@ -565,9 +579,15 @@ export class AuthService extends BaseService {
       const defaultPort = isCustomer ? '3000' : '5173';
       const localNetworkIp = getLocalNetworkIp();
 
-      const localhostUrl = isCustomer ? `http://localhost:3000/reset-password?token=${rawToken}` : `http://localhost:5173/reset-password?token=${rawToken}`;
-      const networkUrl = localNetworkIp ? `http://${localNetworkIp}:${defaultPort}/reset-password?token=${rawToken}` : '';
-      const primaryUrl = process.env.CUSTOMER_PORTAL_URL ? `${process.env.CUSTOMER_PORTAL_URL}/reset-password?token=${rawToken}` : localhostUrl;
+      const localhostUrl = isCustomer
+        ? `http://localhost:3000/reset-password?token=${rawToken}`
+        : `http://localhost:5173/reset-password?token=${rawToken}`;
+      const networkUrl = localNetworkIp
+        ? `http://${localNetworkIp}:${defaultPort}/reset-password?token=${rawToken}`
+        : '';
+      const primaryUrl = process.env.CUSTOMER_PORTAL_URL
+        ? `${process.env.CUSTOMER_PORTAL_URL}/reset-password?token=${rawToken}`
+        : localhostUrl;
 
       const emailHtml = `
         <!DOCTYPE html>
@@ -599,13 +619,17 @@ export class AuthService extends BaseService {
               <a href="${primaryUrl}" class="btn" target="_blank">Reset Password (Computer / PC)</a>
             </div>
 
-            ${networkUrl ? `
+            ${
+              networkUrl
+                ? `
             <div class="mobile-box">
               <strong style="font-size: 14px;">📱 Opening on Mobile Phone / Tablet?</strong><br/>
               <span style="font-size: 13px; color: #475569;">If opening from a phone connected to local Wi-Fi, tap the button below:</span><br/>
               <a href="${networkUrl}" class="btn-mobile" target="_blank">Reset Password (Mobile Phone)</a>
             </div>
-            ` : ''}
+            `
+                : ''
+            }
 
             <div class="warning">
               ⏳ <strong>Expiration Notice:</strong> This password reset link is valid for <strong>15 minutes</strong> only and can be used only once.
@@ -657,11 +681,7 @@ export class AuthService extends BaseService {
   /**
    * Resets password using valid token
    */
-  public async resetPassword(
-    tenantId: number,
-    data: any,
-    context?: RequestContext
-  ): Promise<void> {
+  public async resetPassword(tenantId: number, data: any, context?: RequestContext): Promise<void> {
     const rawToken = data.token;
     if (!rawToken) {
       throw new ValidationError('Reset token is required');

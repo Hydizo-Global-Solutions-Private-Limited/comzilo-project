@@ -17,7 +17,10 @@ export const verifyCorsAndAuth = async () => {
     .options('/api/v1/marketing/email-templates')
     .set('Origin', 'http://localhost:5173')
     .set('Access-Control-Request-Method', 'GET')
-    .set('Access-Control-Request-Headers', 'content-type,authorization,x-tenant-id,x-tenant-uuid,x-store-id');
+    .set(
+      'Access-Control-Request-Headers',
+      'content-type,authorization,x-tenant-id,x-tenant-uuid,x-store-id'
+    );
 
   console.log('OPTIONS Status Code:', optionsRes.status);
   console.log('Access-Control-Allow-Origin:', optionsRes.headers['access-control-allow-origin']);

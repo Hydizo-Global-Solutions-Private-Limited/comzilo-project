@@ -5,7 +5,9 @@ export const runDirectMigration = async () => {
   await connectDatabase();
   console.log('Connected to MySQL database!');
 
-  const [createStmt]: any = await sequelize.query(`SHOW CREATE TABLE products`, { type: QueryTypes.SELECT });
+  const [createStmt]: any = await sequelize.query(`SHOW CREATE TABLE products`, {
+    type: QueryTypes.SELECT,
+  });
   console.log('SHOW CREATE TABLE products:\n', createStmt['Create Table']);
 
   console.log('\nCreating product_images table if not exists...');
@@ -28,10 +30,14 @@ export const runDirectMigration = async () => {
 
   // Modify status column to VARCHAR(50) so it supports all 10 product lifecycle statuses:
   // draft, pending_review, approved, published, hidden, out_of_stock, discontinued, archived, soft_deleted
-  await sequelize.query(`ALTER TABLE products MODIFY COLUMN status VARCHAR(50) NOT NULL DEFAULT 'published'`);
+  await sequelize.query(
+    `ALTER TABLE products MODIFY COLUMN status VARCHAR(50) NOT NULL DEFAULT 'published'`
+  );
   console.log('✅ Altered status column to VARCHAR(50) with default "published"!');
 
-  await sequelize.query(`UPDATE products SET status = 'published' WHERE status = '' OR status IS NULL OR status = 'active'`);
+  await sequelize.query(
+    `UPDATE products SET status = 'published' WHERE status = '' OR status IS NULL OR status = 'active'`
+  );
   console.log('✅ Updated product statuses to "published"!');
 };
 

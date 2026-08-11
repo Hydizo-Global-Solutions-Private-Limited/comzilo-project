@@ -129,7 +129,9 @@ export function getSellerOnboardingHtml(params: {
   `;
 }
 
-export async function sendSellerOnboardingEmail(params: OnboardingEmailParams): Promise<{ success: boolean; messageId: string }> {
+export async function sendSellerOnboardingEmail(
+  params: OnboardingEmailParams
+): Promise<{ success: boolean; messageId: string }> {
   const smtpService = new SmtpService();
 
   const loginUrl = params.loginUrl || process.env.SELLER_LOGIN_URL || 'http://localhost:5173/login';

@@ -22,7 +22,11 @@ export class IntegrationController {
       let result;
       if (provider.includes('stripe')) {
         result = await this.testerService.testStripe(apiKey);
-      } else if (provider.includes('aws') || provider.includes('s3') || provider.includes('storage')) {
+      } else if (
+        provider.includes('aws') ||
+        provider.includes('s3') ||
+        provider.includes('storage')
+      ) {
         result = await this.testerService.testAwsS3();
       } else if (provider.includes('openai') || provider.includes('ai')) {
         result = await this.testerService.testOpenAI(apiKey);

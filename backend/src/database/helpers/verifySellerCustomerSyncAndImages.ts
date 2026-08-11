@@ -39,8 +39,14 @@ export const runFullSellerCustomerSyncVerification = async () => {
       status: 'published',
       visibility: 'public',
       images: [
-        { imageUrl: 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=500', isPrimary: true },
-        { imageUrl: 'https://images.unsplash.com/photo-1581655353564-df123a1eb820?w=500', isPrimary: false },
+        {
+          imageUrl: 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=500',
+          isPrimary: true,
+        },
+        {
+          imageUrl: 'https://images.unsplash.com/photo-1581655353564-df123a1eb820?w=500',
+          isPrimary: false,
+        },
       ],
     });
 
@@ -51,7 +57,9 @@ export const runFullSellerCustomerSyncVerification = async () => {
   }
 
   const createdProduct = createRes.body.data;
-  console.log(`✅ Product Created in MySQL! ID: ${createdProduct.id}, Name: "${createdProduct.name}", Status: "${createdProduct.status}"`);
+  console.log(
+    `✅ Product Created in MySQL! ID: ${createdProduct.id}, Name: "${createdProduct.name}", Status: "${createdProduct.status}"`
+  );
 
   // 3. Verify Database Record in MySQL
   console.log('\n[3] Database Verification Query for products table:');
@@ -69,7 +77,9 @@ export const runFullSellerCustomerSyncVerification = async () => {
   console.table(imageRows);
 
   if (imageRows.length === 0) {
-    throw new Error('Image verification failed: No records created in normalized product_images table!');
+    throw new Error(
+      'Image verification failed: No records created in normalized product_images table!'
+    );
   }
 
   // 4. Verify Customer Storefront API GET /api/v1/products
@@ -78,9 +88,13 @@ export const runFullSellerCustomerSyncVerification = async () => {
   console.log(`Customer GET /products Status: ${customerRes.status}`);
 
   const publicProducts = customerRes.body.data || [];
-  const foundZz = publicProducts.find((p: any) => p.name === 'zz-pro' || p.id === createdProduct.id);
+  const foundZz = publicProducts.find(
+    (p: any) => p.name === 'zz-pro' || p.id === createdProduct.id
+  );
   if (!foundZz) {
-    throw new Error('CRITICAL FAILURE: Product "zz-pro" created by seller is NOT appearing on Customer Storefront!');
+    throw new Error(
+      'CRITICAL FAILURE: Product "zz-pro" created by seller is NOT appearing on Customer Storefront!'
+    );
   }
 
   console.log('\n====================================================');

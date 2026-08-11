@@ -46,7 +46,11 @@ router.post(
   controller.createWarehouse
 );
 
-router.get('/:id', requireAnyPermission(['warehouse.read', 'warehouse.view', 'inventory.read']), controller.getWarehouse);
+router.get(
+  '/:id',
+  requireAnyPermission(['warehouse.read', 'warehouse.view', 'inventory.read']),
+  controller.getWarehouse
+);
 
 router.put(
   '/:id',
@@ -55,7 +59,11 @@ router.put(
   controller.updateWarehouse
 );
 
-router.delete('/:id', requireAnyPermission(['warehouse.delete', 'warehouse.manage', 'inventory.manage']), controller.deleteWarehouse);
+router.delete(
+  '/:id',
+  requireAnyPermission(['warehouse.delete', 'warehouse.manage', 'inventory.manage']),
+  controller.deleteWarehouse
+);
 
 router.post(
   '/:id/restore',

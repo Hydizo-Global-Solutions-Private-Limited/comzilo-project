@@ -3,7 +3,17 @@ import { StoreRepository } from '../repositories/store.repository';
 import { StoreDomainRepository } from '../repositories/storeDomain.repository';
 import { StoreSettingsRepository } from '../repositories/storeSettings.repository';
 import { TenantRepository } from '../repositories/tenant.repository';
-import { Store, StoreDomain, StoreSettings, Tenant, UserRole, User, Product, Customer, Order } from '../database/models';
+import {
+  Store,
+  StoreDomain,
+  StoreSettings,
+  Tenant,
+  UserRole,
+  User,
+  Product,
+  Customer,
+  Order,
+} from '../database/models';
 import { NotFoundError, ValidationError, AuthorizationError } from '../shared/errors/AppError';
 import { sequelize } from '../config/database';
 import crypto from 'crypto';
@@ -73,9 +83,7 @@ export class StoreService {
 
     const stores = await Store.findAll({
       where,
-      include: [
-        { model: Tenant, as: 'tenant', attributes: ['id', 'name', 'slug', 'status'] },
-      ],
+      include: [{ model: Tenant, as: 'tenant', attributes: ['id', 'name', 'slug', 'status'] }],
       order: [['id', 'DESC']],
     });
 
@@ -86,10 +94,18 @@ export class StoreService {
         try {
           const userRole: any = await UserRole.findOne({
             where: { tenantId: store.tenantId },
-            include: [{ model: User, as: 'user', attributes: ['id', 'firstName', 'lastName', 'email', 'mobile'] }],
+            include: [
+              {
+                model: User,
+                as: 'user',
+                attributes: ['id', 'firstName', 'lastName', 'email', 'mobile'],
+              },
+            ],
           });
           if (userRole && userRole.user) {
-            storeObj.sellerName = `${userRole.user.firstName || ''} ${userRole.user.lastName || ''}`.trim() || 'Store Owner';
+            storeObj.sellerName =
+              `${userRole.user.firstName || ''} ${userRole.user.lastName || ''}`.trim() ||
+              'Store Owner';
             storeObj.businessEmail = userRole.user.email;
             storeObj.phone = userRole.user.mobile || '+915220230512';
           } else {
@@ -107,7 +123,9 @@ export class StoreService {
           const productsCount = await Product.count({ where: { tenantId: store.tenantId } });
           const customersCount = await Customer.count({ where: { tenantId: store.tenantId } });
           const ordersCount = await Order.count({ where: { tenantId: store.tenantId } });
-          const totalRevenue = await Order.sum('totalAmount', { where: { tenantId: store.tenantId } });
+          const totalRevenue = await Order.sum('totalAmount', {
+            where: { tenantId: store.tenantId },
+          });
 
           storeObj.tenantName = store.tenant?.name || 'Main Tenant';
           storeObj.subscriptionPlan = 'Enterprise Multi-Store';

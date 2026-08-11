@@ -5,7 +5,11 @@ import { success } from '../shared/responses';
 const shippingService = new ShippingProviderService();
 
 export class AdminShippingProviderController {
-  public getGlobalProviders = async (_req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public getGlobalProviders = async (
+    _req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const providers = await shippingService.getGlobalProviders();
       success(res, 'Global shipping providers retrieved successfully', providers);
@@ -14,18 +18,29 @@ export class AdminShippingProviderController {
     }
   };
 
-  public updateProviderStatus = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public updateProviderStatus = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const { id } = req.params;
       const { isActive } = req.body;
-      const provider = await shippingService.updateGlobalProviderStatus(Number(id), Boolean(isActive));
+      const provider = await shippingService.updateGlobalProviderStatus(
+        Number(id),
+        Boolean(isActive)
+      );
       success(res, 'Provider status updated successfully', provider);
     } catch (error) {
       next(error);
     }
   };
 
-  public getGlobalAnalytics = async (_req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public getGlobalAnalytics = async (
+    _req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const analytics = await shippingService.getGlobalAnalytics();
       success(res, 'Global shipping analytics retrieved successfully', analytics);

@@ -95,17 +95,43 @@ export class AuthorizationService extends BaseService {
     }
 
     const user: any = await User.findByPk(userId);
-    if (user?.role === 'SUPER_ADMIN' || user?.role === 'ADMIN' || user?.role === 'SELLER' || user?.role === 'SELLER_ADMIN') {
+    if (
+      user?.role === 'SUPER_ADMIN' ||
+      user?.role === 'ADMIN' ||
+      user?.role === 'SELLER' ||
+      user?.role === 'SELLER_ADMIN'
+    ) {
       const allPerms = await Permission.findAll({ attributes: ['code'] });
       const codes = allPerms.map((p) => p.code);
       const defaultSellerPerms = [
-        'customer.read', 'customer.create', 'customer.update', 'customer.delete',
-        'customer.address.read', 'customer.document.read',
-        'order.read', 'order.create', 'order.update', 'order.delete',
-        'invoice.read', 'invoice.create', 'payment.read', 'payment.create',
-        'refund.read', 'refund.create', 'product.read', 'product.create', 'product.update',
-        'inventory.read', 'inventory.update', 'marketing.read', 'dashboard.read', 'report.read',
-        'shipping.read', 'shipping.manage', 'store.view', 'store.manage'
+        'customer.read',
+        'customer.create',
+        'customer.update',
+        'customer.delete',
+        'customer.address.read',
+        'customer.document.read',
+        'order.read',
+        'order.create',
+        'order.update',
+        'order.delete',
+        'invoice.read',
+        'invoice.create',
+        'payment.read',
+        'payment.create',
+        'refund.read',
+        'refund.create',
+        'product.read',
+        'product.create',
+        'product.update',
+        'inventory.read',
+        'inventory.update',
+        'marketing.read',
+        'dashboard.read',
+        'report.read',
+        'shipping.read',
+        'shipping.manage',
+        'store.view',
+        'store.manage',
       ];
       const mergedCodes = Array.from(new Set([...codes, ...defaultSellerPerms]));
       if (cache) {
@@ -188,7 +214,12 @@ export class AuthorizationService extends BaseService {
     if (isSuper) return true;
 
     const user: any = await User.findByPk(userId);
-    if (user?.role === 'SUPER_ADMIN' || user?.role === 'ADMIN' || user?.role === 'SELLER' || user?.role === 'SELLER_ADMIN') {
+    if (
+      user?.role === 'SUPER_ADMIN' ||
+      user?.role === 'ADMIN' ||
+      user?.role === 'SELLER' ||
+      user?.role === 'SELLER_ADMIN'
+    ) {
       return true;
     }
 
@@ -210,7 +241,12 @@ export class AuthorizationService extends BaseService {
     if (isSuper) return true;
 
     const user: any = await User.findByPk(userId);
-    if (user?.role === 'SUPER_ADMIN' || user?.role === 'ADMIN' || user?.role === 'SELLER' || user?.role === 'SELLER_ADMIN') {
+    if (
+      user?.role === 'SUPER_ADMIN' ||
+      user?.role === 'ADMIN' ||
+      user?.role === 'SELLER' ||
+      user?.role === 'SELLER_ADMIN'
+    ) {
       return true;
     }
 

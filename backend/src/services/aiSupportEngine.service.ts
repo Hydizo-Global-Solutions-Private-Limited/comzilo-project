@@ -1,16 +1,38 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Order, Shipment, Invoice, Payment, SupportKnowledgeBase, SupportTicket, TicketMessage, Customer, Store } from '../database/models';
+import {
+  Order,
+  Shipment,
+  Invoice,
+  Payment,
+  SupportKnowledgeBase,
+  SupportTicket,
+  TicketMessage,
+  Customer,
+  Store,
+} from '../database/models';
 import { SmtpService } from './smtpService';
 
 export class AiSupportEngineService {
   /**
    * 1. Search internal business data (Orders, Shipments, Invoices, Payments, KB)
    */
-  static async searchInternalBusinessData(tenantId: number, storeId: number, customerId: number, query: string) {
+  static async searchInternalBusinessData(
+    tenantId: number,
+    storeId: number,
+    customerId: number,
+    query: string
+  ) {
     const qLower = query.toLowerCase();
 
     // A. Check for Order & Shipment inquiries
-    if (qLower.includes('order') || qLower.includes('track') || qLower.includes('shipment') || qLower.includes('delivery') || qLower.includes('status') || qLower.includes('where is')) {
+    if (
+      qLower.includes('order') ||
+      qLower.includes('track') ||
+      qLower.includes('shipment') ||
+      qLower.includes('delivery') ||
+      qLower.includes('status') ||
+      qLower.includes('where is')
+    ) {
       const orders = await Order.findAll({
         where: { tenantId, storeId, customerId },
         limit: 5,
@@ -25,13 +47,15 @@ export class AiSupportEngineService {
         });
 
         const tracking: any = shipments.length > 0 ? shipments[0] : null;
-        let responseText = `Here is the real-time status for your latest Order #${latestOrder.orderNumber || latestOrder.id}:\n\n` +
+        let responseText =
+          `Here is the real-time status for your latest Order #${latestOrder.orderNumber || latestOrder.id}:\n\n` +
           `• Order Status: ${(latestOrder.status || 'PROCESSING').toUpperCase()}\n` +
           `• Total Amount: ₹${latestOrder.totalAmount || latestOrder.total || 0}\n` +
           `• Date Placed: ${new Date(latestOrder.createdAt).toLocaleDateString()}\n`;
 
         if (tracking) {
-          responseText += `\n🚚 Logistics Shipment Information:\n` +
+          responseText +=
+            `\n🚚 Logistics Shipment Information:\n` +
             `• Carrier: ${tracking.courierName || tracking.carrierName || 'Express Logistics'}\n` +
             `• AWB / Tracking Number: ${tracking.awbNumber || tracking.trackingNumber || 'AWB-PENDING'}\n` +
             `• Tracking Status: ${(tracking.status || 'IN_TRANSIT').toUpperCase()}\n` +
@@ -51,7 +75,13 @@ export class AiSupportEngineService {
     }
 
     // B. Check for Payment & Invoice inquiries
-    if (qLower.includes('payment') || qLower.includes('invoice') || qLower.includes('bill') || qLower.includes('receipt') || qLower.includes('charge')) {
+    if (
+      qLower.includes('payment') ||
+      qLower.includes('invoice') ||
+      qLower.includes('bill') ||
+      qLower.includes('receipt') ||
+      qLower.includes('charge')
+    ) {
       const invoices = await Invoice.findAll({
         where: { tenantId, storeId, orderId: { [require('sequelize').Op.ne]: null } },
         limit: 3,
@@ -66,13 +96,15 @@ export class AiSupportEngineService {
         });
         const p: any = payments.length > 0 ? payments[0] : null;
 
-        let invText = `Here are your latest financial billing records:\n\n` +
+        let invText =
+          `Here are your latest financial billing records:\n\n` +
           `• Invoice Number: ${latestInv.invoiceNumber || latestInv.id}\n` +
           `• Invoice Status: ${(latestInv.paymentStatus || latestInv.status || 'PAID').toUpperCase()}\n` +
           `• Amount Due/Paid: ₹${latestInv.total || latestInv.totalAmount || 0}\n`;
 
         if (p) {
-          invText += `• Payment Gateway: ${p.paymentMethod || p.paymentGateway || 'Razorpay'}\n` +
+          invText +=
+            `• Payment Gateway: ${p.paymentMethod || p.paymentGateway || 'Razorpay'}\n` +
             `• Payment Reference: ${p.transactionId || p.transactionRef || p.id}\n` +
             `• Transaction Status: ${(p.status || 'COMPLETED').toUpperCase()}`;
         }
@@ -93,7 +125,11 @@ export class AiSupportEngineService {
     });
 
     for (const article of kbArticles) {
-      if (qLower.includes(article.title.toLowerCase()) || (article.tags && article.tags.split(',').some((t: string) => qLower.includes(t.trim().toLowerCase())))) {
+      if (
+        qLower.includes(article.title.toLowerCase()) ||
+        (article.tags &&
+          article.tags.split(',').some((t: string) => qLower.includes(t.trim().toLowerCase())))
+      ) {
         return {
           found: true,
           answer: `📌 Help Center KB Article: "${article.title}"\n\n${article.content}`,
@@ -109,9 +145,19 @@ export class AiSupportEngineService {
   /**
    * 2. Evaluate AI Chat Query & Execute Hybrid Auto-Escalation
    */
-  static async evaluateAndProcessAiChat(tenantId: number, storeId: number, customerId: number, userQuery: string) {
+  static async evaluateAndProcessAiChat(
+    tenantId: number,
+    storeId: number,
+    customerId: number,
+    userQuery: string
+  ) {
     // 1. Search internal business data first
-    const businessData = await this.searchInternalBusinessData(tenantId, storeId, customerId, userQuery);
+    const businessData = await this.searchInternalBusinessData(
+      tenantId,
+      storeId,
+      customerId,
+      userQuery
+    );
     if (businessData.found && businessData.confidenceScore >= 90) {
       return {
         reply: businessData.answer,
@@ -128,10 +174,12 @@ export class AiSupportEngineService {
     let confidenceScore = 65; // Default below 90% threshold for complex questions
 
     if (qLower.includes('hours') || qLower.includes('open') || qLower.includes('contact')) {
-      aiReply = 'Our store support team is active Monday through Saturday from 9:00 AM to 7:00 PM IST.';
+      aiReply =
+        'Our store support team is active Monday through Saturday from 9:00 AM to 7:00 PM IST.';
       confidenceScore = 95;
     } else if (qLower.includes('hi') || qLower.includes('hello') || qLower.includes('hey')) {
-      aiReply = 'Hello! Welcome to Customer Support. How can I assist you with your orders, shipments, or payments today?';
+      aiReply =
+        'Hello! Welcome to Customer Support. How can I assist you with your orders, shipments, or payments today?';
       confidenceScore = 98;
     }
 
@@ -150,7 +198,9 @@ export class AiSupportEngineService {
     let validCustomerId = customerId;
     const existingCust: any = await Customer.findByPk(customerId).catch(() => null);
     if (!existingCust) {
-      const anyCust: any = await Customer.findOne({ where: { tenantId, storeId } }).catch(() => null);
+      const anyCust: any = await Customer.findOne({ where: { tenantId, storeId } }).catch(
+        () => null
+      );
       if (anyCust) validCustomerId = anyCust.id;
     }
 
@@ -197,11 +247,12 @@ export class AiSupportEngineService {
       const sellerEmail = store?.email || 'admin@comzilo.com';
 
       const smtp = new SmtpService();
-      await smtp.sendEmail({
-        tenantId,
-        to: sellerEmail,
-        subject: `🚨 [New Support Ticket #${ticketNumber}] Customer Issue Escalated`,
-        html: `
+      await smtp
+        .sendEmail({
+          tenantId,
+          to: sellerEmail,
+          subject: `🚨 [New Support Ticket #${ticketNumber}] Customer Issue Escalated`,
+          html: `
           <div style="font-family: sans-serif; padding: 20px; color: #1E293B;">
             <h2>New Customer Support Ticket Escalated</h2>
             <p>Customer <strong>${customer?.firstName || 'Customer'} ${customer?.lastName || ''}</strong> has requested support.</p>
@@ -210,7 +261,8 @@ export class AiSupportEngineService {
             <p><a href="http://localhost:5173/support/tickets/${ticket.id}" style="background: #2563EB; color: white; padding: 10px 18px; text-decoration: none; border-radius: 6px; display: inline-block;">Open Seller Workspace</a></p>
           </div>
         `,
-      }).catch(() => {});
+        })
+        .catch(() => {});
     } catch {
       // Non-blocking notification fallback
     }

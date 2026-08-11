@@ -175,7 +175,11 @@ export class CatalogManagementService {
     });
   }
 
-  public async createAttribute(tenantId: number, storeId: number, data: any): Promise<ProductAttribute> {
+  public async createAttribute(
+    tenantId: number,
+    storeId: number,
+    data: any
+  ): Promise<ProductAttribute> {
     if (!data.name) throw new ValidationError('Attribute name is required');
 
     const attr = await ProductAttribute.create({

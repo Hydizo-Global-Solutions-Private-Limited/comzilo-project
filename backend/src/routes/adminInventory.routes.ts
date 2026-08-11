@@ -14,6 +14,10 @@ router.use(authorize);
 router.get('/analytics', requirePermission('tenant.read'), controller.getAnalytics);
 router.get('/warehouses', requirePermission('tenant.read'), controller.getWarehouseMonitoring);
 router.get('/purchase-orders', requirePermission('tenant.read'), controller.getPurchaseOrders);
-router.put('/purchase-orders/:id/status', requirePermission('tenant.read'), controller.updatePurchaseOrderStatus);
+router.put(
+  '/purchase-orders/:id/status',
+  requirePermission('tenant.read'),
+  controller.updatePurchaseOrderStatus
+);
 
 export default router;

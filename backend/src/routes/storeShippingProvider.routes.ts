@@ -12,8 +12,16 @@ router.use(authenticate);
 router.use(authorize);
 
 router.get('/providers', requirePermission('store.view'), controller.getProviders);
-router.post('/providers/:providerId/configure', requirePermission('store.manage'), controller.configureProvider);
-router.post('/providers/test-connection', requirePermission('store.manage'), controller.testConnection);
+router.post(
+  '/providers/:providerId/configure',
+  requirePermission('store.manage'),
+  controller.configureProvider
+);
+router.post(
+  '/providers/test-connection',
+  requirePermission('store.manage'),
+  controller.testConnection
+);
 router.delete('/providers/:id', requirePermission('store.manage'), controller.deleteProvider);
 
 router.get('/zones', requirePermission('store.view'), controller.getZones);
@@ -26,7 +34,11 @@ router.delete('/methods/:id', requirePermission('store.manage'), controller.dele
 
 router.get('/pickup-addresses', requirePermission('store.view'), controller.getPickupAddresses);
 router.post('/pickup-addresses', requirePermission('store.manage'), controller.createPickupAddress);
-router.delete('/pickup-addresses/:id', requirePermission('store.manage'), controller.deletePickupAddress);
+router.delete(
+  '/pickup-addresses/:id',
+  requirePermission('store.manage'),
+  controller.deletePickupAddress
+);
 
 router.get('/packages', requirePermission('store.view'), controller.getPackages);
 router.post('/packages', requirePermission('store.manage'), controller.createPackage);
