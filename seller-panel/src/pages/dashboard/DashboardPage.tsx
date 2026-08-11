@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Grid, Card, CardContent, Typography, Box, Paper, Stack, CircularProgress } from '@mui/material';
 import { PageContainer } from '../../components/layout/PageContainer';
-import { DollarSign, ShoppingBag, Users, TrendingUp, Clock, XCircle } from 'lucide-react';
+import { DollarSign, ShoppingBag, Users, TrendingUp, Clock, XCircle, CheckCircle2 } from 'lucide-react';
 import { formatCurrency } from '../../utils/formatters';
 import { axiosInstance } from '../../api/axiosInstance';
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
@@ -29,6 +29,7 @@ export const DashboardPage: React.FC = () => {
   const totalSales = Number(stats?.totalSales ?? stats?.totalRevenue ?? 0);
   const totalOrders = Number(stats?.totalOrders ?? 0);
   const pendingOrders = Number(stats?.pendingOrders ?? 0);
+  const completedOrders = Number(stats?.completedOrders ?? 0);
   const cancelledOrders = Number(stats?.cancelledOrders ?? 0);
   const totalCustomers = Number(stats?.totalCustomers ?? 0);
   const growthRate = Number(stats?.growthRate ?? 0);
@@ -47,8 +48,8 @@ export const DashboardPage: React.FC = () => {
         </Box>
       ) : (
         <>
-          <Grid container spacing={2.5} sx={{ mb: 3 }}>
-            <Grid item xs={12} sm={6} md={4} lg={2}>
+          <Grid container spacing={2} sx={{ mb: 3 }}>
+            <Grid item xs={12} sm={6} md={4} lg={2.4}>
               <Card>
                 <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
                   <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
@@ -66,7 +67,7 @@ export const DashboardPage: React.FC = () => {
               </Card>
             </Grid>
 
-            <Grid item xs={12} sm={6} md={4} lg={2}>
+            <Grid item xs={12} sm={6} md={4} lg={2.4}>
               <Card>
                 <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
                   <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
@@ -84,7 +85,7 @@ export const DashboardPage: React.FC = () => {
               </Card>
             </Grid>
 
-            <Grid item xs={12} sm={6} md={4} lg={2}>
+            <Grid item xs={12} sm={6} md={4} lg={2.4}>
               <Card>
                 <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
                   <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
@@ -102,7 +103,25 @@ export const DashboardPage: React.FC = () => {
               </Card>
             </Grid>
 
-            <Grid item xs={12} sm={6} md={4} lg={2}>
+            <Grid item xs={12} sm={6} md={4} lg={2.4}>
+              <Card>
+                <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
+                  <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Box>
+                      <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
+                        COMPLETED ORDERS
+                      </Typography>
+                      <Typography variant="h5" sx={{ fontWeight: 800, mt: 0.5 }}>
+                        {completedOrders}
+                      </Typography>
+                    </Box>
+                    <AvatarBox icon={<CheckCircle2 size={22} color="#10B981" />} bgcolor="#F0FDF4" />
+                  </Stack>
+                </CardContent>
+              </Card>
+            </Grid>
+
+            <Grid item xs={12} sm={6} md={4} lg={2.4}>
               <Card>
                 <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
                   <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
@@ -120,7 +139,7 @@ export const DashboardPage: React.FC = () => {
               </Card>
             </Grid>
 
-            <Grid item xs={12} sm={6} md={4} lg={2}>
+            <Grid item xs={12} sm={6} md={4} lg={2.4}>
               <Card>
                 <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
                   <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
@@ -138,7 +157,7 @@ export const DashboardPage: React.FC = () => {
               </Card>
             </Grid>
 
-            <Grid item xs={12} sm={6} md={4} lg={2}>
+            <Grid item xs={12} sm={6} md={4} lg={2.4}>
               <Card>
                 <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
                   <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
