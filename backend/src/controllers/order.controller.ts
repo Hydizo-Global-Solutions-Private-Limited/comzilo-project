@@ -34,6 +34,7 @@ export class OrderController {
       );
       created(res, 'Order created successfully', order);
     } catch (error) {
+      console.error('CREATE ORDER ERROR:', error);
       next(error);
     }
   };

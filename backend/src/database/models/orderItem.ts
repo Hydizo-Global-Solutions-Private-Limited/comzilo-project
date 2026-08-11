@@ -171,8 +171,13 @@ OrderItem.init(
       defaultValue: 0.0,
     },
     customization: {
-      type: DataTypes.JSON,
-      allowNull: true,
+      type: DataTypes.VIRTUAL,
+      get(this: OrderItem) {
+        return this.getDataValue('customization');
+      },
+      set(this: OrderItem, val: any) {
+        this.setDataValue('customization', val);
+      },
     },
   },
   {

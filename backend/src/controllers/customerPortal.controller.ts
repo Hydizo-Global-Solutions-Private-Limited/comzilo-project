@@ -71,17 +71,11 @@ export class CustomerPortalController {
     return customer;
   }
 
-<<<<<<< HEAD
   private async getAllCustomerIdsForUser(
     tenantId: number,
     userId: number,
     email?: string
   ): Promise<number[]> {
-    const where: any[] = [{ userId }];
-    if (email) where.push({ email });
-=======
-  private async getAllCustomerIdsForUser(tenantId: number, userId: number, email?: string): Promise<number[]> {
->>>>>>> origin/print-on-demand
     const customers = await Customer.findAll({
       where: { tenantId, [Op.or]: [{ userId }, ...(email ? [{ email }] : [])] },
       attributes: ['id'],
@@ -104,15 +98,8 @@ export class CustomerPortalController {
 
       const orders = await Order.findAll({
         where: {
-<<<<<<< HEAD
-          [Op.or]: [{ customerId: { [Op.in]: custIds } }, { createdBy: userId }],
-=======
           tenantId,
-          [Op.or]: [
-            { customerId: { [Op.in]: custIds } },
-            { createdBy: userId },
-          ],
->>>>>>> origin/print-on-demand
+          [Op.or]: [{ customerId: { [Op.in]: custIds } }, { createdBy: userId }],
         } as any,
         order: [['createdAt', 'DESC']],
         include: [
@@ -386,7 +373,6 @@ export class CustomerPortalController {
       const whereClause: any = {
         tenantId,
         [Op.or]: [{ customerId: { [Op.in]: custIds } }, { createdBy: userId }],
-      };
       };
 
       if (search) {
@@ -1269,12 +1255,8 @@ export class CustomerPortalController {
 
           orderItemsInput.push({
             productId: product.id,
-<<<<<<< HEAD
             variantId: variant ? variant.id : null,
             sku: variant ? variant.sku : product.sku,
-=======
-            sku: product.sku,
->>>>>>> origin/print-on-demand
             productName: cartItem.name || product.name,
             quantity: qty,
             unitPrice,

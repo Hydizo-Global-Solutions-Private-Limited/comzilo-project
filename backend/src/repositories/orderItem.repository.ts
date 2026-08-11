@@ -35,8 +35,6 @@ export class OrderItemRepository extends BaseRepository<OrderItem> {
         ...data,
         tenantId,
         storeId,
-        tenant_id: tenantId,
-        store_id: storeId,
       },
       options
     );

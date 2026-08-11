@@ -1,12 +1,7 @@
 import React, { useState } from 'react';
-<<<<<<< HEAD
 import { Container, Grid, Box, Typography, Button, Rating, Chip, Paper, Divider, TextField, Alert } from '@mui/material';
-import { ShoppingCart, Heart, ShieldCheck, Truck, RotateCcw } from 'lucide-react';
-=======
-import { Container, Grid, Box, Typography, Button, Rating, Chip, Paper, Divider, TextField } from '@mui/material';
 import { ShoppingCart, Heart, ShieldCheck, Truck, RotateCcw, Sparkles } from 'lucide-react';
 import { PodStudioModal } from '../../components/pod/PodStudioModal';
->>>>>>> origin/print-on-demand
 import { useParams, useNavigate } from 'react-router-dom';
 import { useGetProductByIdQuery, useGetProductReviewsQuery } from '../../api/catalogApi';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';

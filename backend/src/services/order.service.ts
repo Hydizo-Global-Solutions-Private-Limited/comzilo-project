@@ -199,7 +199,6 @@ export class OrderService extends BaseService {
             tax: itemTax,
             subtotal: itemSubtotal,
             total: itemTotal,
-            customization: item.customization || item.customDesign || null,
           });
         }
       }

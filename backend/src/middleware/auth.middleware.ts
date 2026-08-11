@@ -34,11 +34,11 @@ export const authenticate = async (
     let decoded: TokenPayload;
     try {
       decoded = jwt.verify(token, env.JWT_ACCESS_SECRET) as TokenPayload;
-    } catch {
+    } catch (err: any) {
       try {
         decoded = jwt.verify(token, process.env.JWT_SECRET || 'super-secret-jwt-key-for-comzilo-marketplace-2026') as TokenPayload;
       } catch {
-        decoded = jwt.decode(token) as TokenPayload;
+        return next(new AuthenticationError('Invalid authentication token'));
       }
     }
 

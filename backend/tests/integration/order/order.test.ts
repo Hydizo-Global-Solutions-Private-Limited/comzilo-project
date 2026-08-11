@@ -244,6 +244,7 @@ describe('Integration Tests: Order Management Module', () => {
           ],
         });
 
+      if (res.status !== 201) console.log('ORDER CREATE RES BODY:', JSON.stringify(res.body));
       expect(res.status).toBe(201);
       expect(res.body.success).toBe(true);
       expect(res.body.data.status).toBe('draft');
