@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any, no-console */
 import { SettingsService } from '../../src/services/settings.service';
 import { ConfigurationService } from '../../src/services/configuration.service';
 

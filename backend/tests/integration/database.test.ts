@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any, no-console */
 import { sequelize, connectDatabase, disconnectDatabase } from '../../src/config/database';
 import { env } from '../../src/config/env';
 import { resetDatabase } from '../../src/database/helpers/reset';

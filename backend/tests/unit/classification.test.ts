@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any, no-console */
 import { SlugService } from '../../src/services/slug.service';
 import { CategoryService } from '../../src/services/category.service';
 import { categoryValidation } from '../../src/validations/category.validation';
