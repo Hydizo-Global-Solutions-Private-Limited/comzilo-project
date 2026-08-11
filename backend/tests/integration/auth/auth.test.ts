@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any, no-console */
 import request from 'supertest';
 import { v4 as uuidv4 } from 'uuid';
 import crypto from 'crypto';

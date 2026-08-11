@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-explicit-any, no-console */
 import request from 'supertest';
 import { app } from '../../../src/app';
 import { sequelize } from '../../../src/config/database';

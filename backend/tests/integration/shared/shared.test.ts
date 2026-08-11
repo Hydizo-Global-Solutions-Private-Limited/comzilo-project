@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any, no-console */
 import express from 'express';
 import request from 'supertest';
 import Joi from 'joi';

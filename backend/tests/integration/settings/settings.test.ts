@@ -76,7 +76,13 @@ describe('Integration Tests: Settings & Configuration Module', () => {
     const readerUserId = rRows[0].id;
 
     readerToken = jwt.sign(
-      { userId: readerUserId, userUuid: readerUuid, tenantId, tenantUuid, email: `reader-${tenantUuid}@test.com` },
+      {
+        userId: readerUserId,
+        userUuid: readerUuid,
+        tenantId,
+        tenantUuid,
+        email: `reader-${tenantUuid}@test.com`,
+      },
       env.JWT_ACCESS_SECRET
     );
 
@@ -96,7 +102,13 @@ describe('Integration Tests: Settings & Configuration Module', () => {
     await sequelize.query(
       `INSERT INTO users (tenant_id, uuid, email, password_hash, first_name, last_name, status, failed_login_attempts, created_at, updated_at)
        VALUES (:tId, :uuid, :email, 'hashed', 'Other', 'User', 'active', 0, NOW(), NOW())`,
-      { replacements: { tId: otherTenantId, uuid: otherUserUuid, email: `other-${otherTenantUuid}@test.com` } }
+      {
+        replacements: {
+          tId: otherTenantId,
+          uuid: otherUserUuid,
+          email: `other-${otherTenantUuid}@test.com`,
+        },
+      }
     );
     const [ouRows]: any = await sequelize.query('SELECT id FROM users WHERE uuid = :uuid', {
       replacements: { uuid: otherUserUuid },
@@ -119,7 +131,13 @@ describe('Integration Tests: Settings & Configuration Module', () => {
     } as any);
 
     otherAdminToken = jwt.sign(
-      { userId: otherUserId, userUuid: otherUserUuid, tenantId: otherTenantId, tenantUuid: otherTenantUuid, email: `other-${otherTenantUuid}@test.com` },
+      {
+        userId: otherUserId,
+        userUuid: otherUserUuid,
+        tenantId: otherTenantId,
+        tenantUuid: otherTenantUuid,
+        email: `other-${otherTenantUuid}@test.com`,
+      },
       env.JWT_ACCESS_SECRET
     );
   }, 60000);
