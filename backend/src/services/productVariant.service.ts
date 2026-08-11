@@ -52,6 +52,14 @@ export class ProductVariantService {
       throw new ValidationError('Product ID, SKU, and Price are required for a variant');
     }
 
+    if (!tenantId && data.productId) {
+      const parentProd = await Product.findByPk(data.productId, options);
+      if (parentProd && parentProd.tenantId) {
+        tenantId = parentProd.tenantId;
+      }
+    }
+    const resolvedTenantId = tenantId || 1;
+
     const existingSku = await ProductVariant.findOne({ where: { sku: data.sku }, ...options });
     if (existingSku) {
       throw new ValidationError(`Variant SKU "${data.sku}" already exists`);
@@ -59,7 +67,7 @@ export class ProductVariantService {
 
     const variant: any = await ProductVariant.create(
       {
-        tenantId,
+        tenantId: resolvedTenantId,
         storeId: data.storeId || 1,
         productId: data.productId,
         sku: data.sku,
@@ -104,7 +112,7 @@ export class ProductVariantService {
     if (data.stockQuantity !== undefined) {
       await VariantInventory.create(
         {
-          tenantId,
+          tenantId: resolvedTenantId,
           storeId: data.storeId || 1,
           variantId: variant.id,
           warehouseId: data.warehouseId || 1,

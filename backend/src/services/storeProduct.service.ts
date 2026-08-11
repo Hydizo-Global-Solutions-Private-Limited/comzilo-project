@@ -5,6 +5,7 @@ import {
   ProductType,
   ProductPrice,
   ProductVariant,
+  VariantAttribute,
   ProductOptionSet,
   ProductOptionValue,
   ProductDownload,
@@ -329,17 +330,40 @@ export class StoreProductService {
 
       if (payload.variants && Array.isArray(payload.variants)) {
         for (const v of payload.variants) {
-          await ProductVariant.create(
+          const variant = await ProductVariant.create(
             {
+              tenantId: tenantId || product.tenantId || 1,
+              storeId: storeId || product.storeId || 1,
               productId: product.id,
               sku: v.sku || `${product.sku}-${Math.random().toString(36).substring(7)}`,
               barcode: v.barcode || null,
-              price: v.price || product.price,
-              weight: v.weight || product.weight,
+              price: v.price !== undefined ? v.price : product.price,
+              compareAtPrice: v.compareAtPrice || v.comparePrice || null,
+              costPrice: v.costPrice || v.cost || null,
+              stockQuantity: v.stockQuantity !== undefined ? v.stockQuantity : (v.stock || 0),
+              status: v.status || 'active',
+              weight: v.weight !== undefined ? v.weight : product.weight,
               imageUrl: v.imageUrl || null,
             },
             { transaction }
           );
+
+          if (v.attributes) {
+            const attrEntries = Array.isArray(v.attributes)
+              ? v.attributes
+              : Object.entries(v.attributes).map(([name, value]) => ({ name, value }));
+
+            for (const attr of attrEntries) {
+              await VariantAttribute.create(
+                {
+                  variantId: variant.id,
+                  attributeName: attr.name || attr.attributeName || attr.key,
+                  attributeValue: String(attr.value || attr.attributeValue || attr.val),
+                },
+                { transaction }
+              );
+            }
+          }
         }
       }
       // 11. Create Product Images if provided in payload

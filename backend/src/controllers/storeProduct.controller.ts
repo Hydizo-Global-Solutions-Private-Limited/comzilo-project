@@ -49,7 +49,7 @@ export class StoreProductController {
    */
   static async createProduct(req: Request, res: Response): Promise<void> {
     try {
-      const tenantId = req.context?.tenantId || Number((req.user as any)?.tenantId);
+      const tenantId = req.context?.tenantId || Number((req.user as any)?.tenantId) || 1;
       const storeId = (req as any).storeId || Number((req.user as any)?.storeId) || 1;
       const userId = Number((req.user as any)?.id) || 1;
 
