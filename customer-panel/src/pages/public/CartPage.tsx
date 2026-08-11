@@ -20,7 +20,6 @@ import { updateQuantity, removeFromCart, applyCoupon, removeCoupon } from '../..
 import { toggleWishlist } from '../../store/wishlistSlice';
 import { useValidateCouponMutation } from '../../api/customerPortalApi';
 import { formatPrice } from '../../utils/currencyService';
-import { getProductImage } from '../../utils/productImageService';
 import toast from 'react-hot-toast';
 
 const AVAILABLE_OFFERS = [

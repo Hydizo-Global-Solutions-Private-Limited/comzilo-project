@@ -67,6 +67,7 @@ export const AdminLoginPage: React.FC = () => {
         <form onSubmit={handleLogin} autoComplete="off">
           <TextField
             label="Super Admin Email"
+            type="email"
             fullWidth
             value={email}
             onChange={(e) => setEmail(e.target.value)}

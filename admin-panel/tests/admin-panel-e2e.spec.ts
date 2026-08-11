@@ -19,7 +19,7 @@ test.describe('Comzilo Admin Panel End-to-End Test Suite', () => {
 
   test('1. Admin Dashboard Overview & Key Metrics', async ({ page }) => {
     await expect(page.locator('text=Super Admin SaaS Portal')).toBeVisible();
-    await expect(page.locator('text=Tenant Management')).toBeVisible();
+    await expect(page.locator('text=Tenant Management').first()).toBeVisible();
   });
 
   test('2. Tenant Management Page & Filtering', async ({ page }) => {
