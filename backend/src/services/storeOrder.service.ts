@@ -22,14 +22,38 @@ export class StoreOrderService {
     const limit = parseInt(query.limit || '10', 10);
     const offset = page > 0 ? (page - 1) * limit : 0;
 
+    const { Customer } = require('../database/models');
+    const customerWhere: any = { [Op.or]: [{ tenantId: tenantId || 1 }] };
+    if (storeId) {
+      customerWhere[Op.or].push({ storeId });
+    }
+    const registeredCustomers = await Customer.findAll({
+      where: customerWhere,
+      attributes: ['id'],
+    });
+    const registeredCustomerIds = registeredCustomers.map((c: any) => c.id).filter(Boolean);
+
+    const matchConditions: any[] = [{ tenantId: tenantId || 1 }];
+    if (storeId) {
+      matchConditions.push({ storeId });
+    }
+    if (registeredCustomerIds.length > 0) {
+      matchConditions.push({ customerId: { [Op.in]: registeredCustomerIds } });
+    }
+
     const where: any = {
-      [Op.or]: [{ tenantId: tenantId || 1 }, { tenantId: 1 }],
+      [Op.or]: matchConditions,
     };
+
     if (query.status) {
-      where.orderStatus = query.status;
+      where[Op.and] = [
+        {
+          [Op.or]: [{ status: query.status }, { orderStatus: query.status }],
+        },
+      ];
     }
     if (query.search) {
-      where[Op.or] = [{ orderNumber: { [Op.like]: `%${query.search}%` } }];
+      where.orderNumber = { [Op.like]: `%${query.search}%` };
     }
 
     let { rows, count } = await Order.findAndCountAll({

@@ -23,8 +23,8 @@ export class ReportService extends BaseService {
     }
 
     const storeCondition = storeId
-      ? 'tenant_id = :tenantId AND (store_id = :storeId OR store_id IS NULL)'
-      : 'tenant_id = :tenantId';
+      ? '(orders.tenant_id = :tenantId OR orders.store_id = :storeId OR orders.customer_id IN (SELECT id FROM customers WHERE tenant_id = :tenantId OR store_id = :storeId))'
+      : '(orders.tenant_id = :tenantId OR orders.customer_id IN (SELECT id FROM customers WHERE tenant_id = :tenantId))';
 
     const [salesSummary]: any = await sequelize.query(
       `SELECT 
