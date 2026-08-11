@@ -365,7 +365,14 @@ export const ProductListingPage: React.FC = () => {
                     </CardContent>
                     <CardActions sx={{ p: 2, pt: 0 }}>
                       {(() => {
-                        const isPod = prod.productType === 'print_on_demand' || prod.productTypeRecord?.code === 'print_on_demand' || (prod.sku && String(prod.sku).startsWith('POD-'));
+                        const isPod = Boolean(
+                          prod &&
+                          (prod.productType === 'print_on_demand' || prod.productType === 'pod' || prod.productTypeRecord?.code === 'print_on_demand') &&
+                          prod.productType !== 'physical' &&
+                          prod.productType !== 'virtual' &&
+                          prod.productType !== 'downloadable' &&
+                          prod.productType !== 'variable'
+                        );
                         return (
                           <Button
                             variant="contained"

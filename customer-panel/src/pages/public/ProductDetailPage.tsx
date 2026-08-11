@@ -41,11 +41,19 @@ export const ProductDetailPage: React.FC = () => {
   const primaryVariantImage = rawVariantImg ? (rawVariantImg.startsWith('http') || rawVariantImg.startsWith('blob:') ? rawVariantImg : `${API_BASE_URL}${rawVariantImg.startsWith('/') ? '' : '/'}${rawVariantImg}`) : null;
   const displayImage = primaryVariantImage || getProductImage(product);
 
+  const isPodProduct = Boolean(
+    product &&
+    (product.productType === 'print_on_demand' || product.productType === 'pod' || product.productTypeRecord?.code === 'print_on_demand') &&
+    product.productType !== 'physical' &&
+    product.productType !== 'virtual' &&
+    product.productType !== 'downloadable' &&
+    product.productType !== 'variable'
+  );
+
   const handleAddToCart = () => {
     if (!product) return;
 
-    const isPod = product.productType === 'print_on_demand' || product.productTypeRecord?.code === 'print_on_demand';
-    if (isPod) {
+    if (isPodProduct) {
       setIsPodModalOpen(true);
       toast.success('🎨 Please configure your Front, Back, Left, and Right side artwork in the Studio!');
       return;
@@ -252,8 +260,8 @@ export const ProductDetailPage: React.FC = () => {
             </Button>
           </Box>
 
-          {/* LUMISE & PACKDORA 3D CUSTOMIZE BUTTON (ONLY FOR PRINT ON DEMAND PRODUCTS) */}
-          {Boolean(product && (product.productType === 'print_on_demand' || product.productType === 'pod' || product.productTypeRecord?.code === 'print_on_demand' || (product as any)?.podTemplate)) && (
+          {/* LUMISE & PACKDORA 3D CUSTOMIZE BUTTON (STRICTLY FOR PRINT ON DEMAND PRODUCTS) */}
+          {isPodProduct && (
             <Box sx={{ mb: 4 }}>
               <Button
                 variant="contained"
@@ -278,7 +286,7 @@ export const ProductDetailPage: React.FC = () => {
           )}
 
           {/* POD STUDIO MODAL */}
-          {Boolean(product && (product.productType === 'print_on_demand' || product.productType === 'pod' || product.productTypeRecord?.code === 'print_on_demand' || (product as any)?.podTemplate)) && (
+          {isPodProduct && (
             <PodStudioModal
               isOpen={isPodModalOpen}
               onClose={() => setIsPodModalOpen(false)}
