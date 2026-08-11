@@ -111,9 +111,18 @@ export class CustomerPortalController {
       const recentOrders = orders.slice(0, 5);
       const pendingOrders = orders.filter(
         (o: any) =>
-          o.status === 'pending' || o.status === 'processing' || o.status === 'unconfirmed'
+          o.status === 'pending' ||
+          o.status === 'draft' ||
+          o.status === 'confirmed' ||
+          o.status === 'processing' ||
+          o.status === 'unconfirmed' ||
+          o.status === 'placed' ||
+          o.status === 'shipped' ||
+          o.status === 'in_transit'
       ).length;
-      const cancelledOrders = orders.filter((o: any) => o.status === 'cancelled').length;
+      const cancelledOrders = orders.filter(
+        (o: any) => o.status === 'cancelled' || o.status === 'refunded' || o.status === 'returned'
+      ).length;
       const completedOrders = orders.filter(
         (o: any) => o.status === 'completed' || o.status === 'delivered'
       ).length;

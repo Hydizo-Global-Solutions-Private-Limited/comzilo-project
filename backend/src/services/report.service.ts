@@ -28,13 +28,13 @@ export class ReportService extends BaseService {
 
     const [salesSummary]: any = await sequelize.query(
       `SELECT 
-         COALESCE(SUM(CASE WHEN status != 'cancelled' THEN total_amount ELSE 0 END), 0) AS totalRevenue,
+         COALESCE(SUM(CASE WHEN status NOT IN ('cancelled', 'refunded', 'returned') THEN total_amount ELSE 0 END), 0) AS totalRevenue,
          COALESCE(COUNT(id), 0) AS totalOrders,
-         COALESCE(COUNT(CASE WHEN status = 'pending' THEN 1 END), 0) AS pendingOrders,
-         COALESCE(COUNT(CASE WHEN status = 'processing' THEN 1 END), 0) AS processingOrders,
-         COALESCE(COUNT(CASE WHEN status = 'cancelled' THEN 1 END), 0) AS cancelledOrders,
+         COALESCE(COUNT(CASE WHEN status IN ('pending', 'draft', 'confirmed', 'processing', 'unconfirmed', 'placed', 'shipped', 'in_transit') THEN 1 END), 0) AS pendingOrders,
+         COALESCE(COUNT(CASE WHEN status IN ('processing', 'shipped', 'in_transit') THEN 1 END), 0) AS processingOrders,
+         COALESCE(COUNT(CASE WHEN status IN ('cancelled', 'refunded', 'returned') THEN 1 END), 0) AS cancelledOrders,
          COALESCE(COUNT(CASE WHEN status IN ('completed', 'delivered') THEN 1 END), 0) AS completedOrders,
-         COALESCE(AVG(CASE WHEN status != 'cancelled' THEN total_amount ELSE 0 END), 0) AS averageOrderValue
+         COALESCE(AVG(CASE WHEN status NOT IN ('cancelled', 'refunded', 'returned') THEN total_amount ELSE 0 END), 0) AS averageOrderValue
        FROM orders
        WHERE ${storeCondition} AND deleted_at IS NULL`,
       { replacements, type: QueryTypes.SELECT }
