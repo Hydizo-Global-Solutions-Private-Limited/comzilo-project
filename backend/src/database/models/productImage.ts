@@ -54,9 +54,10 @@ ProductImage.init(
       field: 'image_url',
     },
     url: {
-      type: DataTypes.STRING(1000),
-      allowNull: true,
-      field: 'url',
+      type: DataTypes.VIRTUAL,
+      get(this: ProductImage) {
+        return this.getDataValue('imageUrl');
+      },
     },
     thumbnailUrl: {
       type: DataTypes.STRING(1000),

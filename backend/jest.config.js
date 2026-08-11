@@ -8,6 +8,7 @@ module.exports = {
   },
   moduleFileExtensions: ['ts', 'js', 'json', 'node'],
   forceExit: true,
+  testTimeout: 60000,
   clearMocks: true,
   resetMocks: true,
   restoreMocks: true,

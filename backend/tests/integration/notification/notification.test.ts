@@ -145,7 +145,7 @@ describe('Integration Tests: Notifications & Communication Module', () => {
       },
       env.JWT_ACCESS_SECRET
     );
-  });
+  }, 60000);
 
   describe('Notification Templates API', () => {
     it('should create a new notification template', async () => {

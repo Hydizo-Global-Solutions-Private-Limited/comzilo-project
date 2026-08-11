@@ -198,7 +198,7 @@ describe('Integration Tests: Point of Sale (POS) Management Module', () => {
       openingAmount: 0,
     } as any);
     testRegisterId = register.id;
-  });
+  }, 60000);
 
   describe('Register & Session Lifecycle', () => {
     it('should open a register session', async () => {

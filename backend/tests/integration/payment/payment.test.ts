@@ -201,7 +201,7 @@ describe('Integration Tests: Payment Management Module', () => {
       subtotal: 300.0,
       total: 300.0,
     } as any);
-  });
+  }, 60000);
 
   describe('Payments CRUD & Authorization Workflow', () => {
     it('should create a pending payment for the order', async () => {

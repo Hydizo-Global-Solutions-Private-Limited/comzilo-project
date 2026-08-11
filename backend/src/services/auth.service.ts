@@ -146,17 +146,26 @@ export class AuthService extends BaseService {
         }
       }
 
-      if (!targetStoreId || !targetTenantId) {
-        const [activeStore]: any = await sequelize.query(
-          'SELECT id, tenant_id FROM stores WHERE status = "active" ORDER BY id DESC LIMIT 1',
-          { type: QueryTypes.SELECT, transaction: t }
+      targetTenantId = tenantId;
+      if (!targetStoreId) {
+        const [tenantStore]: any = await sequelize.query(
+          'SELECT id FROM stores WHERE tenant_id = :tenantId AND status = "active" ORDER BY id DESC LIMIT 1',
+          { replacements: { tenantId }, type: QueryTypes.SELECT, transaction: t }
         );
-        if (activeStore) {
-          targetStoreId = targetStoreId || Number(activeStore.id);
-          targetTenantId = targetTenantId || Number(activeStore.tenant_id);
+        if (tenantStore) {
+          targetStoreId = Number(tenantStore.id);
         } else {
-          targetStoreId = targetStoreId || 1;
-          targetTenantId = targetTenantId || 1;
+          const storeSlug = `default-store-${Date.now()}`;
+          await sequelize.query(
+            `INSERT INTO stores (tenant_id, name, slug, status, created_at, updated_at) 
+             VALUES (:tId, 'Default Store', :slug, 'active', NOW(), NOW())`,
+            { replacements: { tId: tenantId, slug: storeSlug }, type: QueryTypes.INSERT, transaction: t }
+          );
+          const [createdStore]: any = await sequelize.query(
+            'SELECT id FROM stores WHERE slug = :slug LIMIT 1',
+            { replacements: { slug: storeSlug }, type: QueryTypes.SELECT, transaction: t }
+          );
+          targetStoreId = createdStore ? Number(createdStore.id) : 1;
         }
       }
 
@@ -182,23 +191,30 @@ export class AuthService extends BaseService {
         { transaction: t }
       );
 
-      // Create Customer Record
-      await Customer.create(
-        {
-          tenantId: targetTenantId,
-          storeId: targetStoreId,
-          uuid: uuidv4(),
-          customerCode: `CUST-${Date.now().toString().slice(-6)}`,
-          userId: user.id,
-          email: user.email,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          fullName: `${user.firstName} ${user.lastName}`,
-          phone: data.mobile || `+91${Date.now().toString().slice(-10)}`,
-          status: 'active',
-        },
-        { transaction: t }
-      );
+      // Create Customer Record safely
+      try {
+        const existingCustomer = await Customer.findOne({ where: { tenantId: targetTenantId, email: user.email }, transaction: t });
+        if (!existingCustomer) {
+          await Customer.create(
+            {
+              tenantId: targetTenantId,
+              storeId: targetStoreId,
+              uuid: uuidv4(),
+              customerCode: `CUST-${Date.now().toString().slice(-6)}${Math.floor(Math.random() * 100)}`,
+              userId: user.id,
+              email: user.email,
+              firstName: user.firstName,
+              lastName: user.lastName,
+              fullName: `${user.firstName} ${user.lastName}`,
+              phone: data.mobile || `+91${Math.floor(1000000000 + Math.random() * 9000000000)}`,
+              status: 'active',
+            },
+            { transaction: t }
+          );
+        }
+      } catch (custErr) {
+        this.logError('Optional Customer record creation notice:', custErr);
+      }
 
       // Assign Customer Role
       const customerRole = await Role.findOne({ where: { name: 'CUSTOMER' }, transaction: t });

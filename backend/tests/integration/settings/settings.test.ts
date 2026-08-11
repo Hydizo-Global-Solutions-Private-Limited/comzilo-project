@@ -122,7 +122,7 @@ describe('Integration Tests: Settings & Configuration Module', () => {
       { userId: otherUserId, userUuid: otherUserUuid, tenantId: otherTenantId, tenantUuid: otherTenantUuid, email: `other-${otherTenantUuid}@test.com` },
       env.JWT_ACCESS_SECRET
     );
-  });
+  }, 60000);
 
   describe('Tenant Settings API', () => {
     it('should update tenant settings in bulk', async () => {

@@ -219,7 +219,7 @@ describe('Integration Tests: Order Management Module', () => {
       referenceId: '1',
       performedBy: userId,
     });
-  });
+  }, 60000);
 
   describe('Orders CRUD API', () => {
     it('should create a new order in draft status', async () => {

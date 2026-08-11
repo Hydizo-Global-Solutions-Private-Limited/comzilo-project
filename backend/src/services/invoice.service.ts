@@ -106,7 +106,7 @@ export class InvoiceService extends BaseService {
       });
 
       if (existing) {
-        return existing;
+        throw new ValidationError('An active invoice already exists for this order.');
       }
 
       const invoiceNumber = await this.generateInvoiceNumber(tenantId, storeId, t);

@@ -65,32 +65,34 @@ Plan.init(
       field: 'trial_days',
     },
     storeLimit: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-      defaultValue: 1,
-      field: 'store_limit',
+      type: DataTypes.VIRTUAL,
+      get() {
+        return 1;
+      },
     },
     userLimit: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-      defaultValue: 5,
-      field: 'user_limit',
+      type: DataTypes.VIRTUAL,
+      get() {
+        return 5;
+      },
     },
     warehouseLimit: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-      defaultValue: 1,
-      field: 'warehouse_limit',
+      type: DataTypes.VIRTUAL,
+      get() {
+        return 1;
+      },
     },
     features: {
-      type: DataTypes.JSON,
-      allowNull: true,
+      type: DataTypes.VIRTUAL,
+      get() {
+        return [];
+      },
     },
     sortOrder: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-      defaultValue: 0,
-      field: 'sort_order',
+      type: DataTypes.VIRTUAL,
+      get() {
+        return 0;
+      },
     },
     isActive: {
       type: DataTypes.BOOLEAN,

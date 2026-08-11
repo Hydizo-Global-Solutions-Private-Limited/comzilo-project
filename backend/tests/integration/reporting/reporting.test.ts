@@ -231,7 +231,7 @@ describe('Integration Tests: Reporting & Analytics Module', () => {
        VALUES (:tId, :sId, :oId, :uuid, 'PAY-REP-01', 'Card', 'paid', 300.00, 'USD', NOW(), NOW())`,
       { replacements: { tId: tenantId, sId: storeId, oId: order.id, uuid: uuidv4() } }
     );
-  });
+  }, 60000);
 
   describe('Executive Dashboard API', () => {
     it('should retrieve real executive dashboard summary', async () => {

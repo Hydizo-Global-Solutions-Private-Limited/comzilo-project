@@ -12,8 +12,8 @@ export class PasswordResetTokenRepository extends BaseRepository<PasswordResetTo
   ): Promise<PasswordResetToken | null> {
     return this.findOne(tenantId, {
       where: {
-        token_hash: tokenHash,
-        consumed_at: null,
+        tokenHash,
+        consumedAt: null,
       },
     });
   }

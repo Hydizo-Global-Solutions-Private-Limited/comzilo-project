@@ -48,8 +48,8 @@ export class ReportService extends BaseService {
     try {
       const [inventorySummary]: any = await sequelize.query(
         `SELECT 
-           COALESCE(COUNT(CASE WHEN on_hand_quantity <= 10 THEN 1 END), 0) AS lowStockCount,
-           COALESCE(COUNT(CASE WHEN on_hand_quantity = 0 THEN 1 END), 0) AS outOfStockCount
+           COALESCE(COUNT(CASE WHEN quantity_on_hand <= 10 AND quantity_on_hand > 0 THEN 1 END), 0) AS lowStockCount,
+           COALESCE(COUNT(CASE WHEN quantity_on_hand = 0 THEN 1 END), 0) AS outOfStockCount
          FROM inventory_balances
          WHERE tenant_id = :tenantId`,
         { replacements: { tenantId }, type: QueryTypes.SELECT }

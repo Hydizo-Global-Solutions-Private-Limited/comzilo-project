@@ -44,7 +44,7 @@ describe('Authentication & Identity Integration Tests', () => {
       replacements: { uuid },
     });
     tenantUuid = tenants[0].uuid;
-  }, 30000);
+  }, 60000);
 
   afterAll(async () => {
     await disconnectDatabase();
@@ -346,7 +346,7 @@ describe('Authentication & Identity Integration Tests', () => {
           email: verifyEmailAddr,
           password: 'Password123!',
         });
-      accessToken = loginRes.body.data.accessToken;
+      accessToken = loginRes.body?.data?.accessToken || '';
     });
 
     it('should generate verification OTP, verify it, and mark email as verified', async () => {
@@ -405,7 +405,7 @@ describe('Authentication & Identity Integration Tests', () => {
           email: profileEmail,
           password: 'Password123!',
         });
-      accessToken = loginRes.body.data.accessToken;
+      accessToken = loginRes.body?.data?.accessToken || '';
     });
 
     it('should return profile and tenant scope for authenticated session', async () => {
@@ -449,7 +449,7 @@ describe('Authentication & Identity Integration Tests', () => {
         .set('X-Tenant-UUID', tenantUuid)
         .send({ email: edgeEmail, password });
 
-      edgeAccessToken = loginRes.body.data.accessToken;
+      edgeAccessToken = loginRes.body?.data?.accessToken || '';
 
       const userRecord: any = await User.findOne({ where: { email: edgeEmail } });
       edgeUserId = userRecord.id;

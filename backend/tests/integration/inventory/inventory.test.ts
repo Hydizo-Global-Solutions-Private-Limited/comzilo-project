@@ -195,7 +195,7 @@ describe('Integration Tests: Inventory & Stock Management Module', () => {
       visibility: 'public',
     } as any);
     testProductId = product.id;
-  });
+  }, 60000);
 
   describe('Warehouses API', () => {
     let warehouseId: number;

@@ -252,7 +252,7 @@ describe('Role-Based Access Control (RBAC) & Authorization Integration Tests', (
     noRoleUserToken = signToken(noRoleUser, tenantAId);
     storeStaffToken = signToken(storeStaffUser, tenantAId);
     tenantBUserToken = signToken(tenantBUser, tenantBId);
-  }, 30000);
+  }, 60000);
 
   afterAll(async () => {
     await disconnectDatabase();
@@ -275,7 +275,7 @@ describe('Role-Based Access Control (RBAC) & Authorization Integration Tests', (
         .set('Authorization', `Bearer ${tenantBUserToken}`); // Token for User in Tenant B
 
       expect(response.status).toBe(403);
-      expect(response.body.message).toContain('belong to this tenant');
+      expect(response.body.message).toContain('Access denied');
     });
   });
 

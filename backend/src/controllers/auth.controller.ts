@@ -34,11 +34,7 @@ export class AuthController {
 
       const result = await this.authService.login(tenantId, req.body, clientContext, req.context);
 
-      const [cust]: any = await sequelize.query(
-        'SELECT avatar_url, profile_image FROM customers WHERE user_id = :uId AND deleted_at IS NULL ORDER BY id DESC LIMIT 1',
-        { replacements: { uId: result.user.id }, type: QueryTypes.SELECT }
-      );
-      const avatarUrl = cust?.avatar_url || cust?.profile_image || (result.user as any).avatarUrl || (result.user as any).profileImage || null;
+      const avatarUrl = (result.user as any).avatarUrl || (result.user as any).profileImage || null;
 
       success(res, 'Login successful', {
         accessToken: result.accessToken,

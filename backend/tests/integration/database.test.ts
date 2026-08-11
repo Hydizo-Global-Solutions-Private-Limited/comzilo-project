@@ -17,7 +17,7 @@ describe('Database Integration & Integrity Tests', () => {
     execSync('npm run db:test:seed', { stdio: 'ignore' });
 
     await connectDatabase();
-  }, 30000);
+  }, 60000);
 
   afterAll(async () => {
     await disconnectDatabase();

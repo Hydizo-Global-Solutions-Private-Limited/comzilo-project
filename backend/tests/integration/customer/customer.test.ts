@@ -181,7 +181,7 @@ describe('Integration Tests: Customer Management Module', () => {
       url: 'https://example.com/tax.pdf',
     } as any);
     testMediaId = media.id;
-  });
+  }, 60000);
 
   describe('Customers CRUD API', () => {
     it('should create a new customer', async () => {

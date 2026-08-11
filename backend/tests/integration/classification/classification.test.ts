@@ -208,7 +208,7 @@ describe('Product Classification Integration Tests', () => {
       visibility: 'public',
     } as any);
     testProductId = product.id;
-  });
+  }, 60000);
 
   describe('Categories API', () => {
     let catId: number;

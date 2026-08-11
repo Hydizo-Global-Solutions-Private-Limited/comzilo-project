@@ -277,17 +277,7 @@ export class OrderService extends BaseService {
       ...(transaction ? { transaction } : {}),
     });
     if (!order) {
-      const fallbackOrder = await Order.findByPk(id, {
-        include: [
-          { model: Customer, as: 'customer' },
-          { model: OrderItem, as: 'items' },
-        ],
-        ...(transaction ? { transaction } : {}),
-      });
-      if (!fallbackOrder) {
-        throw new NotFoundError(`Order with ID ${id} not found.`);
-      }
-      return fallbackOrder;
+      throw new NotFoundError(`Order with ID ${id} not found.`);
     }
     return order;
   }
