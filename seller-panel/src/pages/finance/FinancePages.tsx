@@ -47,7 +47,7 @@ export const FinancePaymentsPage: React.FC = () => {
     setLoading(true);
     try {
       const res = await axiosInstance.get('/payments');
-      const data = res.data?.data || res.data?.items || res.data;
+      const data = res.data?.data?.rows || res.data?.data?.payments || res.data?.data?.items || (Array.isArray(res.data?.data) ? res.data?.data : []);
       setPayments(Array.isArray(data) ? data : []);
     } catch {
       setPayments([]);
@@ -145,18 +145,18 @@ export const FinancePaymentsPage: React.FC = () => {
             ) : (
               payments.map((p, idx) => (
                 <TableRow key={p.id || idx}>
-                  <TableCell sx={{ fontWeight: 600 }}>{p.id || `PAY-${idx + 1}`}</TableCell>
-                  <TableCell>{p.paymentGateway || p.gateway || 'Razorpay Gateway'}</TableCell>
-                  <TableCell><Chip label={p.transactionRef || p.txnRef || `TXN_${idx + 100}`} size="small" variant="outlined" /></TableCell>
-                  <TableCell>{p.paymentMethod || p.method || 'Credit Card'}</TableCell>
+                  <TableCell sx={{ fontWeight: 700, fontFamily: 'monospace' }}>{p.paymentNumber || p.id || `PAY-${idx + 1}`}</TableCell>
+                  <TableCell>{p.gateway || p.paymentGateway || 'Razorpay Gateway'}</TableCell>
+                  <TableCell><Chip label={p.gatewayReference || p.transactionReference || p.transactionRef || `TXN_${p.id || idx + 100}`} size="small" variant="outlined" sx={{ fontFamily: 'monospace' }} /></TableCell>
+                  <TableCell>{(p.paymentMethod || p.method || 'Credit Card').toUpperCase()}</TableCell>
                   <TableCell sx={{ fontWeight: 700, color: 'success.main' }}>{formatCurrency(p.amount || 0)}</TableCell>
                   <TableCell>{formatDate(p.createdAt || p.date || new Date())}</TableCell>
                   <TableCell>
                     <Chip
-                      label={(p.settlementStatus || p.status || 'SETTLED').toUpperCase()}
-                      color={(p.settlementStatus || p.status) === 'PENDING' ? 'warning' : 'success'}
+                      label={(p.paymentStatus || p.settlementStatus || p.status || 'PAID').toUpperCase()}
+                      color={(p.paymentStatus || p.status) === 'failed' ? 'error' : (p.paymentStatus || p.status) === 'pending' ? 'warning' : 'success'}
                       size="small"
-                      sx={{ fontWeight: 700 }}
+                      sx={{ fontWeight: 800 }}
                     />
                   </TableCell>
                 </TableRow>

@@ -56,8 +56,11 @@ export const AdminSellerBankAccountsPage: React.FC = () => {
   };
 
   useEffect(() => {
-    fetchBankAccounts();
-  }, [statusFilter]);
+    const timer = setTimeout(() => {
+      fetchBankAccounts();
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [statusFilter, search]);
 
   const handleOpenDetails = (acc: any) => {
     setSelectedAcc(acc);

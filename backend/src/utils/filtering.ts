@@ -16,12 +16,19 @@ export const buildFilters = (
 
   // Search filter
   if (query.search && searchColumns.length > 0) {
-    const searchString = `%${query.search}%`;
-    where[Op.or] = searchColumns.map((col) => ({
-      [col]: {
-        [Op.like]: searchString,
-      },
-    }));
+    const trimmed = String(query.search).trim();
+    if (trimmed) {
+      const searchString = `%${trimmed}%`;
+      const orConditions: any[] = searchColumns.map((col) => ({
+        [col]: {
+          [Op.like]: searchString,
+        },
+      }));
+      if (!isNaN(Number(trimmed))) {
+        orConditions.push({ id: Number(trimmed) });
+      }
+      where[Op.or] = orConditions;
+    }
   }
 
   // Status filter

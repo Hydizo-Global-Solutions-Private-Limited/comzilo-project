@@ -333,11 +333,24 @@ export class SellerSubscriptionService {
       { type: QueryTypes.SELECT }
     );
 
+    const subscriptionsList: any = await sequelize.query(
+      `SELECT s.id, s.tenant_id, s.status, s.billing_cycle, s.amount, s.starts_at, s.trial_ends_at, s.current_period_end, s.ends_at, s.cancelled_at,
+              COALESCE(t.name, CONCAT('Merchant #', s.tenant_id)) as tenant_name,
+              t.slug as tenant_slug,
+              COALESCE(p.name, 'Standard Tier') as plan_name
+       FROM subscriptions s
+       LEFT JOIN tenants t ON s.tenant_id = t.id
+       LEFT JOIN plans p ON s.plan_id = p.id
+       ORDER BY s.id DESC`,
+      { type: QueryTypes.SELECT }
+    );
+
     return {
       mrr,
       arr,
       statusCounts: Array.isArray(subCounts) ? subCounts : subCounts ? [subCounts] : [],
       planPopularity: Array.isArray(planPop) ? planPop : planPop ? [planPop] : [],
+      subscriptions: Array.isArray(subscriptionsList) ? subscriptionsList : [],
     };
   }
 }

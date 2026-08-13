@@ -292,23 +292,47 @@ export class CommissionEngineService {
   public async getCommissionReport(tenantId?: number): Promise<any> {
     await this.ensureTablesExist();
 
-    const [totals]: any = await sequelize.query(
-      `SELECT 
+    // Sync order_commissions from auto_settlements if table is empty
+    const [cntRes]: any = await sequelize.query(`SELECT COUNT(*) as cnt FROM order_commissions`, { type: QueryTypes.SELECT });
+    if (Number(cntRes?.cnt || 0) === 0) {
+      try {
+        await sequelize.query(`
+          INSERT INTO order_commissions 
+            (uuid, tenant_id, store_id, order_id, order_total, subtotal, platform_commission, gateway_fee, shipping_fee, processing_fee, tax_amount, total_deductions, net_seller_payout, created_at, updated_at)
+          SELECT 
+            uuid, tenant_id, store_id, order_id, order_total, order_total, commission_amount, gateway_fee, shipping_fee, 0.00, tax_amount, (commission_amount + gateway_fee + shipping_fee + tax_amount), net_amount, NOW(), NOW()
+          FROM auto_settlements
+          ON DUPLICATE KEY UPDATE updated_at = NOW();
+        `);
+      } catch (e: any) {
+        logger.warn(`Sync order_commissions warning: ${e?.message}`);
+      }
+    }
+
+    let query = `
+      SELECT 
         COUNT(*) as total_orders_processed,
-        SUM(order_total) as gross_gmv,
-        SUM(platform_commission) as total_platform_commission,
-        SUM(gateway_fee) as total_gateway_fees,
-        SUM(shipping_fee) as total_shipping_fees,
-        SUM(processing_fee) as total_processing_fees,
-        SUM(tax_amount) as total_taxes,
-        SUM(total_deductions) as total_platform_revenue,
-        SUM(net_seller_payout) as total_seller_payouts
-       FROM order_commissions`,
-      { type: QueryTypes.SELECT }
-    );
+        COALESCE(SUM(order_total), 0) as gross_gmv,
+        COALESCE(SUM(platform_commission), 0) as total_platform_commission,
+        COALESCE(SUM(gateway_fee), 0) as total_gateway_fees,
+        COALESCE(SUM(shipping_fee), 0) as total_shipping_fees,
+        COALESCE(SUM(processing_fee), 0) as total_processing_fees,
+        COALESCE(SUM(tax_amount), 0) as total_taxes,
+        COALESCE(SUM(total_deductions), 0) as total_platform_revenue,
+        COALESCE(SUM(net_seller_payout), 0) as total_seller_payouts
+       FROM order_commissions
+    `;
+    const replacements: any = {};
+
+    if (tenantId) {
+      query += ` WHERE tenant_id = :tenantId`;
+      replacements.tenantId = tenantId;
+    }
+
+    const [totals]: any = await sequelize.query(query, { replacements, type: QueryTypes.SELECT });
 
     const [recent]: any = await sequelize.query(
-      `SELECT oc.*, o.order_number 
+      `SELECT oc.*, COALESCE(o.order_number, CONCAT('ORD-', oc.order_id)) as order_number 
        FROM order_commissions oc 
        LEFT JOIN orders o ON oc.order_id = o.id 
        ORDER BY oc.id DESC LIMIT 50`,

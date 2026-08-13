@@ -1,4 +1,4 @@
-import { Plan } from '../database/models';
+import { Plan, Subscription } from '../database/models';
 import { NotFoundError, ValidationError, ConflictError } from '../shared/errors/AppError';
 import { Op } from 'sequelize';
 
@@ -121,6 +121,25 @@ export class PlanService {
 
   public async deletePlan(id: number): Promise<void> {
     const plan = await this.getPlanById(id);
+
+    // Find a fallback plan to reassign referenced subscriptions
+    const fallbackPlan = await Plan.findOne({
+      where: {
+        id: { [Op.ne]: id },
+      },
+      order: [['id', 'ASC']],
+    });
+
+    if (fallbackPlan) {
+      await Subscription.update(
+        { planId: fallbackPlan.id },
+        { where: { planId: id } }
+      );
+    } else {
+      await Subscription.destroy({ where: { planId: id } });
+    }
+
+    // Permanently destroy plan record
     await plan.destroy();
   }
 }

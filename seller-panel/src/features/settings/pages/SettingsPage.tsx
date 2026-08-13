@@ -44,10 +44,10 @@ export const SettingsPage: React.FC = () => {
   useEffect(() => {
     const profile = profileResponse?.data || profileResponse || authUser;
     if (profile) {
-      setFirstName(profile.firstName || authUser?.firstName || 'Chowdary');
-      setLastName(profile.lastName || authUser?.lastName || 'Traders');
-      setEmail(profile.email || authUser?.email || 'maddipativikas130@gmail.com');
-      setPhone(profile.phone || profile.mobile || (authUser as any)?.phone || (authUser as any)?.mobile || '+919876543210');
+      setFirstName(profile.firstName || authUser?.firstName || '');
+      setLastName(profile.lastName || authUser?.lastName || '');
+      setEmail(profile.email || authUser?.email || '');
+      setPhone(profile.phone || profile.mobile || (authUser as any)?.phone || (authUser as any)?.mobile || '');
       const img = profile.avatarUrl || profile.profileImage || profile.avatar || (authUser as any)?.avatarUrl || (authUser as any)?.profileImage || null;
       if (img) setAvatarPreview(img);
     }

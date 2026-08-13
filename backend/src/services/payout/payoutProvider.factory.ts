@@ -4,17 +4,17 @@ import { RazorpayPayoutProvider } from './razorpayPayoutProvider.service';
 
 export class PayoutProviderFactory {
   public static getProvider(): IPayoutProvider {
-    const payoutMode = (process.env.RAZORPAY_PAYOUT_MODE || 'test').toLowerCase();
-    const hasLiveKeys = !!(
-      process.env.RAZORPAY_PAYOUT_KEY_ID && process.env.RAZORPAY_PAYOUT_KEY_SECRET
+    const hasKeys = !!(
+      (process.env.RAZORPAY_PAYOUT_KEY_ID || process.env.RAZORPAY_KEY_ID) &&
+      (process.env.RAZORPAY_PAYOUT_KEY_SECRET || process.env.RAZORPAY_KEY_SECRET)
     );
 
-    if (payoutMode === 'live' && hasLiveKeys) {
+    if (hasKeys) {
       try {
         return new RazorpayPayoutProvider();
       } catch (err) {
         console.warn(
-          '[PayoutProviderFactory] Failed to initialize RazorpayPayoutProvider, falling back to MockPayoutProvider:',
+          '[PayoutProviderFactory] Falling back to MockPayoutProvider:',
           err
         );
         return new MockPayoutProvider();

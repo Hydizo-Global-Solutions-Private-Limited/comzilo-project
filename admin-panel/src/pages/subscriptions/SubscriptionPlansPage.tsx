@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { axiosInstance } from '../../api/axiosInstance';
 import {
   Box,
   Paper,
@@ -18,6 +19,15 @@ import {
   Stack,
   Alert,
   Tooltip,
+  Table,
+  TableHead,
+  TableRow,
+  TableCell,
+  TableBody,
+  TableContainer,
+  Tabs,
+  Tab,
+  InputAdornment,
 } from '@mui/material';
 import {
   Check,
@@ -33,6 +43,11 @@ import {
   RefreshCw,
   AlertTriangle,
   Package,
+  Search,
+  CheckCircle2,
+  XCircle,
+  CreditCard,
+  Building2,
 } from 'lucide-react';
 import { PageContainer } from '../../components/layout/PageContainer';
 import {
@@ -45,8 +60,8 @@ import {
 import toast from 'react-hot-toast';
 
 export const SubscriptionPlansPage: React.FC = () => {
-  const { data: plansResponse, isLoading, isError, refetch } = useGetSubscriptionPlansQuery();
-  const { data: saasReportData } = useGetSaaSReportsQuery();
+  const { data: plansResponse, isLoading, isError, refetch: refetchPlans } = useGetSubscriptionPlansQuery();
+  const { data: saasReportData, refetch: refetchReports } = useGetSaaSReportsQuery();
   const [updatePlan, { isLoading: isSaving }] = useUpdateSubscriptionPlanMutation();
   const [createPlan, { isLoading: isCreating }] = useCreateSubscriptionPlanMutation();
   const [deletePlan] = useDeleteSubscriptionPlanMutation();
@@ -55,16 +70,87 @@ export const SubscriptionPlansPage: React.FC = () => {
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<any>(null);
   const [validationError, setValidationError] = useState<string | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [liveReport, setLiveReport] = useState<any>(null);
 
-  const saas = saasReportData?.data || { mrr: 0, arr: 0, statusCounts: [], planPopularity: [] };
+  const fetchLiveReport = async () => {
+    try {
+      const res = await axiosInstance.get('/seller/subscription/saas-reports');
+      if (res.data?.data) {
+        setLiveReport(res.data.data);
+      } else if (res.data) {
+        setLiveReport(res.data);
+      }
+    } catch (err) {
+      console.warn('Failed to fetch live SaaS report:', err);
+    }
+  };
+
+  useEffect(() => {
+    fetchLiveReport();
+  }, []);
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    try {
+      await Promise.all([refetchPlans(), refetchReports(), fetchLiveReport()]);
+      toast.success('Subscription plans & live seller subscriptions refreshed successfully!');
+    } catch {
+      toast.error('Failed to refresh subscription data.');
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
+  const [selectedFilter, setSelectedFilter] = useState<string>('all');
+  const [searchTerm, setSearchTerm] = useState<string>('');
+
+  const saas = liveReport || saasReportData?.data || saasReportData || { mrr: 0, arr: 0, statusCounts: [], planPopularity: [], subscriptions: [] };
+
+  const allSubscriptions: any[] = Array.isArray(saas.subscriptions)
+    ? saas.subscriptions
+    : Array.isArray(saasReportData?.data?.subscriptions)
+    ? saasReportData.data.subscriptions
+    : [];
+
+  const activeSubs = allSubscriptions.filter((s: any) => (s.status || '').toLowerCase() === 'active');
+  const trialingSubs = allSubscriptions.filter((s: any) => (s.status || '').toLowerCase() === 'trialing');
+  const expiredSubs = allSubscriptions.filter((s: any) => {
+    const st = (s.status || '').toLowerCase();
+    return st === 'expired' || st === 'cancelled' || st === 'past_due';
+  });
+
   const statusCountsList = Array.isArray(saas.statusCounts)
     ? saas.statusCounts
     : saas.statusCounts
     ? [saas.statusCounts]
     : [];
-  const activeCount = statusCountsList.find((s: any) => s.status === 'active')?.count || 0;
-  const trialingCount = statusCountsList.find((s: any) => s.status === 'trialing')?.count || 0;
-  const expiredCount = statusCountsList.find((s: any) => s.status === 'expired')?.count || 0;
+
+  const activeCount = activeSubs.length || statusCountsList.find((s: any) => s.status === 'active')?.count || 0;
+  const trialingCount = trialingSubs.length || statusCountsList.find((s: any) => s.status === 'trialing')?.count || 0;
+  const expiredCount = expiredSubs.length ||
+                       (statusCountsList.find((s: any) => s.status === 'expired')?.count || 0) +
+                       (statusCountsList.find((s: any) => s.status === 'cancelled')?.count || 0);
+
+  const filteredSubscriptions = allSubscriptions.filter((sub) => {
+    const st = (sub.status || '').toLowerCase();
+    const matchesFilter =
+      selectedFilter === 'all'
+        ? true
+        : selectedFilter === 'active'
+        ? st === 'active'
+        : selectedFilter === 'trialing'
+        ? st === 'trialing'
+        : st === 'expired' || st === 'cancelled' || st === 'past_due';
+
+    if (!matchesFilter) return false;
+
+    if (!searchTerm) return true;
+    const term = searchTerm.toLowerCase();
+    const tenantName = (sub.tenant_name || `Merchant #${sub.tenant_id}`).toLowerCase();
+    const planName = (sub.plan_name || '').toLowerCase();
+    return tenantName.includes(term) || planName.includes(term);
+  });
 
   // Form State
   const [formData, setFormData] = useState({
@@ -142,7 +228,7 @@ export const SubscriptionPlansPage: React.FC = () => {
     try {
       await deletePlan(id).unwrap();
       toast.success(`Subscription Plan '${planName}' deleted successfully.`);
-      refetch();
+      handleRefresh();
     } catch (err: any) {
       toast.error(err?.data?.message || 'Failed to delete subscription plan.');
     }
@@ -216,7 +302,7 @@ export const SubscriptionPlansPage: React.FC = () => {
         toast.success(`New Subscription Tier '${formData.name.trim()}' created successfully!`);
       }
       setEditModalOpen(false);
-      refetch();
+      handleRefresh();
     } catch (err: any) {
       const msg = err?.data?.message || err?.message || 'Failed to save plan changes.';
       setValidationError(msg);
@@ -231,11 +317,12 @@ export const SubscriptionPlansPage: React.FC = () => {
         <Box sx={{ display: 'flex', gap: 1.5 }}>
           <Button
             variant="outlined"
-            startIcon={<RefreshCw size={18} />}
-            onClick={() => refetch()}
+            disabled={isRefreshing}
+            startIcon={<RefreshCw size={18} className={isRefreshing ? 'animate-spin' : ''} />}
+            onClick={handleRefresh}
             sx={{ fontWeight: 700, borderRadius: 2 }}
           >
-            Refresh
+            {isRefreshing ? 'Refreshing...' : 'Refresh'}
           </Button>
           <Button
             variant="contained"
@@ -249,63 +336,260 @@ export const SubscriptionPlansPage: React.FC = () => {
       }
     >
       {/* SAAS METRICS OVERVIEW */}
-      <Grid container spacing={3} sx={{ mb: 4 }}>
+      <Grid container spacing={3} sx={{ mb: 4 }} alignItems="stretch">
+        {/* CARD 1: MRR */}
         <Grid item xs={12} sm={6} md={3}>
-          <Paper sx={{ p: 2.5, borderRadius: 3, border: '1px solid #E2E8F0', boxShadow: 'none', bgcolor: '#F0FDF4' }}>
-            <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700, color: '#166534' }}>
-              Monthly Recurring Revenue (MRR)
-            </Typography>
-            <Typography variant="h4" sx={{ fontWeight: 800, color: '#15803D', mt: 0.5 }}>
-              INR {saas.mrr ? saas.mrr.toLocaleString() : '0'}
-            </Typography>
-            <Typography variant="caption" color="text.secondary">
-              ARR: INR {saas.arr ? saas.arr.toLocaleString() : '0'}
+          <Paper
+            onClick={() => setSelectedFilter('all')}
+            sx={{
+              p: 2.5,
+              borderRadius: 3,
+              border: selectedFilter === 'all' ? '2px solid #16A34A' : '1px solid #E2E8F0',
+              boxShadow: selectedFilter === 'all' ? '0 4px 14px rgba(22, 163, 74, 0.15)' : 'none',
+              bgcolor: '#F0FDF4',
+              cursor: 'pointer',
+              height: '100%',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between',
+              transition: 'all 0.2s',
+              '&:hover': { transform: 'translateY(-2px)', boxShadow: '0 6px 16px rgba(22, 163, 74, 0.12)' },
+            }}
+          >
+            <Box>
+              <Typography variant="caption" sx={{ fontWeight: 800, color: '#166534', letterSpacing: '0.5px' }}>
+                Monthly Recurring Revenue (MRR)
+              </Typography>
+              <Typography variant="h4" sx={{ fontWeight: 900, color: '#15803D', mt: 0.5 }}>
+                INR {saas.mrr ? saas.mrr.toLocaleString() : '0'}
+              </Typography>
+            </Box>
+            <Typography variant="caption" sx={{ color: '#166534', fontWeight: 600, mt: 1 }}>
+              ARR: INR {saas.arr ? saas.arr.toLocaleString() : '0'} • Click for All ({allSubscriptions.length})
             </Typography>
           </Paper>
         </Grid>
 
+        {/* CARD 2: ACTIVE SUBSCRIPTIONS */}
         <Grid item xs={12} sm={6} md={3}>
-          <Paper sx={{ p: 2.5, borderRadius: 3, border: '1px solid #E2E8F0', boxShadow: 'none', bgcolor: '#EFF6FF' }}>
-            <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700, color: '#1E40AF' }}>
-              Active Subscriptions
-            </Typography>
-            <Typography variant="h4" sx={{ fontWeight: 800, color: '#1D4ED8', mt: 0.5 }}>
-              {activeCount}
-            </Typography>
-            <Typography variant="caption" color="text.secondary">
-              Active Paid Sellers
+          <Paper
+            onClick={() => setSelectedFilter('active')}
+            sx={{
+              p: 2.5,
+              borderRadius: 3,
+              border: selectedFilter === 'active' ? '2px solid #2563EB' : '1px solid #E2E8F0',
+              boxShadow: selectedFilter === 'active' ? '0 4px 14px rgba(37, 99, 235, 0.15)' : 'none',
+              bgcolor: '#EFF6FF',
+              cursor: 'pointer',
+              height: '100%',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between',
+              transition: 'all 0.2s',
+              '&:hover': { transform: 'translateY(-2px)', boxShadow: '0 6px 16px rgba(37, 99, 235, 0.12)' },
+            }}
+          >
+            <Box>
+              <Typography variant="caption" sx={{ fontWeight: 800, color: '#1E40AF', letterSpacing: '0.5px' }}>
+                Active Subscriptions
+              </Typography>
+              <Typography variant="h4" sx={{ fontWeight: 900, color: '#1D4ED8', mt: 0.5 }}>
+                {activeCount}
+              </Typography>
+            </Box>
+            <Typography variant="caption" sx={{ color: '#1E40AF', fontWeight: 600, mt: 1 }}>
+              Active Paid Sellers • Click to View
             </Typography>
           </Paper>
         </Grid>
 
+        {/* CARD 3: TRIALING ACCOUNTS */}
         <Grid item xs={12} sm={6} md={3}>
-          <Paper sx={{ p: 2.5, borderRadius: 3, border: '1px solid #E2E8F0', boxShadow: 'none', bgcolor: '#FFFBEB' }}>
-            <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700, color: '#92400E' }}>
-              Trialing Accounts
-            </Typography>
-            <Typography variant="h4" sx={{ fontWeight: 800, color: '#B45309', mt: 0.5 }}>
-              {trialingCount}
-            </Typography>
-            <Typography variant="caption" color="text.secondary">
-              14-Day Free Trials
+          <Paper
+            onClick={() => setSelectedFilter('trialing')}
+            sx={{
+              p: 2.5,
+              borderRadius: 3,
+              border: selectedFilter === 'trialing' ? '2px solid #D97706' : '1px solid #E2E8F0',
+              boxShadow: selectedFilter === 'trialing' ? '0 4px 14px rgba(217, 119, 6, 0.15)' : 'none',
+              bgcolor: '#FFFBEB',
+              cursor: 'pointer',
+              height: '100%',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between',
+              transition: 'all 0.2s',
+              '&:hover': { transform: 'translateY(-2px)', boxShadow: '0 6px 16px rgba(217, 119, 6, 0.12)' },
+            }}
+          >
+            <Box>
+              <Typography variant="caption" sx={{ fontWeight: 800, color: '#92400E', letterSpacing: '0.5px' }}>
+                Trialing Accounts
+              </Typography>
+              <Typography variant="h4" sx={{ fontWeight: 900, color: '#B45309', mt: 0.5 }}>
+                {trialingCount}
+              </Typography>
+            </Box>
+            <Typography variant="caption" sx={{ color: '#92400E', fontWeight: 600, mt: 1 }}>
+              14-Day Free Trials • Click to View
             </Typography>
           </Paper>
         </Grid>
 
+        {/* CARD 4: EXPIRED / CANCELLED */}
         <Grid item xs={12} sm={6} md={3}>
-          <Paper sx={{ p: 2.5, borderRadius: 3, border: '1px solid #E2E8F0', boxShadow: 'none', bgcolor: '#FFF1F2' }}>
-            <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700, color: '#9F1239' }}>
-              Expired / Cancelled
-            </Typography>
-            <Typography variant="h4" sx={{ fontWeight: 800, color: '#BE123C', mt: 0.5 }}>
-              {expiredCount}
-            </Typography>
-            <Typography variant="caption" color="text.secondary">
-              Requires Renewal
+          <Paper
+            onClick={() => setSelectedFilter('expired')}
+            sx={{
+              p: 2.5,
+              borderRadius: 3,
+              border: selectedFilter === 'expired' ? '2px solid #DC2626' : '1px solid #E2E8F0',
+              boxShadow: selectedFilter === 'expired' ? '0 4px 14px rgba(220, 38, 38, 0.15)' : 'none',
+              bgcolor: '#FFF1F2',
+              cursor: 'pointer',
+              height: '100%',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between',
+              transition: 'all 0.2s',
+              '&:hover': { transform: 'translateY(-2px)', boxShadow: '0 6px 16px rgba(220, 38, 38, 0.12)' },
+            }}
+          >
+            <Box>
+              <Typography variant="caption" sx={{ fontWeight: 800, color: '#9F1239', letterSpacing: '0.5px' }}>
+                Expired / Cancelled
+              </Typography>
+              <Typography variant="h4" sx={{ fontWeight: 900, color: '#BE123C', mt: 0.5 }}>
+                {expiredCount}
+              </Typography>
+            </Box>
+            <Typography variant="caption" sx={{ color: '#9F1239', fontWeight: 600, mt: 1 }}>
+              Requires Renewal • Click to View
             </Typography>
           </Paper>
         </Grid>
       </Grid>
+
+      {/* MERCHANT SUBSCRIPTIONS DIRECTORY TABLE */}
+      <Paper sx={{ p: 3, mb: 4, borderRadius: 3, border: '1px solid #E2E8F0', boxShadow: 'none' }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2.5, flexWrap: 'wrap', gap: 2 }}>
+          <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+            <Tabs value={selectedFilter} onChange={(_e, v) => setSelectedFilter(v)}>
+              <Tab label={`All Subscriptions (${allSubscriptions.length})`} value="all" sx={{ fontWeight: 800 }} />
+              <Tab label={`Active Paid (${activeCount})`} value="active" sx={{ fontWeight: 800, color: '#2563EB' }} />
+              <Tab label={`Trialing (${trialingCount})`} value="trialing" sx={{ fontWeight: 800, color: '#D97706' }} />
+              <Tab label={`Expired / Cancelled (${expiredCount})`} value="expired" sx={{ fontWeight: 800, color: '#DC2626' }} />
+            </Tabs>
+          </Box>
+
+          <TextField
+            size="small"
+            placeholder="Search seller or plan..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <Search size={16} color="#94A3B8" />
+                </InputAdornment>
+              ),
+            }}
+            sx={{
+              minWidth: 240,
+              '& .MuiOutlinedInput-root': { borderRadius: 2, bgcolor: '#F8FAFC' },
+            }}
+          />
+        </Box>
+
+        <TableContainer sx={{ borderRadius: 2.5, border: '1px solid #E2E8F0', overflow: 'hidden' }}>
+          <Table sx={{ minWidth: 800 }}>
+            <TableHead sx={{ bgcolor: '#F8FAFC' }}>
+              <TableRow>
+                <TableCell sx={{ fontWeight: 800, color: '#475569', py: 1.8 }}>Merchant / Seller</TableCell>
+                <TableCell sx={{ fontWeight: 800, color: '#475569' }}>Plan Tier & Cycle</TableCell>
+                <TableCell sx={{ fontWeight: 800, color: '#475569', textAlign: 'right' }}>Amount</TableCell>
+                <TableCell sx={{ fontWeight: 800, color: '#475569', textAlign: 'center' }}>Subscription Status</TableCell>
+                <TableCell sx={{ fontWeight: 800, color: '#475569', textAlign: 'right' }}>Renewal / Expiry Date</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {filteredSubscriptions.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={5} align="center" sx={{ py: 4, color: 'text.secondary' }}>
+                    <Building2 size={32} color="#CBD5E1" style={{ marginBottom: 6 }} />
+                    <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#64748B' }}>
+                      No seller subscriptions found for '{selectedFilter.toUpperCase()}'
+                    </Typography>
+                  </TableCell>
+                </TableRow>
+              ) : (
+                filteredSubscriptions.map((sub: any) => {
+                  const st = (sub.status || '').toLowerCase();
+                  const isAct = st === 'active';
+                  const isTri = st === 'trialing';
+
+                  return (
+                    <TableRow key={sub.id} hover sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
+                      {/* Merchant */}
+                      <TableCell>
+                        <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0F172A' }}>
+                          {sub.tenant_name || `Tenant #${sub.tenant_id}`}
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary" sx={{ fontFamily: 'monospace' }}>
+                          ID: #{sub.tenant_id} {sub.tenant_slug ? `(${sub.tenant_slug})` : ''}
+                        </Typography>
+                      </TableCell>
+
+                      {/* Plan Tier */}
+                      <TableCell>
+                        <Chip
+                          label={sub.plan_name || 'Standard Tier'}
+                          size="small"
+                          sx={{ fontWeight: 800, bgcolor: '#E0F2FE', color: '#0369A1', mr: 1 }}
+                        />
+                        <Typography variant="caption" sx={{ textTransform: 'capitalize', fontWeight: 600, color: '#64748B' }}>
+                          {sub.billing_cycle || 'monthly'}
+                        </Typography>
+                      </TableCell>
+
+                      {/* Amount */}
+                      <TableCell align="right">
+                        <Typography variant="body2" sx={{ fontWeight: 800, color: '#0F172A' }}>
+                          ₹{Number(sub.amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                        </Typography>
+                      </TableCell>
+
+                      {/* Status */}
+                      <TableCell align="center">
+                        <Chip
+                          icon={isAct ? <CheckCircle2 size={13} /> : isTri ? <Clock size={13} /> : <XCircle size={13} />}
+                          label={sub.status?.toUpperCase() || 'ACTIVE'}
+                          size="small"
+                          sx={{
+                            fontWeight: 800,
+                            fontSize: '0.7rem',
+                            bgcolor: isAct ? '#D1FAE5' : isTri ? '#FEF3C7' : '#FEE2E2',
+                            color: isAct ? '#047857' : isTri ? '#B45309' : '#BE123C',
+                          }}
+                        />
+                      </TableCell>
+
+                      {/* Renewal Date */}
+                      <TableCell align="right">
+                        <Typography variant="body2" sx={{ fontWeight: 700, color: '#334155', fontFamily: 'monospace' }}>
+                          {sub.current_period_end || sub.trial_ends_at || sub.ends_at
+                            ? new Date(sub.current_period_end || sub.trial_ends_at || sub.ends_at).toLocaleDateString(undefined, { dateStyle: 'medium' })
+                            : 'N/A'}
+                        </Typography>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })
+              )}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </Paper>
 
       {/* BILLING CYCLE TOGGLE */}
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mb: 4, gap: 1.5 }}>
@@ -361,7 +645,7 @@ export const SubscriptionPlansPage: React.FC = () => {
             variant="contained"
             color="error"
             startIcon={<RefreshCw size={16} />}
-            onClick={() => refetch()}
+            onClick={handleRefresh}
             sx={{ fontWeight: 700, borderRadius: 2 }}
           >
             Retry Connection

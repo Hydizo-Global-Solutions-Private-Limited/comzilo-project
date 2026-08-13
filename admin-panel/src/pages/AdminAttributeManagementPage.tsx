@@ -111,8 +111,12 @@ export const AdminAttributeManagementPage: React.FC = () => {
   });
   const [valueForm, setValueForm] = useState({ value: '', hexCode: '', displayOrder: 0 });
 
-  const fetchData = async () => {
-    setLoading(true);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const fetchData = async (isManualRefresh = false) => {
+    if (isManualRefresh) setRefreshing(true);
+    else setLoading(true);
+
     try {
       const [groupsRes, catsRes, attrsRes] = await Promise.allSettled([
         axiosInstance.get('/admin/attributes/groups'),
@@ -126,10 +130,19 @@ export const AdminAttributeManagementPage: React.FC = () => {
         setCategories(Array.isArray(raw) ? raw : raw?.rows || []);
       }
       if (attrsRes.status === 'fulfilled') setCategoryAttributes(attrsRes.value.data.data || []);
+
+      if (selectedGroup?.id) {
+        await fetchGroupValues(selectedGroup.id);
+      }
+
+      if (isManualRefresh) {
+        toast.success('Category attributes refreshed successfully!');
+      }
     } catch {
       toast.error('Failed to load attribute configuration');
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   };
 
@@ -313,11 +326,12 @@ export const AdminAttributeManagementPage: React.FC = () => {
         </Box>
         <Button
           variant="outlined"
-          startIcon={<RefreshCw size={18} />}
-          onClick={fetchData}
+          disabled={refreshing || loading}
+          startIcon={refreshing ? <CircularProgress size={16} /> : <RefreshCw size={18} />}
+          onClick={() => fetchData(true)}
           sx={{ fontWeight: 700, borderRadius: 2 }}
         >
-          Refresh Data
+          {refreshing ? 'Refreshing...' : 'Refresh Data'}
         </Button>
       </Box>
 

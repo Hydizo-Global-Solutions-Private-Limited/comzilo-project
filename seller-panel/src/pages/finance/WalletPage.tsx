@@ -200,72 +200,80 @@ export const WalletPage: React.FC = () => {
       )}
 
       {/* 4 STAT CARDS */}
-      <Grid container spacing={3} sx={{ mb: 4 }}>
+      <Grid container spacing={3} sx={{ mb: 4, alignItems: 'stretch' }}>
         <Grid item xs={12} sm={6} md={3}>
-          <Paper sx={{ p: 3, borderRadius: 3, border: '1px solid #E2E8F0', boxShadow: 'none', background: 'linear-gradient(135deg, #1E293B 0%, #0F172A 100%)', color: '#FFF' }}>
+          <Paper sx={{ p: 3, borderRadius: 3, border: '1px solid #E2E8F0', boxShadow: 'none', background: 'linear-gradient(135deg, #1E293B 0%, #0F172A 100%)', color: '#FFF', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-              <Typography variant="caption" sx={{ color: '#94A3B8', fontWeight: 700 }}>
-                TOTAL WALLET BALANCE
+              <Typography variant="caption" sx={{ color: '#94A3B8', fontWeight: 800, letterSpacing: 0.5 }}>
+                TOTAL WALLET
               </Typography>
               <Wallet size={20} color="#38BDF8" />
             </Box>
-            <Typography variant="h4" sx={{ fontWeight: 800 }}>
-              INR {wallet?.totalBalance?.toLocaleString() || '0.00'}
-            </Typography>
-            <Typography variant="caption" sx={{ color: '#94A3B8' }}>
-              Combined Escrow & Available
-            </Typography>
+            <Box>
+              <Typography variant="h4" sx={{ fontWeight: 800, letterSpacing: '-0.5px', my: 0.5 }}>
+                ₹{Number(wallet?.totalBalance || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </Typography>
+              <Typography variant="caption" sx={{ color: '#94A3B8' }}>
+                Combined Escrow & Available
+              </Typography>
+            </Box>
           </Paper>
         </Grid>
 
         <Grid item xs={12} sm={6} md={3}>
-          <Paper sx={{ p: 3, borderRadius: 3, border: '1px solid #E2E8F0', boxShadow: 'none' }}>
+          <Paper sx={{ p: 3, borderRadius: 3, border: '1px solid #FEF3C7', boxShadow: '0 4px 12px rgba(146,64,14,0.04)', bgcolor: '#FFFBEB', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-              <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700 }}>
-                PENDING BALANCE (ESCROW)
+              <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 800, color: '#92400E', letterSpacing: 0.5 }}>
+                PENDING (ESCROW)
               </Typography>
               <Clock size={20} color="#F59E0B" />
             </Box>
-            <Typography variant="h4" sx={{ fontWeight: 800, color: '#F59E0B' }}>
-              INR {wallet?.pendingBalance?.toLocaleString() || '0.00'}
-            </Typography>
-            <Typography variant="caption" color="text.secondary">
-              Held in Escrow until Delivery
-            </Typography>
+            <Box>
+              <Typography variant="h4" sx={{ fontWeight: 800, color: '#F59E0B', letterSpacing: '-0.5px', my: 0.5 }}>
+                ₹{Number(wallet?.pendingBalance || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </Typography>
+              <Typography variant="caption" color="text.secondary">
+                Held in Escrow until Delivery
+              </Typography>
+            </Box>
           </Paper>
         </Grid>
 
         <Grid item xs={12} sm={6} md={3}>
-          <Paper sx={{ p: 3, borderRadius: 3, border: '1px solid #E2E8F0', boxShadow: 'none' }}>
+          <Paper sx={{ p: 3, borderRadius: 3, border: '1px solid #A7F3D0', boxShadow: '0 4px 12px rgba(6,95,70,0.04)', bgcolor: '#ECFDF5', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-              <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700 }}>
-                AVAILABLE FOR WITHDRAWAL
+              <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 800, color: '#065F46', letterSpacing: 0.5 }}>
+                AVAILABLE PAYOUT
               </Typography>
               <CheckCircle2 size={20} color="#10B981" />
             </Box>
-            <Typography variant="h4" sx={{ fontWeight: 800, color: '#10B981' }}>
-              INR {wallet?.availableBalance?.toLocaleString() || '0.00'}
-            </Typography>
-            <Typography variant="caption" color="text.secondary">
-              Ready for Instant Payout
-            </Typography>
+            <Box>
+              <Typography variant="h4" sx={{ fontWeight: 800, color: '#10B981', letterSpacing: '-0.5px', my: 0.5 }}>
+                ₹{Number(wallet?.availableBalance || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </Typography>
+              <Typography variant="caption" color="text.secondary">
+                Ready for Instant Payout
+              </Typography>
+            </Box>
           </Paper>
         </Grid>
 
         <Grid item xs={12} sm={6} md={3}>
-          <Paper sx={{ p: 3, borderRadius: 3, border: '1px solid #E2E8F0', boxShadow: 'none' }}>
+          <Paper sx={{ p: 3, borderRadius: 3, border: '1px solid #DBEAFE', boxShadow: '0 4px 12px rgba(30,64,175,0.04)', bgcolor: '#EFF6FF', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-              <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700 }}>
+              <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 800, color: '#1E40AF', letterSpacing: 0.5 }}>
                 TOTAL WITHDRAWN
               </Typography>
               <ArrowUpRight size={20} color="#2563EB" />
             </Box>
-            <Typography variant="h4" sx={{ fontWeight: 800, color: '#2563EB' }}>
-              INR {wallet?.totalWithdrawn?.toLocaleString() || '0.00'}
-            </Typography>
-            <Typography variant="caption" color="text.secondary">
-              Settled to Bank Account
-            </Typography>
+            <Box>
+              <Typography variant="h4" sx={{ fontWeight: 800, color: '#2563EB', letterSpacing: '-0.5px', my: 0.5 }}>
+                ₹{Number(wallet?.totalWithdrawn || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </Typography>
+              <Typography variant="caption" color="text.secondary">
+                Settled to Bank Account
+              </Typography>
+            </Box>
           </Paper>
         </Grid>
       </Grid>
@@ -399,7 +407,7 @@ export const WalletPage: React.FC = () => {
                         <Typography variant="caption" color="text.secondary">{w.account_number} ({w.ifsc_code})</Typography>
                       </TableCell>
                       <TableCell align="right" sx={{ fontWeight: 800, color: '#2563EB' }}>
-                        INR {Number(w.amount).toFixed(2)}
+                        INR {Number(w.net_amount || w.netSellerPayout || w.amount || 0).toFixed(2)}
                       </TableCell>
                       <TableCell>
                         <Chip

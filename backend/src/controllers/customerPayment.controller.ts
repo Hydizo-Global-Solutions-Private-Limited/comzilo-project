@@ -7,8 +7,9 @@ export class CustomerPaymentController {
 
   public getPayments = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const customerId = Number(req.query.customerId || req.context?.tenantId || 1);
-      const data = await this.service.getCustomerPayments(customerId);
+      const tenantId = Number(req.context?.tenantId || (req.user as any)?.tenant_id || 47);
+      const customerId = Number(req.query.customerId || (req.user as any)?.id || 0);
+      const data = await this.service.getCustomerPayments(customerId, tenantId);
       success(res, 'Customer payment history retrieved successfully', data);
     } catch (err) {
       next(err);
@@ -17,8 +18,9 @@ export class CustomerPaymentController {
 
   public getInvoices = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const customerId = Number(req.query.customerId || req.context?.tenantId || 1);
-      const data = await this.service.getCustomerInvoices(customerId);
+      const tenantId = Number(req.context?.tenantId || (req.user as any)?.tenant_id || 47);
+      const customerId = Number(req.query.customerId || (req.user as any)?.id || 0);
+      const data = await this.service.getCustomerInvoices(customerId, tenantId);
       success(res, 'Customer invoices retrieved successfully', data);
     } catch (err) {
       next(err);
@@ -27,8 +29,9 @@ export class CustomerPaymentController {
 
   public getRefunds = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const customerId = Number(req.query.customerId || req.context?.tenantId || 1);
-      const data = await this.service.getCustomerRefunds(customerId);
+      const tenantId = Number(req.context?.tenantId || (req.user as any)?.tenant_id || 47);
+      const customerId = Number(req.query.customerId || (req.user as any)?.id || 0);
+      const data = await this.service.getCustomerRefunds(customerId, tenantId);
       success(res, 'Customer refund history retrieved successfully', data);
     } catch (err) {
       next(err);

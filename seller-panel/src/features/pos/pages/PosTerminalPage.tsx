@@ -227,7 +227,7 @@ export const PosTerminalPage: React.FC = () => {
           `RCPT-${Date.now().toString().slice(-6)}`,
         date: new Date().toLocaleString(),
         cashier: 'Main Terminal Cashier',
-        storeName: 'Chowdary Traders',
+        storeName: res?.data?.storeName || 'Merchant Store',
         items: [...cart],
         subtotal,
         tax,

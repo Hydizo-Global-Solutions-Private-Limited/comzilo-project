@@ -152,74 +152,99 @@ export const SellerFinancialDashboardPage: React.FC = () => {
         </Menu>
       </Box>
       {/* 5 METRIC STAT CARDS */}
-      <Grid container spacing={3} sx={{ mb: 4 }}>
+      <Grid container spacing={2.5} sx={{ mb: 4, alignItems: 'stretch' }}>
         <Grid item xs={12} sm={6} md={2.4}>
-          <Paper sx={{ p: 3, borderRadius: 3, border: '1px solid #E2E8F0', boxShadow: 'none', bgcolor: '#F0FDF4' }}>
-            <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 800, color: '#166534' }}>
-              TODAY'S REVENUE
-            </Typography>
-            <Typography variant="h4" sx={{ fontWeight: 800, color: '#15803D', mt: 0.5 }}>
-              INR {data?.todayRevenue?.toLocaleString() || '0.00'}
-            </Typography>
-            <Typography variant="caption" color="text.secondary">
-              Net Earnings Today
-            </Typography>
+          <Paper sx={{ p: 2.5, borderRadius: 3, border: '1px solid #DCFCE7', boxShadow: '0 4px 12px rgba(22,101,52,0.04)', bgcolor: '#F0FDF4', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+              <Typography variant="caption" sx={{ fontWeight: 800, color: '#166534', letterSpacing: 0.5 }}>
+                TODAY'S REVENUE
+              </Typography>
+              <TrendingUp size={18} color="#166534" />
+            </Box>
+            <Box>
+              <Typography variant="h5" sx={{ fontWeight: 800, color: '#15803D', letterSpacing: '-0.5px', my: 0.5 }}>
+                ₹{Number(data?.todayRevenue || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </Typography>
+              <Typography variant="caption" sx={{ color: '#166534', opacity: 0.85, fontWeight: 500 }}>
+                Net Earnings Today
+              </Typography>
+            </Box>
           </Paper>
         </Grid>
 
         <Grid item xs={12} sm={6} md={2.4}>
-          <Paper sx={{ p: 3, borderRadius: 3, border: '1px solid #E2E8F0', boxShadow: 'none', bgcolor: '#EFF6FF' }}>
-            <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 800, color: '#1E40AF' }}>
-              MONTHLY REVENUE
-            </Typography>
-            <Typography variant="h4" sx={{ fontWeight: 800, color: '#1D4ED8', mt: 0.5 }}>
-              INR {data?.monthlyRevenue?.toLocaleString() || '0.00'}
-            </Typography>
-            <Typography variant="caption" color="text.secondary">
-              Net Earnings This Month
-            </Typography>
+          <Paper sx={{ p: 2.5, borderRadius: 3, border: '1px solid #DBEAFE', boxShadow: '0 4px 12px rgba(30,64,175,0.04)', bgcolor: '#EFF6FF', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+              <Typography variant="caption" sx={{ fontWeight: 800, color: '#1E40AF', letterSpacing: 0.5 }}>
+                MONTHLY REVENUE
+              </Typography>
+              <DollarSign size={18} color="#1E40AF" />
+            </Box>
+            <Box>
+              <Typography variant="h5" sx={{ fontWeight: 800, color: '#1D4ED8', letterSpacing: '-0.5px', my: 0.5 }}>
+                ₹{Number(data?.monthlyRevenue || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </Typography>
+              <Typography variant="caption" sx={{ color: '#1E40AF', opacity: 0.85, fontWeight: 500 }}>
+                Net Earnings This Month
+              </Typography>
+            </Box>
           </Paper>
         </Grid>
 
         <Grid item xs={12} sm={6} md={2.4}>
-          <Paper sx={{ p: 3, borderRadius: 3, border: '1px solid #E2E8F0', boxShadow: 'none', bgcolor: '#F5F3FF' }}>
-            <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 800, color: '#5B21B6' }}>
-              TOTAL WALLET BALANCE
-            </Typography>
-            <Typography variant="h4" sx={{ fontWeight: 800, color: '#6D28D9', mt: 0.5 }}>
-              INR {data?.totalBalance?.toLocaleString() || '0.00'}
-            </Typography>
-            <Typography variant="caption" color="text.secondary">
-              Pending + Available Escrow
-            </Typography>
+          <Paper sx={{ p: 2.5, borderRadius: 3, border: '1px solid #DDD6FE', boxShadow: '0 4px 12px rgba(91,33,182,0.04)', bgcolor: '#F5F3FF', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+              <Typography variant="caption" sx={{ fontWeight: 800, color: '#5B21B6', letterSpacing: 0.5 }}>
+                TOTAL WALLET
+              </Typography>
+              <CreditCard size={18} color="#5B21B6" />
+            </Box>
+            <Box>
+              <Typography variant="h5" sx={{ fontWeight: 800, color: '#6D28D9', letterSpacing: '-0.5px', my: 0.5 }}>
+                ₹{Number(data?.totalBalance || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </Typography>
+              <Typography variant="caption" sx={{ color: '#5B21B6', opacity: 0.85, fontWeight: 500 }}>
+                Pending + Available Escrow
+              </Typography>
+            </Box>
           </Paper>
         </Grid>
 
         <Grid item xs={12} sm={6} md={2.4}>
-          <Paper sx={{ p: 3, borderRadius: 3, border: '1px solid #E2E8F0', boxShadow: 'none', bgcolor: '#FFFBEB' }}>
-            <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 800, color: '#92400E' }}>
-              PENDING SETTLEMENT
-            </Typography>
-            <Typography variant="h4" sx={{ fontWeight: 800, color: '#B45309', mt: 0.5 }}>
-              INR {data?.pendingBalance?.toLocaleString() || '0.00'}
-            </Typography>
-            <Typography variant="caption" color="text.secondary">
-              Awaiting Return Window
-            </Typography>
+          <Paper sx={{ p: 2.5, borderRadius: 3, border: '1px solid #FEF3C7', boxShadow: '0 4px 12px rgba(146,64,14,0.04)', bgcolor: '#FFFBEB', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+              <Typography variant="caption" sx={{ fontWeight: 800, color: '#92400E', letterSpacing: 0.5 }}>
+                PENDING SETTLEMENT
+              </Typography>
+              <Clock size={18} color="#92400E" />
+            </Box>
+            <Box>
+              <Typography variant="h5" sx={{ fontWeight: 800, color: '#B45309', letterSpacing: '-0.5px', my: 0.5 }}>
+                ₹{Number(data?.pendingBalance || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </Typography>
+              <Typography variant="caption" sx={{ color: '#92400E', opacity: 0.85, fontWeight: 500 }}>
+                Awaiting Return Window
+              </Typography>
+            </Box>
           </Paper>
         </Grid>
 
         <Grid item xs={12} sm={6} md={2.4}>
-          <Paper sx={{ p: 3, borderRadius: 3, border: '1px solid #E2E8F0', boxShadow: 'none', bgcolor: '#ECFDF5' }}>
-            <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 800, color: '#065F46' }}>
-              AVAILABLE BALANCE
-            </Typography>
-            <Typography variant="h4" sx={{ fontWeight: 800, color: '#047857', mt: 0.5 }}>
-              INR {data?.availableBalance?.toLocaleString() || '0.00'}
-            </Typography>
-            <Typography variant="caption" color="text.secondary">
-              Ready for Payout Request
-            </Typography>
+          <Paper sx={{ p: 2.5, borderRadius: 3, border: '1px solid #A7F3D0', boxShadow: '0 4px 12px rgba(6,95,70,0.04)', bgcolor: '#ECFDF5', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+              <Typography variant="caption" sx={{ fontWeight: 800, color: '#065F46', letterSpacing: 0.5 }}>
+                AVAILABLE BALANCE
+              </Typography>
+              <CheckCircle2 size={18} color="#065F46" />
+            </Box>
+            <Box>
+              <Typography variant="h5" sx={{ fontWeight: 800, color: '#047857', letterSpacing: '-0.5px', my: 0.5 }}>
+                ₹{Number(data?.availableBalance || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </Typography>
+              <Typography variant="caption" sx={{ color: '#065F46', opacity: 0.85, fontWeight: 500 }}>
+                Ready for Payout Request
+              </Typography>
+            </Box>
           </Paper>
         </Grid>
       </Grid>
@@ -328,7 +353,7 @@ export const SellerFinancialDashboardPage: React.FC = () => {
                       <TableCell sx={{ fontWeight: 700, fontFamily: 'monospace' }}>{w.withdrawal_number}</TableCell>
                       <TableCell>{w.bank_name} ({w.account_number})</TableCell>
                       <TableCell align="right" sx={{ fontWeight: 800, color: '#2563EB' }}>
-                        INR {Number(w.amount || 0).toFixed(2)}
+                        INR {Number(w.net_amount || w.netSellerPayout || w.amount || 0).toFixed(2)}
                       </TableCell>
                       <TableCell>
                         <Chip

@@ -167,6 +167,119 @@ export const SubscriptionPage: React.FC = () => {
     }
   };
 
+  const handleDownloadInvoicePdf = (inv: any) => {
+    const invNumber = inv?.invoiceNumber || inv?.invoice_number || `INV-SUB-${Date.now().toString().slice(-6)}`;
+    const invAmount = inv?.amount || inv?.total || subData?.subscription?.amount || currentPlan?.priceMonthly || 499;
+    const planName = inv?.planName || currentPlan?.name || 'SaaS Subscription Plan';
+    const tenantName = subData?.tenantName || 'Merchant Account';
+    const tenantId = subData?.subscription?.tenantId || '';
+    const transactionId = inv?.transactionId || subData?.subscription?.providerSubscriptionId || 'pay_RZP_VERIFIED';
+    const dateIssued = inv?.paymentDate || (subData?.subscription?.currentPeriodStart ? new Date(subData.subscription.currentPeriodStart).toLocaleDateString() : new Date().toLocaleDateString());
+    const nextBilling = inv?.nextBillingDate || (subData?.subscription?.currentPeriodEnd ? new Date(subData.subscription.currentPeriodEnd).toLocaleDateString() : 'N/A');
+
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <title>Invoice #${invNumber}</title>
+        <style>
+          body { font-family: 'Segoe UI', Arial, sans-serif; padding: 40px; color: #0f172a; background: #ffffff; }
+          .invoice-box { border: 1px solid #e2e8f0; border-radius: 12px; padding: 32px; max-width: 720px; margin: 0 auto; box-shadow: 0 4px 20px rgba(0,0,0,0.06); }
+          .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #2563eb; padding-bottom: 20px; margin-bottom: 24px; }
+          .brand { font-size: 26px; font-weight: 800; color: #0284c7; }
+          .badge { background: #d1fae5; color: #047857; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; }
+          .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; background: #f8fafc; padding: 20px; border-radius: 8px; border: 1px solid #e2e8f0; }
+          .label { font-size: 11px; font-weight: bold; color: #64748b; text-transform: uppercase; margin-bottom: 2px; }
+          .val { font-size: 14px; font-weight: 700; color: #1e293b; }
+          .table { width: 100%; border-collapse: collapse; margin-bottom: 24px; }
+          .table th { background: #f1f5f9; text-align: left; padding: 10px; font-size: 12px; color: #475569; }
+          .table td { padding: 12px 10px; border-bottom: 1px solid #e2e8f0; font-size: 14px; }
+          .total { display: flex; justify-content: space-between; align-items: center; background: #eff6ff; padding: 16px 20px; border-radius: 8px; border: 1px solid #bfdbfe; font-size: 18px; font-weight: bold; color: #1d4ed8; }
+          .footer { text-align: center; font-size: 12px; color: #94a3b8; border-top: 1px solid #e2e8f0; padding-top: 16px; margin-top: 24px; }
+        </style>
+      </head>
+      <body>
+        <div class="invoice-box">
+          <div class="header">
+            <div>
+              <div class="brand">Comzilo SaaS</div>
+              <div style="font-size: 13px; color: #64748b;">Official Subscription Tax Invoice</div>
+            </div>
+            <div style="text-align: right;">
+              <div style="font-size: 18px; font-weight: 800;">#${invNumber}</div>
+              <div style="margin-top: 4px;"><span class="badge">VERIFIED & PAID</span></div>
+            </div>
+          </div>
+
+          <div class="grid">
+            <div>
+              <div class="label">Billed To (Merchant)</div>
+              <div class="val">${tenantName} (Tenant #${tenantId})</div>
+            </div>
+            <div>
+              <div class="label">Razorpay Reference</div>
+              <div class="val" style="font-family: monospace;">${transactionId}</div>
+            </div>
+            <div>
+              <div class="label">Invoice Date</div>
+              <div class="val">${dateIssued}</div>
+            </div>
+            <div>
+              <div class="label">Next Renewal Date</div>
+              <div class="val">${nextBilling}</div>
+            </div>
+          </div>
+
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Description</th>
+                <th>Cycle</th>
+                <th style="text-align: right;">Amount</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>${planName} Tier</strong><br><span style="font-size: 12px; color: #64748b;">POS Monolith, Multi-Location Inventory & Storefront API</span></td>
+                <td style="text-transform: capitalize;">${subData?.subscription?.billingCycle || 'monthly'}</td>
+                <td style="text-align: right; font-weight: bold;">₹${Number(invAmount).toFixed(2)}</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="total">
+            <span>Total Subscription Paid:</span>
+            <span>₹${Number(invAmount).toFixed(2)}</span>
+          </div>
+
+          <div class="footer">
+            Thank you for subscribing to Comzilo SaaS Infrastructure. Keep this document for tax and accounting records.
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+
+    const blob = new Blob([htmlContent], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `Invoice_${invNumber}.html`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    const printWin = window.open(url, '_blank');
+    if (printWin) {
+      printWin.onload = () => {
+        printWin.print();
+      };
+    }
+
+    toast.success(`Invoice ${invNumber} downloaded successfully!`);
+  };
+
   if (loading) {
     return (
       <Box display="flex" justifyContent="center" alignItems="center" minHeight="60vh">
@@ -225,7 +338,7 @@ export const SubscriptionPage: React.FC = () => {
                 color="success"
                 size="small"
                 startIcon={<ArrowUpRight size={14} />}
-                onClick={() => toast.success(`Downloading Invoice ${paymentSuccessData.invoiceNumber}...`)}
+                onClick={() => handleDownloadInvoicePdf(paymentSuccessData)}
               >
                 Download Invoice
               </Button>
@@ -299,7 +412,7 @@ export const SubscriptionPage: React.FC = () => {
                 <Box display="flex" justifyContent="space-between">
                   <Typography variant="body2" sx={{ opacity: 0.8 }}>Price:</Typography>
                   <Typography variant="body2" fontWeight="bold">
-                    ${currentSub.amount || currentPlan.priceMonthly || '79.99'} / {currentSub.billingCycle || 'month'}
+                    ₹{Number(currentSub.amount || currentPlan.priceMonthly || 0).toFixed(2)} / {currentSub.billingCycle || 'month'}
                   </Typography>
                 </Box>
                 <Box display="flex" justifyContent="space-between">
@@ -441,9 +554,16 @@ export const SubscriptionPage: React.FC = () => {
             const userActiveCycle = (currentSub?.billingCycle || 'monthly').toLowerCase();
             const isCurrentPlan = isMatchingTier && userActiveCycle === billingCycle.toLowerCase();
 
-            // Price calculation - Keep exact plan charges from DB
-            const monthlyPrice = Number(plan.priceMonthly || plan.price || 0);
-            const yearlyPrice = Number(plan.priceYearly || plan.priceYearlyTotal || (monthlyPrice * 12 * 0.8));
+            // Price calculation - Sync active subscription rate if current plan matches
+            const activeAmount = Number(currentSub?.amount);
+            const monthlyPrice = (isCurrentPlan && activeAmount > 0 && userActiveCycle === 'monthly')
+              ? activeAmount
+              : Number(plan.priceMonthly || plan.price || 0);
+
+            const yearlyPrice = (isCurrentPlan && activeAmount > 0 && userActiveCycle === 'yearly')
+              ? activeAmount
+              : Number(plan.priceYearly || plan.priceYearlyTotal || (monthlyPrice * 12 * 0.8));
+
             const price = billingCycle === 'yearly' ? yearlyPrice.toFixed(2) : monthlyPrice.toFixed(2);
             const unitLabel = billingCycle === 'yearly' ? '/ year' : '/ month';
 
@@ -577,12 +697,17 @@ export const SubscriptionPage: React.FC = () => {
                   <TableRow key={inv.id}>
                     <TableCell sx={{ fontWeight: 'medium' }}>{inv.invoice_number}</TableCell>
                     <TableCell>{new Date(inv.issued_at || inv.created_at).toLocaleDateString()}</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold' }}>${inv.total}</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold' }}>₹{Number(inv.total || 0).toFixed(2)}</TableCell>
                     <TableCell>
                       <Chip label={inv.invoice_status?.toUpperCase() || 'PAID'} color="success" size="small" />
                     </TableCell>
                     <TableCell align="right">
-                      <Button size="small" startIcon={<ArrowUpRight size={14} />}>
+                      <Button
+                        size="small"
+                        variant="outlined"
+                        startIcon={<ArrowUpRight size={14} />}
+                        onClick={() => handleDownloadInvoicePdf(inv)}
+                      >
                         Download PDF
                       </Button>
                     </TableCell>

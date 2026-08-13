@@ -37,9 +37,9 @@ export class TenantController {
     }
   };
 
-  public listTenants = async (_req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public listTenants = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const tenants = await this.tenantService.listTenants();
+      const tenants = await this.tenantService.listTenants(req.query);
       success(res, 'Tenants retrieved successfully', tenants);
     } catch (error) {
       next(error);

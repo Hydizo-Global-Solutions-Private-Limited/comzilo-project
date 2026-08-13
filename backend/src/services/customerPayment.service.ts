@@ -7,15 +7,18 @@ export class CustomerPaymentService {
   /**
    * Get Customer Payment History & Summary Stats
    */
-  public async getCustomerPayments(customerId: number): Promise<any> {
+  public async getCustomerPayments(customerId: number, tenantId?: number): Promise<any> {
+    const whereClause = tenantId ? `(tenant_id = :tenantId OR customer_id = :customerId)` : `customer_id = :customerId`;
+    const replacements = { customerId: customerId || 0, tenantId: tenantId || 0 };
+
     const payments: any = await sequelize.query(
       `SELECT 
         id, uuid, order_number, total_amount as amount, payment_status, 
         'RAZORPAY' as payment_method, created_at, updated_at
        FROM orders 
-       WHERE customer_id = :customerId
+       WHERE ${whereClause}
        ORDER BY id DESC LIMIT 50`,
-      { replacements: { customerId }, type: QueryTypes.SELECT }
+      { replacements, type: QueryTypes.SELECT }
     );
 
     const [stats]: any = await sequelize.query(
@@ -25,8 +28,8 @@ export class CustomerPaymentService {
         SUM(CASE WHEN payment_status != 'paid' THEN total_amount ELSE 0 END) as failed_amount,
         SUM(CASE WHEN status IN ('cancelled', 'refunded') THEN total_amount ELSE 0 END) as refunded_amount
        FROM orders
-       WHERE customer_id = :customerId`,
-      { replacements: { customerId }, type: QueryTypes.SELECT }
+       WHERE ${whereClause}`,
+      { replacements, type: QueryTypes.SELECT }
     );
 
     return {
@@ -43,14 +46,17 @@ export class CustomerPaymentService {
   /**
    * Get Customer Invoices
    */
-  public async getCustomerInvoices(customerId: number): Promise<any[]> {
+  public async getCustomerInvoices(customerId: number, tenantId?: number): Promise<any[]> {
+    const whereClause = tenantId ? `(tenant_id = :tenantId OR customer_id = :customerId)` : `customer_id = :customerId`;
+    const replacements = { customerId: customerId || 0, tenantId: tenantId || 0 };
+
     const invoices: any = await sequelize.query(
       `SELECT 
         id, uuid, order_number, total_amount as amount, payment_status as status, created_at
        FROM orders 
-       WHERE customer_id = :customerId
+       WHERE ${whereClause}
        ORDER BY id DESC LIMIT 50`,
-      { replacements: { customerId }, type: QueryTypes.SELECT }
+      { replacements, type: QueryTypes.SELECT }
     );
     return invoices.map((inv: any) => ({
       ...inv,
@@ -62,14 +68,17 @@ export class CustomerPaymentService {
   /**
    * Get Customer Refunds
    */
-  public async getCustomerRefunds(customerId: number): Promise<any[]> {
+  public async getCustomerRefunds(customerId: number, tenantId?: number): Promise<any[]> {
+    const whereClause = tenantId ? `(tenant_id = :tenantId OR customer_id = :customerId)` : `customer_id = :customerId`;
+    const replacements = { customerId: customerId || 0, tenantId: tenantId || 0 };
+
     const refunds: any = await sequelize.query(
       `SELECT 
         id, uuid, order_number, total_amount as refund_amount, status as refund_status, created_at
        FROM orders 
-       WHERE customer_id = :customerId AND status IN ('cancelled', 'refunded')
+       WHERE ${whereClause} AND status IN ('cancelled', 'refunded')
        ORDER BY id DESC LIMIT 50`,
-      { replacements: { customerId }, type: QueryTypes.SELECT }
+      { replacements, type: QueryTypes.SELECT }
     );
     return refunds.map((ref: any) => ({
       ...ref,

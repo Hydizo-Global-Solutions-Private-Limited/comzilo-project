@@ -207,9 +207,10 @@ export class SellerBankAccountService {
         replacements.status = params.status;
       }
 
-      if (params.search) {
-        sql += ` AND (account_holder_name LIKE :search OR bank_name LIKE :search OR ifsc_code LIKE :search OR pan_number LIKE :search) `;
-        replacements.search = `%${params.search}%`;
+      if (params.search && params.search.trim()) {
+        const trimmed = params.search.trim();
+        sql += ` AND (account_holder_name LIKE :search OR bank_name LIKE :search OR ifsc_code LIKE :search OR pan_number LIKE :search OR CAST(tenant_id AS CHAR) LIKE :search OR account_number LIKE :search) `;
+        replacements.search = `%${trimmed}%`;
       }
 
       sql += ` ORDER BY id DESC `;

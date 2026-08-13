@@ -4,6 +4,7 @@ import { QueryTypes } from 'sequelize';
 import { v4 as uuidv4 } from 'uuid';
 import { PayoutProviderFactory } from './payoutProvider.factory';
 import { NotFoundError, ValidationError } from '../../shared/errors/AppError';
+import { CommissionEngineService } from '../commissionEngine.service';
 
 export class PayoutQueueService {
   private async ensurePayoutTablesExist(): Promise<void> {
@@ -123,6 +124,16 @@ export class PayoutQueueService {
       return existingQueue;
     }
 
+    const commService = new CommissionEngineService();
+    const grossAmount = Number(withdrawal.amount || 0);
+    const config = await commService.getCommissionConfig(withdrawal.tenant_id || 1);
+    const platformCommission = Math.round(grossAmount * (config.commissionRate / 100) * 100) / 100;
+    const gatewayFee = Math.round((grossAmount * (config.gatewayRate / 100) + config.gatewayFixed) * 100) / 100;
+    const shippingFee = Number(config.shippingCharge || 0);
+    const processingFee = Number(config.processingFee || 0);
+    const totalDeductions = Math.round((platformCommission + gatewayFee + shippingFee + processingFee) * 100) / 100;
+    const netSellerPayout = Math.max(0, Math.round((grossAmount - totalDeductions) * 100) / 100);
+
     const queueUuid = uuidv4();
     await sequelize.query(
       `INSERT INTO payout_queue 
@@ -134,7 +145,7 @@ export class PayoutQueueService {
           uuid: queueUuid,
           withdrawalId,
           tenantId: withdrawal.tenant_id,
-          amount: withdrawal.amount,
+          amount: netSellerPayout,
         },
         type: QueryTypes.INSERT,
       }

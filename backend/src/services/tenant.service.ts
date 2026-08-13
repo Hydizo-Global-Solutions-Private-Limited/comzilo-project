@@ -8,6 +8,7 @@ import { UserRepository } from '../repositories/user.repository';
 import { StoreRepository } from '../repositories/store.repository';
 import { NotFoundError, ValidationError } from '../shared/errors/AppError';
 import { Tenant, Subscription } from '../database/models';
+import { buildFilters } from '../utils/filtering';
 
 export class TenantService {
   private tenantRepo = new TenantRepository();
@@ -23,10 +24,12 @@ export class TenantService {
     currency?: string;
     timezone?: string;
     language?: string;
-    planCode: string;
-    billingCycle: 'monthly' | 'yearly';
+    plan?: string;
+    planCode?: string;
+    billingCycle?: 'monthly' | 'yearly';
   }): Promise<Tenant> {
-    const slug = data.slug || this.generateSlug(data.name);
+    const rawSlug = data.slug && data.slug.trim() ? data.slug : data.name;
+    const slug = this.generateSlug(rawSlug);
 
     // Check slug uniqueness
     const existing = await this.tenantRepo.findBySlug(slug);
@@ -34,10 +37,18 @@ export class TenantService {
       throw new ValidationError(`Tenant with slug '${slug}' already exists`);
     }
 
-    const plan = await this.planRepo.findByCode(data.planCode);
+    const rawPlanCode = data.planCode || data.plan || 'enterprise';
+    const targetPlanCode = String(rawPlanCode).toLowerCase();
+    let plan = await this.planRepo.findByCode(targetPlanCode);
     if (!plan) {
-      throw new NotFoundError(`Plan with code '${data.planCode}' not found`);
+      const allPlans = await this.planRepo.findMany(null);
+      plan = allPlans.find((p: any) => p.name.toLowerCase().includes(targetPlanCode) || p.code.toLowerCase() === targetPlanCode) || allPlans[0];
     }
+    if (!plan) {
+      throw new NotFoundError(`No subscription plan found in system`);
+    }
+
+    const effectiveBillingCycle = data.billingCycle || 'monthly';
 
     return sequelize.transaction(async (t) => {
       // Create Tenant
@@ -53,14 +64,14 @@ export class TenantService {
       );
 
       // Create initial subscription
-      const amount = data.billingCycle === 'yearly' ? plan.priceYearly : plan.priceMonthly;
+      const amount = effectiveBillingCycle === 'yearly' ? plan.priceYearly : plan.priceMonthly;
       const startsAt = new Date();
       const trialEndsAt =
         plan.trialDays > 0
           ? new Date(startsAt.getTime() + plan.trialDays * 24 * 60 * 60 * 1000)
           : null;
       const currentPeriodEnd = new Date(
-        startsAt.getTime() + (data.billingCycle === 'yearly' ? 365 : 30) * 24 * 60 * 60 * 1000
+        startsAt.getTime() + (effectiveBillingCycle === 'yearly' ? 365 : 30) * 24 * 60 * 60 * 1000
       );
 
       await Subscription.create(
@@ -73,7 +84,7 @@ export class TenantService {
           currentPeriodStart: startsAt,
           currentPeriodEnd,
           endsAt: currentPeriodEnd,
-          billingCycle: data.billingCycle,
+          billingCycle: effectiveBillingCycle,
           amount,
           currency: plan.currency,
           provider: 'manual',
@@ -99,8 +110,25 @@ export class TenantService {
     return tenant;
   }
 
-  public async listTenants(): Promise<Tenant[]> {
-    return this.tenantRepo.findMany(null);
+  public async listTenants(query?: Record<string, any>): Promise<Tenant[]> {
+    if (!query || Object.keys(query).length === 0) {
+      return this.tenantRepo.findMany(null, { order: [['id', 'ASC']] });
+    }
+    const where = buildFilters(query, ['name', 'slug']);
+    const options: any = { where, order: [['id', 'ASC']] };
+    if (query.limit) {
+      const limit = parseInt(query.limit, 10);
+      if (!isNaN(limit) && limit > 0) {
+        options.limit = limit;
+        if (query.page) {
+          const page = parseInt(query.page, 10);
+          if (!isNaN(page) && page > 0) {
+            options.offset = (page - 1) * limit;
+          }
+        }
+      }
+    }
+    return this.tenantRepo.findMany(null, options);
   }
 
   public async updateTenant(

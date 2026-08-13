@@ -3,6 +3,7 @@ import { QueryTypes } from 'sequelize';
 import { v4 as uuidv4 } from 'uuid';
 import { ValidationError, NotFoundError } from '../shared/errors/AppError';
 import { logger } from '../shared/logging/logger';
+import { CommissionEngineService } from './commissionEngine.service';
 
 export class SellerWalletService {
   /**
@@ -134,15 +135,46 @@ export class SellerWalletService {
       };
     }
 
+    // Calculate dynamic real-time balances from orders & withdrawals if wallet balance is 0 or needs sync
+    const [orderMetrics]: any = await sequelize.query(
+      `SELECT 
+        SUM(CASE WHEN LOWER(payment_status) IN ('paid', 'completed') THEN total_amount * 0.95 ELSE 0 END) as net_sales,
+        SUM(CASE WHEN LOWER(payment_status) IN ('paid', 'completed') AND LOWER(fulfillment_status) = 'pending' THEN total_amount * 0.95 ELSE 0 END) as pending_escrow,
+        SUM(CASE WHEN LOWER(payment_status) IN ('paid', 'completed') AND LOWER(fulfillment_status) = 'delivered' THEN total_amount * 0.95 ELSE 0 END) as delivered_net
+       FROM orders 
+       WHERE tenant_id = :tenantId`,
+      { replacements: { tenantId }, type: QueryTypes.SELECT }
+    );
+
+    const [withdrawMetrics]: any = await sequelize.query(
+      `SELECT 
+        SUM(CASE WHEN LOWER(status) IN ('processed', 'paid', 'approved', 'completed') THEN amount ELSE 0 END) as total_withdrawn
+       FROM seller_withdrawals 
+       WHERE tenant_id = :tenantId`,
+      { replacements: { tenantId }, type: QueryTypes.SELECT }
+    );
+
+    const netSales = Number(orderMetrics?.net_sales || 0);
+    const totalWithdrawn = Number(withdrawMetrics?.total_withdrawn || 0);
+    const calculatedPending = Number(orderMetrics?.pending_escrow || 0);
+    const calculatedAvailable = Math.max(0, netSales - totalWithdrawn - calculatedPending);
+    const calculatedTotal = Math.max(0, netSales - totalWithdrawn);
+
+    const dbTotal = Number(rows.total_balance || 0);
+    const totalBalanceVal = dbTotal > 0 ? dbTotal : Math.max(0, calculatedTotal);
+    const pendingBalanceVal = dbTotal > 0 ? Number(rows.pending_balance || 0) : calculatedPending;
+    const availableBalanceVal = dbTotal > 0 ? Number(rows.available_balance || 0) : Math.max(0, calculatedAvailable);
+    const totalWithdrawnVal = Math.max(Number(rows.total_withdrawn || 0), totalWithdrawn);
+
     return {
       id: rows.id,
       uuid: rows.uuid,
       tenantId: rows.tenant_id,
       storeId: rows.store_id,
-      totalBalance: Number(rows.total_balance || 0),
-      pendingBalance: Number(rows.pending_balance || 0),
-      availableBalance: Number(rows.available_balance || 0),
-      totalWithdrawn: Number(rows.total_withdrawn || 0),
+      totalBalance: totalBalanceVal,
+      pendingBalance: pendingBalanceVal,
+      availableBalance: availableBalanceVal,
+      totalWithdrawn: totalWithdrawnVal,
       currency: rows.currency || 'INR',
       bankDetails,
     };
@@ -383,12 +415,32 @@ export class SellerWalletService {
    */
   public async getWithdrawals(tenantId: number): Promise<any[]> {
     await this.getWallet(tenantId);
-    return await sequelize.query(
-      `SELECT id, uuid, withdrawal_number, amount, bank_name, account_number, ifsc_code, account_holder_name, status, payout_reference, requested_at, processed_at 
+    const rows: any[] = await sequelize.query(
+      `SELECT id, uuid, tenant_id, withdrawal_number, amount, bank_name, account_number, ifsc_code, account_holder_name, status, payout_reference, requested_at, processed_at 
        FROM seller_withdrawals 
        WHERE tenant_id = :tenantId 
        ORDER BY id DESC LIMIT 100`,
       { replacements: { tenantId }, type: QueryTypes.SELECT }
+    );
+
+    const commService = new CommissionEngineService();
+    return await Promise.all(
+      rows.map(async (row) => {
+        const grossAmount = Number(row.amount || 0);
+        const config = await commService.getCommissionConfig(row.tenant_id || tenantId || 1);
+        const platformCommission = Math.round(grossAmount * (config.commissionRate / 100) * 100) / 100;
+        const gatewayFee = Math.round((grossAmount * (config.gatewayRate / 100) + config.gatewayFixed) * 100) / 100;
+        const netSellerPayout = Math.max(0, Math.round((grossAmount - platformCommission - gatewayFee) * 100) / 100);
+
+        return {
+          ...row,
+          grossAmount,
+          platformCommission,
+          gatewayFee,
+          netSellerPayout,
+          net_amount: netSellerPayout,
+        };
+      })
     );
   }
 
@@ -412,10 +464,37 @@ export class SellerWalletService {
 
     query += ` ORDER BY w.id DESC LIMIT 100`;
 
-    return await sequelize.query(query, {
+    const rows: any[] = await sequelize.query(query, {
       replacements,
       type: QueryTypes.SELECT,
     });
+
+    const commService = new CommissionEngineService();
+
+    return await Promise.all(
+      rows.map(async (row) => {
+        const grossAmount = Number(row.amount || 0);
+        const config = await commService.getCommissionConfig(row.tenant_id || 1);
+        const platformCommission = Math.round(grossAmount * (config.commissionRate / 100) * 100) / 100;
+        const gatewayFee = Math.round((grossAmount * (config.gatewayRate / 100) + config.gatewayFixed) * 100) / 100;
+        const shippingFee = Number(config.shippingCharge || 0);
+        const processingFee = Number(config.processingFee || 0);
+        const totalDeductions = Math.round((platformCommission + gatewayFee + shippingFee + processingFee) * 100) / 100;
+        const netSellerPayout = Math.max(0, Math.round((grossAmount - totalDeductions) * 100) / 100);
+
+        return {
+          ...row,
+          grossAmount,
+          platformCommission,
+          gatewayFee,
+          shippingFee,
+          processingFee,
+          totalDeductions,
+          netSellerPayout,
+          net_amount: netSellerPayout,
+        };
+      })
+    );
   }
 
   /**
@@ -476,6 +555,28 @@ export class SellerWalletService {
       {
         replacements: { amount: withdrawal.amount, walletId: withdrawal.wallet_id },
         type: QueryTypes.UPDATE,
+      }
+    );
+
+    // Record Settlement Transaction in seller_wallet_transactions
+    const txNum = `TX-SETTLE-${Date.now().toString().slice(-6)}`;
+    await sequelize.query(
+      `INSERT INTO seller_wallet_transactions 
+        (uuid, tenant_id, store_id, wallet_id, withdrawal_id, transaction_number, type, amount, balance_after, description, status, created_at, updated_at)
+       VALUES 
+        (:uuid, :tenantId, :storeId, :walletId, :withdrawalId, :txNum, 'settlement', :amount, 0.00, :desc, 'completed', NOW(), NOW())`,
+      {
+        replacements: {
+          uuid: uuidv4(),
+          tenantId: withdrawal.tenant_id,
+          storeId: withdrawal.store_id || 1,
+          walletId: withdrawal.wallet_id,
+          withdrawalId,
+          txNum,
+          amount: Number(withdrawal.amount),
+          desc: `Bank Settlement Payout of INR ${Number(withdrawal.amount).toFixed(2)} processed to ${withdrawal.bank_name || 'Bank Account'}. Bank UTR Ref: ${payoutRef}`,
+        },
+        type: QueryTypes.INSERT,
       }
     );
 
@@ -564,14 +665,14 @@ export class SellerWalletService {
     const [totals]: any = await sequelize.query(
       `SELECT 
         COUNT(*) as total_requests,
-        SUM(CASE WHEN status = 'pending' THEN amount ELSE 0 END) as pending_amount,
-        SUM(CASE WHEN status = 'approved' THEN amount ELSE 0 END) as approved_amount,
-        SUM(CASE WHEN status = 'paid' THEN amount ELSE 0 END) as paid_amount,
-        SUM(CASE WHEN status = 'rejected' THEN amount ELSE 0 END) as rejected_amount,
-        SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) as pending_count,
-        SUM(CASE WHEN status = 'approved' THEN 1 ELSE 0 END) as approved_count,
-        SUM(CASE WHEN status = 'paid' THEN 1 ELSE 0 END) as paid_count,
-        SUM(CASE WHEN status = 'rejected' THEN 1 ELSE 0 END) as rejected_count
+        SUM(CASE WHEN LOWER(status) IN ('pending', 'requested') THEN amount ELSE 0 END) as pending_amount,
+        SUM(CASE WHEN LOWER(status) IN ('approved', 'processing') THEN amount ELSE 0 END) as approved_amount,
+        SUM(CASE WHEN LOWER(status) IN ('paid', 'completed', 'settled', 'processed') THEN amount ELSE 0 END) as paid_amount,
+        SUM(CASE WHEN LOWER(status) IN ('rejected', 'failed', 'refunded') THEN amount ELSE 0 END) as rejected_amount,
+        SUM(CASE WHEN LOWER(status) IN ('pending', 'requested') THEN 1 ELSE 0 END) as pending_count,
+        SUM(CASE WHEN LOWER(status) IN ('approved', 'processing') THEN 1 ELSE 0 END) as approved_count,
+        SUM(CASE WHEN LOWER(status) IN ('paid', 'completed', 'settled', 'processed') THEN 1 ELSE 0 END) as paid_count,
+        SUM(CASE WHEN LOWER(status) IN ('rejected', 'failed', 'refunded') THEN 1 ELSE 0 END) as rejected_count
        FROM seller_withdrawals`,
       { type: QueryTypes.SELECT }
     );
@@ -598,27 +699,55 @@ export class SellerWalletService {
 
     // 1. Today's Revenue
     const [todayRes]: any = await sequelize.query(
-      `SELECT SUM(COALESCE(net_seller_payout, order_total * 0.9, 0)) as today_revenue
+      `SELECT SUM(COALESCE(net_seller_payout, order_total * 0.95, 0)) as today_revenue
        FROM order_commissions 
        WHERE tenant_id = :tenantId AND DATE(created_at) = CURDATE()`,
       { replacements: { tenantId }, type: QueryTypes.SELECT }
     );
 
+    const [todayOrderRes]: any = await sequelize.query(
+      `SELECT SUM(total_amount * 0.95) as today_revenue
+       FROM orders 
+       WHERE tenant_id = :tenantId AND LOWER(payment_status) IN ('paid', 'completed') AND DATE(created_at) = CURDATE()`,
+      { replacements: { tenantId }, type: QueryTypes.SELECT }
+    );
+
+    const todayRevenueVal = Number(todayRes?.today_revenue || todayOrderRes?.today_revenue || 0);
+
     // 2. Monthly Revenue
     const [monthRes]: any = await sequelize.query(
-      `SELECT SUM(COALESCE(net_seller_payout, order_total * 0.9, 0)) as monthly_revenue
+      `SELECT SUM(COALESCE(net_seller_payout, order_total * 0.95, 0)) as monthly_revenue
        FROM order_commissions 
        WHERE tenant_id = :tenantId AND MONTH(created_at) = MONTH(CURDATE()) AND YEAR(created_at) = YEAR(CURDATE())`,
       { replacements: { tenantId }, type: QueryTypes.SELECT }
     );
 
+    const [monthOrderRes]: any = await sequelize.query(
+      `SELECT SUM(total_amount * 0.95) as monthly_revenue
+       FROM orders 
+       WHERE tenant_id = :tenantId AND LOWER(payment_status) IN ('paid', 'completed')`,
+      { replacements: { tenantId }, type: QueryTypes.SELECT }
+    );
+
+    const monthlyRevenueVal = Number(monthRes?.monthly_revenue || monthOrderRes?.monthly_revenue || 0);
+
     // 3. Settlements History
-    const settlements: any = await sequelize.query(
+    let settlements: any = await sequelize.query(
       `SELECT * FROM seller_wallet_transactions 
-       WHERE tenant_id = :tenantId AND type IN ('credit', 'settlement')
+       WHERE tenant_id = :tenantId
        ORDER BY id DESC LIMIT 20`,
       { replacements: { tenantId }, type: QueryTypes.SELECT }
     );
+
+    if (!settlements || settlements.length === 0) {
+      settlements = await sequelize.query(
+        `SELECT id, uuid, order_number as transaction_number, 'Order Escrow Settlement' as description, total_amount * 0.95 as amount, 'completed' as status, created_at
+         FROM orders 
+         WHERE tenant_id = :tenantId AND LOWER(payment_status) IN ('paid', 'completed')
+         ORDER BY id DESC LIMIT 20`,
+        { replacements: { tenantId }, type: QueryTypes.SELECT }
+      );
+    }
 
     // 4. Withdrawal History
     const withdrawals: any = await sequelize.query(
@@ -628,12 +757,21 @@ export class SellerWalletService {
     );
 
     // 5. Invoices
-    const invoices: any = await sequelize.query(
+    let invoices: any = await sequelize.query(
       `SELECT id, 'INV-' as prefix, amount, currency, status, created_at 
        FROM subscriptions WHERE tenant_id = :tenantId 
        ORDER BY id DESC LIMIT 20`,
       { replacements: { tenantId }, type: QueryTypes.SELECT }
     );
+
+    if (!invoices || invoices.length === 0) {
+      invoices = await sequelize.query(
+        `SELECT id, 'INV-' as prefix, total_amount as amount, 'INR' as currency, 'PAID' as status, created_at
+         FROM orders WHERE tenant_id = :tenantId AND LOWER(payment_status) IN ('paid', 'completed')
+         ORDER BY id DESC LIMIT 20`,
+        { replacements: { tenantId }, type: QueryTypes.SELECT }
+      );
+    }
 
     // 6. Commission Reports
     const commissions: any = await sequelize.query(
@@ -643,10 +781,10 @@ export class SellerWalletService {
     );
 
     // 7. Revenue Chart (Daily Last 14 Days)
-    const revenueChart: any = await sequelize.query(
+    let revenueChart: any = await sequelize.query(
       `SELECT 
         DATE_FORMAT(created_at, '%Y-%m-%d') as date,
-        SUM(COALESCE(net_seller_payout, order_total * 0.9, 0)) as amount
+        SUM(COALESCE(net_seller_payout, order_total * 0.95, 0)) as amount
        FROM order_commissions 
        WHERE tenant_id = :tenantId 
        GROUP BY DATE_FORMAT(created_at, '%Y-%m-%d')
@@ -654,12 +792,25 @@ export class SellerWalletService {
       { replacements: { tenantId }, type: QueryTypes.SELECT }
     );
 
+    if (!revenueChart || revenueChart.length === 0) {
+      revenueChart = await sequelize.query(
+        `SELECT 
+          DATE_FORMAT(created_at, '%Y-%m-%d') as date,
+          SUM(total_amount * 0.95) as amount
+         FROM orders 
+         WHERE tenant_id = :tenantId AND LOWER(payment_status) IN ('paid', 'completed')
+         GROUP BY DATE_FORMAT(created_at, '%Y-%m-%d')
+         ORDER BY date ASC LIMIT 14`,
+        { replacements: { tenantId }, type: QueryTypes.SELECT }
+      );
+    }
+
     return {
-      todayRevenue: Number(todayRes?.today_revenue || 0),
-      monthlyRevenue: Number(monthRes?.monthly_revenue || 0),
-      totalBalance: Number(wallet.total_balance || 0),
-      pendingBalance: Number(wallet.pending_balance || 0),
-      availableBalance: Number(wallet.available_balance || 0),
+      todayRevenue: todayRevenueVal,
+      monthlyRevenue: monthlyRevenueVal,
+      totalBalance: Number(wallet.totalBalance || 0),
+      pendingBalance: Number(wallet.pendingBalance || 0),
+      availableBalance: Number(wallet.availableBalance || 0),
       settlementHistory: settlements || [],
       withdrawalHistory: withdrawals || [],
       invoices: invoices || [],
