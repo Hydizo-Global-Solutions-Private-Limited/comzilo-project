@@ -160,7 +160,7 @@ export const requirePermission = (permissionCode: string, storeIdParamKey?: stri
       const cache = req.context.rbacCache;
 
       let storeId: number | undefined;
-      if (storeIdParamKey) {
+      if (storeIdParamKey && (storeIdParamKey !== 'id' || req.baseUrl.includes('/stores'))) {
         const rawStoreId = req.params[storeIdParamKey] || req.query[storeIdParamKey];
         if (rawStoreId) {
           storeId = Number(rawStoreId);
@@ -218,7 +218,7 @@ export const requireAnyPermission = (permissionCodes: string[], storeIdParamKey?
       const cache = req.context.rbacCache;
 
       let storeId: number | undefined;
-      if (storeIdParamKey) {
+      if (storeIdParamKey && (storeIdParamKey !== 'id' || req.baseUrl.includes('/stores'))) {
         const rawStoreId = req.params[storeIdParamKey] || req.query[storeIdParamKey];
         if (rawStoreId) {
           storeId = Number(rawStoreId);

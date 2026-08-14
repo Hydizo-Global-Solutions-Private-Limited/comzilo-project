@@ -49,9 +49,10 @@ export const paymentValidation = {
   }).unknown(false),
 
   refundPayment: Joi.object({
+    paymentId: Joi.number().integer().positive().optional(),
     amount: Joi.number().positive().required(),
     reason: Joi.string().allow('', null).optional(),
-  }).unknown(false),
+  }).unknown(true),
 
   listRefunds: Joi.object({
     page: Joi.number().integer().min(1).default(1),

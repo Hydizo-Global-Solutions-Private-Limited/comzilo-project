@@ -347,6 +347,7 @@ export class PaymentService extends BaseService {
       limit = 10,
       sortBy = 'createdAt',
       sortOrder = 'DESC',
+      search,
       paymentNumber,
       paymentStatus,
       paymentMethod,
@@ -367,6 +368,21 @@ export class PaymentService extends BaseService {
     if (gatewayReference) where.gatewayReference = { [Op.like]: `%${gatewayReference}%` };
     if (transactionReference)
       where.transactionReference = { [Op.like]: `%${transactionReference}%` };
+
+    if (search) {
+      const searchStr = String(search).trim();
+      const searchConditions: any[] = [
+        { paymentNumber: { [Op.like]: `%${searchStr}%` } },
+        { paymentStatus: { [Op.like]: `%${searchStr}%` } },
+        { paymentMethod: { [Op.like]: `%${searchStr}%` } },
+        { gatewayReference: { [Op.like]: `%${searchStr}%` } },
+        { transactionReference: { [Op.like]: `%${searchStr}%` } },
+      ];
+      if (!isNaN(Number(searchStr))) {
+        searchConditions.push({ id: Number(searchStr) });
+      }
+      where[Op.or] = searchConditions;
+    }
 
     if (startDate || endDate) {
       where.createdAt = {};
@@ -772,6 +788,7 @@ export class PaymentService extends BaseService {
       limit = 10,
       sortBy = 'createdAt',
       sortOrder = 'DESC',
+      search,
       refundNumber,
       status,
     } = query;
@@ -781,6 +798,19 @@ export class PaymentService extends BaseService {
 
     if (refundNumber) where.refundNumber = { [Op.like]: `%${refundNumber}%` };
     if (status) where.status = status;
+
+    if (search) {
+      const searchStr = String(search).trim();
+      const searchConditions: any[] = [
+        { refundNumber: { [Op.like]: `%${searchStr}%` } },
+        { status: { [Op.like]: `%${searchStr}%` } },
+        { reason: { [Op.like]: `%${searchStr}%` } },
+      ];
+      if (!isNaN(Number(searchStr))) {
+        searchConditions.push({ id: Number(searchStr) });
+      }
+      where[Op.or] = searchConditions;
+    }
 
     const sortWhitelist = ['createdAt', 'refundNumber', 'amount'];
     const orderField = sortWhitelist.includes(sortBy) ? sortBy : 'createdAt';

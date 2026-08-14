@@ -94,13 +94,18 @@ export class AuthorizationService extends BaseService {
       return cache.permissions;
     }
 
-    const user: any = await User.findByPk(userId);
-    if (
-      user?.role === 'SUPER_ADMIN' ||
-      user?.role === 'ADMIN' ||
-      user?.role === 'SELLER' ||
-      user?.role === 'SELLER_ADMIN'
-    ) {
+    const userRoles = await this.getUserRoles(tenantId, userId, storeId, cache);
+    const isSellerOrAdmin = userRoles.some((r) => {
+      const code = (r || '').toLowerCase();
+      return (
+        code.includes('super_admin') ||
+        code.includes('admin') ||
+        code.includes('seller') ||
+        code.includes('owner')
+      );
+    });
+
+    if (isSellerOrAdmin) {
       const allPerms = await Permission.findAll({ attributes: ['code'] });
       const codes = allPerms.map((p) => p.code);
       const defaultSellerPerms = [
@@ -213,13 +218,17 @@ export class AuthorizationService extends BaseService {
     const isSuper = await this.isSuperAdmin(userId, cache);
     if (isSuper) return true;
 
-    const user: any = await User.findByPk(userId);
-    if (
-      user?.role === 'SUPER_ADMIN' ||
-      user?.role === 'ADMIN' ||
-      user?.role === 'SELLER' ||
-      user?.role === 'SELLER_ADMIN'
-    ) {
+    const userRoles = await this.getUserRoles(tenantId, userId, storeId, cache);
+    const isSellerOrAdmin = userRoles.some((r) => {
+      const code = (r || '').toLowerCase();
+      return (
+        code.includes('super_admin') ||
+        code.includes('admin') ||
+        code.includes('seller') ||
+        code.includes('owner')
+      );
+    });
+    if (isSellerOrAdmin) {
       return true;
     }
 
@@ -240,13 +249,17 @@ export class AuthorizationService extends BaseService {
     const isSuper = await this.isSuperAdmin(userId, cache);
     if (isSuper) return true;
 
-    const user: any = await User.findByPk(userId);
-    if (
-      user?.role === 'SUPER_ADMIN' ||
-      user?.role === 'ADMIN' ||
-      user?.role === 'SELLER' ||
-      user?.role === 'SELLER_ADMIN'
-    ) {
+    const userRoles = await this.getUserRoles(tenantId, userId, storeId, cache);
+    const isSellerOrAdmin = userRoles.some((r) => {
+      const code = (r || '').toLowerCase();
+      return (
+        code.includes('super_admin') ||
+        code.includes('admin') ||
+        code.includes('seller') ||
+        code.includes('owner')
+      );
+    });
+    if (isSellerOrAdmin) {
       return true;
     }
 

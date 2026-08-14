@@ -55,7 +55,18 @@ export class StoreOrderService {
       ];
     }
     if (query.search) {
-      where.orderNumber = { [Op.like]: `%${query.search}%` };
+      const searchStr = String(query.search).trim();
+      const searchConditions: any[] = [
+        { orderNumber: { [Op.like]: `%${searchStr}%` } },
+        { status: { [Op.like]: `%${searchStr}%` } },
+        { orderStatus: { [Op.like]: `%${searchStr}%` } },
+        { paymentStatus: { [Op.like]: `%${searchStr}%` } },
+        { fulfillmentStatus: { [Op.like]: `%${searchStr}%` } },
+      ];
+      if (!isNaN(Number(searchStr))) {
+        searchConditions.push({ id: Number(searchStr) });
+      }
+      where[Op.and] = [{ [Op.or]: searchConditions }];
     }
 
     let { rows, count } = await Order.findAndCountAll({

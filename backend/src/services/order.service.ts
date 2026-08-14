@@ -312,6 +312,7 @@ export class OrderService extends BaseService {
       limit = 10,
       sortBy = 'createdAt',
       sortOrder = 'DESC',
+      search,
       orderNumber,
       customerId,
       status,
@@ -342,6 +343,20 @@ export class OrderService extends BaseService {
       where.totalAmount = {};
       if (minTotal) where.totalAmount[Op.gte] = Number(minTotal);
       if (maxTotal) where.totalAmount[Op.lte] = Number(maxTotal);
+    }
+
+    if (search) {
+      const searchStr = String(search).trim();
+      const searchConditions: any[] = [
+        { orderNumber: { [Op.like]: `%${searchStr}%` } },
+        { status: { [Op.like]: `%${searchStr}%` } },
+        { paymentStatus: { [Op.like]: `%${searchStr}%` } },
+        { fulfillmentStatus: { [Op.like]: `%${searchStr}%` } },
+      ];
+      if (!isNaN(Number(searchStr))) {
+        searchConditions.push({ id: Number(searchStr) });
+      }
+      where[Op.or] = searchConditions;
     }
 
     const sortWhitelist = ['createdAt', 'orderNumber', 'totalAmount', 'status'];

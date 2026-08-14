@@ -187,6 +187,7 @@ export class InvoiceService extends BaseService {
       limit = 10,
       sortBy = 'createdAt',
       sortOrder = 'DESC',
+      search,
       invoiceNumber,
       invoiceStatus,
     } = query;
@@ -196,6 +197,19 @@ export class InvoiceService extends BaseService {
 
     if (invoiceNumber) where.invoiceNumber = { [Op.like]: `%${invoiceNumber}%` };
     if (invoiceStatus) where.invoiceStatus = invoiceStatus;
+
+    if (search) {
+      const searchStr = String(search).trim();
+      const searchConditions: any[] = [
+        { invoiceNumber: { [Op.like]: `%${searchStr}%` } },
+        { invoiceStatus: { [Op.like]: `%${searchStr}%` } },
+        { paymentStatus: { [Op.like]: `%${searchStr}%` } },
+      ];
+      if (!isNaN(Number(searchStr))) {
+        searchConditions.push({ id: Number(searchStr) });
+      }
+      where[Op.or] = searchConditions;
+    }
 
     const sortWhitelist = ['createdAt', 'invoiceNumber', 'total'];
     const orderField = sortWhitelist.includes(sortBy) ? sortBy : 'createdAt';

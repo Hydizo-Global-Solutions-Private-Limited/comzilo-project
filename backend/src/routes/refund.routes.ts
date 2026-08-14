@@ -20,7 +20,14 @@ router.get(
   controller.listRefunds
 );
 
-router.get('/:id', requirePermission('refund.read', 'id'), controller.getRefund);
+router.post(
+  '/',
+  requirePermission('refund.create'),
+  validateRequest({ body: paymentValidation.refundPayment }),
+  controller.createRefund
+);
+
+router.get('/:id', requirePermission('refund.read'), controller.getRefund);
 
 export default router;
 export { router as refundRoutes };

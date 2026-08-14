@@ -163,11 +163,35 @@ export class PaymentController {
     }
   };
 
+  public createRefund = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const tenantId = req.context!.tenantId!;
+      const storeId = this.getStoreId(req);
+      const paymentId = Number(req.params.id || req.body.paymentId);
+      const userId = req.context!.authenticatedUserId!;
+      const ip = req.ip;
+      const userAgent = req.headers['user-agent'];
+
+      const refund = await this.paymentService.refundPayment(
+        tenantId,
+        storeId,
+        paymentId,
+        userId,
+        req.body,
+        ip,
+        userAgent
+      );
+      created(res, 'Refund processed successfully', refund);
+    } catch (error) {
+      next(error);
+    }
+  };
+
   public refundPayment = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const tenantId = req.context!.tenantId!;
       const storeId = this.getStoreId(req);
-      const paymentId = Number(req.params.id);
+      const paymentId = Number(req.params.id || req.body.paymentId);
       const userId = req.context!.authenticatedUserId!;
       const ip = req.ip;
       const userAgent = req.headers['user-agent'];

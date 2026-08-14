@@ -26,12 +26,12 @@ router.use(authorize);
 // Nested Customer Addresses Routes
 router.get(
   '/:id/addresses',
-  requirePermission('customer.address.read', 'id'),
+  requirePermission('customer.address.read'),
   addressController.listAddresses
 );
 router.post(
   '/:id/addresses',
-  requirePermission('customer.address.create', 'id'),
+  requirePermission('customer.address.create'),
   validateRequest({ body: customerValidation.createAddress }),
   addressController.createAddress
 );
@@ -39,12 +39,12 @@ router.post(
 // Nested Customer Preferences Routes
 router.get(
   '/:id/preferences',
-  requirePermission('customer.preference.read', 'id'),
+  requirePermission('customer.preference.read'),
   prefController.getPreferences
 );
 router.put(
   '/:id/preferences',
-  requirePermission('customer.preference.update', 'id'),
+  requirePermission('customer.preference.update'),
   validateRequest({ body: customerValidation.updatePreferences }),
   prefController.updatePreferences
 );
@@ -52,7 +52,7 @@ router.put(
 // Nested Customer Tags Routes
 router.put(
   '/:id/tags',
-  requirePermission('customer.tag.update', 'id'),
+  requirePermission('customer.tag.update'),
   validateRequest({ body: customerValidation.replaceTags }),
   tagController.replaceTags
 );
@@ -60,21 +60,21 @@ router.put(
 // Nested Customer Documents Routes
 router.get(
   '/:id/documents',
-  requirePermission('customer.document.read', 'id'),
+  requirePermission('customer.document.read'),
   docController.listDocuments
 );
 router.post(
   '/:id/documents',
-  requirePermission('customer.document.upload', 'id'),
+  requirePermission('customer.document.upload'),
   validateRequest({ body: customerValidation.uploadDocument }),
   docController.uploadDocument
 );
 
 // Nested Customer Notes Routes
-router.get('/:id/notes', requirePermission('customer.read', 'id'), noteController.listNotes);
+router.get('/:id/notes', requirePermission('customer.read'), noteController.listNotes);
 router.post(
   '/:id/notes',
-  requirePermission('customer.update', 'id'),
+  requirePermission('customer.update'),
   validateRequest({ body: customerValidation.createNote }),
   noteController.createNote
 );
@@ -92,33 +92,33 @@ router.post(
   validateRequest({ body: customerValidation.createCustomer }),
   controller.createCustomer
 );
-router.get('/:id', requirePermission('customer.read', 'id'), controller.getCustomer);
+router.get('/:id', requirePermission('customer.read'), controller.getCustomer);
 router.put(
   '/:id',
-  requirePermission('customer.update', 'id'),
+  requirePermission('customer.update'),
   validateRequest({ body: customerValidation.updateCustomer }),
   controller.updateCustomer
 );
-router.delete('/:id', requirePermission('customer.delete', 'id'), controller.deleteCustomer);
+router.delete('/:id', requirePermission('customer.delete'), controller.deleteCustomer);
 router.post(
   '/:id/restore',
-  requirePermission('customer.restore', 'id'),
+  requirePermission('customer.restore'),
   controller.restoreCustomer
 );
-router.post('/:id/block', requirePermission('customer.block', 'id'), controller.blockCustomer);
+router.post('/:id/block', requirePermission('customer.block'), controller.blockCustomer);
 router.post(
   '/:id/unblock',
-  requirePermission('customer.unblock', 'id'),
+  requirePermission('customer.unblock'),
   controller.unblockCustomer
 );
 router.post(
   '/:id/deactivate',
-  requirePermission('customer.update', 'id'),
+  requirePermission('customer.update'),
   controller.deactivateCustomer
 );
 router.post(
   '/:id/activate',
-  requirePermission('customer.update', 'id'),
+  requirePermission('customer.update'),
   controller.activateCustomer
 );
 
