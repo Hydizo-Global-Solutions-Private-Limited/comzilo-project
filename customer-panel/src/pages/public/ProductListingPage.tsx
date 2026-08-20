@@ -57,8 +57,10 @@ const PRODUCT_IMAGE_MAP: Record<string, string> = {
   'DIG-WP-THEME-002': 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=500',
   'DL-JAVA-PDF-001': 'https://images.unsplash.com/photo-1532012197267-da84d127e765?w=500',
   'DL-FLUTTER-CODE-002': 'https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=500',
-  'POD-MUG-001': 'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=500',
-  'POD-HOODIE-002': 'https://images.unsplash.com/photo-1556905055-8f358a7a47b2?w=500',
+  'POD-MUG-001': '/pod/pod_mugs.png',
+  'POD-HOODIE-002': '/pod/pod_hoodie.png',
+  'POD-TSHIRT-001': '/pod/pod_tshirt.png',
+  'POD-PHONE-002': '/pod/pod_phone_case.png',
   'BNDL-OFFICE-001': 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=500',
   'BNDL-GAMER-002': 'https://images.unsplash.com/photo-1542751371-adc38448a05e?w=500',
   'SRV-REPAIR-001': 'https://images.unsplash.com/photo-1588702547919-26089e690ecc?w=500',
@@ -81,7 +83,11 @@ export const ProductListingPage: React.FC = () => {
   const [minPrice, setMinPrice] = useState('');
   const [maxPrice, setMaxPrice] = useState('');
 
-  const typesQuery = selectedTypes.length > 0 ? selectedTypes.join(',') : undefined;
+  const isPodFilterSelected = selectedTypes.includes('print_on_demand');
+  // Hide POD products by default. Only include POD products when explicitly selected.
+  const typesQuery = selectedTypes.length > 0
+    ? selectedTypes.join(',')
+    : 'physical,variable,virtual,downloadable';
 
   const tenantIdParam = searchParams.get('tenant_id');
   const storeIdParam = searchParams.get('store_id');
@@ -288,12 +294,16 @@ export const ProductListingPage: React.FC = () => {
             <Paper sx={{ textAlign: 'center', py: 8, border: '1px dashed #CBD5E1', borderRadius: 3, bgcolor: '#F8FAFC' }}>
               <PackageX size={56} color="#94A3B8" />
               <Typography variant="h6" sx={{ mt: 2, fontWeight: 700, color: '#334155' }}>
-                No Products Found
+                {isPodFilterSelected && selectedTypes.length === 1
+                  ? 'No Print On Demand products available'
+                  : 'No Products Found'}
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-                {selectedTypes.length > 0 || search || minPrice || maxPrice
-                  ? 'No products match your selected filters. Try clearing some criteria to explore more items.'
-                  : 'There are currently no active products matching your search.'}
+                {isPodFilterSelected && selectedTypes.length === 1
+                  ? 'There are currently no Print-On-Demand products matching your search or price criteria.'
+                  : selectedTypes.length > 0 || search || minPrice || maxPrice
+                    ? 'No products match your selected filters. Try clearing some criteria to explore more items.'
+                    : 'There are currently no active products matching your search.'}
               </Typography>
             </Paper>
           ) : (

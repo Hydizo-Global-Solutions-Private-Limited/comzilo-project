@@ -5,7 +5,7 @@ const PRODUCT_TYPE_DEFAULT_IMAGES: Record<string, string> = {
   variable: 'https://images.unsplash.com/photo-1581655353564-df123a1eb820?w=500',
   virtual: 'https://images.unsplash.com/photo-1557804506-669a67965ba0?w=500',
   downloadable: 'https://images.unsplash.com/photo-1532012197267-da84d127e765?w=500',
-  print_on_demand: 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=500',
+  print_on_demand: '/pod/pod_tshirt.png',
   bundle: 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=500',
   service: 'https://images.unsplash.com/photo-1588702547919-26089e690ecc?w=500',
   subscription: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=500',
@@ -22,8 +22,10 @@ const SKU_IMAGE_MAP: Record<string, string> = {
   'VIRT-CONSULT-002': 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=500',
   'DL-JAVA-PDF-001': 'https://images.unsplash.com/photo-1532012197267-da84d127e765?w=500',
   'DL-FLUTTER-CODE-002': 'https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=500',
-  'POD-MUG-001': 'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=500',
-  'POD-HOODIE-002': 'https://images.unsplash.com/photo-1556905055-8f358a7a47b2?w=500',
+  'POD-MUG-001': '/pod/pod_mugs.png',
+  'POD-HOODIE-002': '/pod/pod_hoodie.png',
+  'POD-TSHIRT-001': '/pod/pod_tshirt.png',
+  'POD-PHONE-002': '/pod/pod_phone_case.png',
 };
 
 /**

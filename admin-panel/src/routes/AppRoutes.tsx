@@ -32,6 +32,7 @@ import { AdminShippingProvidersPage } from '../pages/AdminShippingProvidersPage'
 import { AdminInventoryPage } from '../pages/AdminInventoryPage';
 import { AdminAttributeManagementPage } from '../pages/AdminAttributeManagementPage';
 import { AdminCategoryPage } from '../pages/categories/AdminCategoryPage';
+import { AdminPodManagementPage } from '../pages/pod/AdminPodManagementPage';
 
 export const AppRoutes: React.FC = () => {
   return (
@@ -46,6 +47,7 @@ export const AppRoutes: React.FC = () => {
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
             <Route path="/dashboard" element={<AdminDashboardPage />} />
             <Route path="/tenants" element={<TenantsPage />} />
+            <Route path="/pod-management" element={<AdminPodManagementPage />} />
             <Route path="/seller-applications" element={<SellerApplicationsPage />} />
             <Route path="/sellers" element={<SellersListPage />} />
             <Route path="/sellers/add" element={<AddSellerPage />} />

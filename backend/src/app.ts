@@ -306,6 +306,10 @@ app.use('/api/v1/store/marketing', storeMarketingRoutes);
 app.use('/api/v1/store/cms', storeCmsRoutes);
 
 import supportCenterRoutes from './routes/supportCenter.routes';
+import podRoutes from './routes/pod.routes';
+
+app.use('/api/v1/pod', podRoutes);
+app.use('/api/v1/store/pod', podRoutes);
 app.use('/api/v1/support', supportCenterRoutes);
 app.use('/api/v1/store/pos', storePosRoutes);
 app.use('/api/v1/store/purchasing', storePurchasingRoutes);

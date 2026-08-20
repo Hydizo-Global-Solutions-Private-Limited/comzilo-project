@@ -14,7 +14,7 @@ import {
   Grid,
 } from '@mui/material';
 import type { GridColDef } from '@mui/x-data-grid';
-import { Plus, Search, Ban, Eye, Sparkles, Shirt, Calendar, User } from 'lucide-react';
+import { Plus, Search, Ban, Eye, Sparkles, Shirt, Calendar, User, Download } from 'lucide-react';
 import { PageContainer } from '../../../components/layout/PageContainer';
 import { DataTable } from '../../../components/data-display/DataTable';
 import { useGetOrdersQuery, useCreateOrderMutation, useCancelOrderMutation } from '../../../api/endpoints/salesApi';
@@ -71,22 +71,25 @@ export const OrdersPage: React.FC = () => {
     { field: 'orderNumber', headerName: 'Order #', width: 160 },
     {
       field: 'customPreview',
-      headerName: 'Custom Design',
-      width: 140,
+      headerName: 'Print On Demand',
+      width: 170,
       renderCell: (params) => {
         const items = params.row.items || [];
-        const customItem = items.find((i: any) => i.customization || i.customDesign);
-        const previewUrl = customItem?.customization?.previewImage || customItem?.customization?.previewUrl || customItem?.image || 'https://images.unsplash.com/photo-1581655353564-df123a1eb820?w=150';
+        const customItem = items.find((i: any) => i.customization || i.customDesign || String(i.sku || '').startsWith('POD-') || i.productName?.includes('(POD') || i.product?.productType === 'print_on_demand');
+        const cust = customItem?.customization || customItem?.customDesign || {};
+        const previewUrl = cust.uploadedImage || cust.previewImage || cust.previewUrl || customItem?.image || 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=150';
         return (
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, py: 0.5 }}>
             <Box
               component="img"
               src={previewUrl}
-              alt="Custom Design"
-              sx={{ width: 36, height: 36, borderRadius: 1.5, objectFit: 'cover', border: '1px solid #E2E8F0' }}
+              alt="POD Design"
+              sx={{ width: 36, height: 36, borderRadius: 1.5, objectFit: 'cover', border: '1px solid #CBD5E1', bgcolor: '#F8FAFC' }}
             />
-            {customItem && (
-              <Chip label="Customized" size="small" color="secondary" sx={{ height: 20, fontSize: '0.65rem', fontWeight: 800 }} />
+            {customItem ? (
+              <Chip label="Print On Demand" size="small" sx={{ height: 22, fontSize: '0.65rem', fontWeight: 800, bgcolor: '#7C3AED', color: '#FFFFFF' }} />
+            ) : (
+              <Typography variant="caption" color="text.secondary">Standard</Typography>
             )}
           </Box>
         );
@@ -275,33 +278,60 @@ export const OrdersPage: React.FC = () => {
 
                         <Divider />
 
-                        {/* Sides Artwork Summary */}
+                        {/* POD Customization Breakdown */}
                         <Box>
                           <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#334155', mb: 1 }}>
-                            🎨 Customer Design Elements Summary
+                            🎨 Customization Specifications
                           </Typography>
-                          {cust.sides ? (
-                            Object.entries(cust.sides).map(([side, data]: [string, any]) => {
-                              const els = data?.elements || [];
-                              if (els.length === 0) return null;
-                              return (
-                                <Box key={side} sx={{ mb: 1, p: 1.5, bgcolor: '#F1F5F9', borderRadius: 2 }}>
-                                  <Typography variant="caption" sx={{ fontWeight: 800, textTransform: 'uppercase', color: '#0D9488', display: 'block', mb: 0.5 }}>
-                                    Side: {side} ({els.length} element{els.length > 1 ? 's' : ''})
-                                  </Typography>
-                                  {els.map((el: any, i: number) => (
-                                    <Typography key={i} variant="caption" sx={{ display: 'block', color: '#475569', fontSize: '0.75rem' }}>
-                                      • Type: <strong>{el.type}</strong> | Content: <em>{el.content?.slice(0, 30)}</em>
-                                    </Typography>
-                                  ))}
+                          <Box sx={{ p: 2, bgcolor: '#F8FAFC', borderRadius: 2, border: '1px solid #E2E8F0', display: 'flex', flexDirection: 'column', gap: 1 }}>
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                              <Typography variant="caption" color="text.secondary">Template:</Typography>
+                              <Typography variant="caption" sx={{ fontWeight: 800, color: '#6366F1' }}>
+                                {cust.templateName || cust.templateTitle || 'Custom Template'}
+                              </Typography>
+                            </Box>
+                            {cust.customText && (
+                              <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                                <Typography variant="caption" color="text.secondary">Custom Text:</Typography>
+                                <Typography variant="caption" sx={{ fontWeight: 800 }}>"{cust.customText}"</Typography>
+                              </Box>
+                            )}
+                            {cust.font && (
+                              <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                                <Typography variant="caption" color="text.secondary">Font Style:</Typography>
+                                <Typography variant="caption" sx={{ fontWeight: 700 }}>{cust.font}</Typography>
+                              </Box>
+                            )}
+                            {cust.textColor && (
+                              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <Typography variant="caption" color="text.secondary">Text Color:</Typography>
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                  <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: cust.textColor, border: '1px solid #CBD5E1' }} />
+                                  <Typography variant="caption" sx={{ fontWeight: 700 }}>{cust.textColor}</Typography>
                                 </Box>
-                              );
-                            })
-                          ) : (
-                            <Typography variant="body2" color="text.secondary">
-                              Custom design configured with active layout parameters.
-                            </Typography>
-                          )}
+                              </Box>
+                            )}
+                            {(cust.size || cust.color) && (
+                              <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                                <Typography variant="caption" color="text.secondary">Size / Base Color:</Typography>
+                                <Typography variant="caption" sx={{ fontWeight: 700 }}>
+                                  {cust.size || 'Standard'} / {cust.color || cust.productColorName || 'Default'}
+                                </Typography>
+                              </Box>
+                            )}
+                            {cust.layers && Array.isArray(cust.layers) && cust.layers.length > 0 && (
+                              <Box sx={{ mt: 1, pt: 1, borderTop: '1px dashed #CBD5E1' }}>
+                                <Typography variant="caption" sx={{ fontWeight: 800, color: '#475569', display: 'block', mb: 0.5 }}>
+                                  Studio Layers Breakdown ({cust.layers.length}):
+                                </Typography>
+                                {cust.layers.map((l: any, idx: number) => (
+                                  <Typography key={idx} variant="caption" sx={{ display: 'block', color: '#64748B', fontSize: 11 }}>
+                                    • [{l.type?.toUpperCase()}] {l.name || l.text || 'Layer'} {l.fontSize ? `(${l.fontSize}px, ${l.fontFamily})` : ''}
+                                  </Typography>
+                                ))}
+                              </Box>
+                            )}
+                          </Box>
                         </Box>
                       </Paper>
                     </Grid>
@@ -310,7 +340,61 @@ export const OrdersPage: React.FC = () => {
               })()}
             </DialogContent>
 
-            <DialogActions sx={{ px: 3, pb: 2.5, borderTop: '1px solid #E2E8F0' }}>
+            <DialogActions sx={{ px: 3, pb: 2.5, borderTop: '1px solid #E2E8F0', display: 'flex', justifyContent: 'space-between' }}>
+              {(() => {
+                const items = selectedOrderDetails.items || [];
+                const customItem = items.find((i: any) => i.customization || i.customDesign) || items[0];
+                const cust = customItem?.customization || {};
+                const downloadUrl = cust.uploadedImage || cust.previewImage || cust.previewUrl;
+                return (
+                  <Box sx={{ display: 'flex', gap: 1 }}>
+                    {downloadUrl && (
+                      <Button
+                        variant="contained"
+                        color="secondary"
+                        startIcon={<Download size={16} />}
+                        onClick={() => {
+                          const a = document.createElement('a');
+                          a.href = downloadUrl;
+                          a.download = `Print-Ready-Art-Order-${selectedOrderDetails.orderNumber}.png`;
+                          a.target = '_blank';
+                          document.body.appendChild(a);
+                          a.click();
+                          document.body.removeChild(a);
+                          toast.success('Downloading print-ready PNG...');
+                        }}
+                        sx={{ fontWeight: 800, borderRadius: 2 }}
+                      >
+                        Download Print-Ready PNG
+                      </Button>
+                    )}
+                    <Button
+                      variant="outlined"
+                      color="primary"
+                      startIcon={<Download size={16} />}
+                      onClick={() => {
+                        const packageData = JSON.stringify({
+                          orderNumber: selectedOrderDetails.orderNumber,
+                          date: selectedOrderDetails.createdAt,
+                          customer: selectedOrderDetails.customer,
+                          product: customItem?.productName,
+                          specs: cust,
+                        }, null, 2);
+                        const blob = new Blob([packageData], { type: 'application/json' });
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = `POD-Production-Package-${selectedOrderDetails.orderNumber}.json`;
+                        a.click();
+                        toast.success('Production print package exported!');
+                      }}
+                      sx={{ fontWeight: 700, borderRadius: 2 }}
+                    >
+                      Export Print Specs
+                    </Button>
+                  </Box>
+                );
+              })()}
               <Button onClick={() => setSelectedOrderDetails(null)} variant="outlined" sx={{ fontWeight: 700 }}>
                 Close
               </Button>

@@ -94,6 +94,7 @@ export const AppRoutes: React.FC = () => {
             {/* Catalog Routes */}
             <Route path="/products" element={<PermissionGuard permission="product.read"><ProductsPage /></PermissionGuard>} />
             <Route path="/pod-templates" element={<SellerPodTemplatesPage />} />
+            <Route path="/store/pod-templates" element={<SellerPodTemplatesPage />} />
             <Route path="/categories" element={<PermissionGuard permission="category.read"><CategoriesPage /></PermissionGuard>} />
             <Route path="/brands" element={<PermissionGuard permission="brand.read"><BrandsPage /></PermissionGuard>} />
             <Route path="/collections" element={<PermissionGuard permission="collection.read"><CollectionsPage /></PermissionGuard>} />

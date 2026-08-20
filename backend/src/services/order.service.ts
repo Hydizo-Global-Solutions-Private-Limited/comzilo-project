@@ -2,7 +2,7 @@
 import { OrderRepository } from '../repositories/order.repository';
 import { OrderItemRepository } from '../repositories/orderItem.repository';
 import { CustomerRepository } from '../repositories/customer.repository';
-import { Product, Order, OrderItem, Customer, Payment, Refund } from '../database/models';
+import { Product, Order, OrderItem, Customer, Payment, Refund, PodCustomization } from '../database/models';
 import { BaseService } from '../core/BaseService';
 import { sequelize } from '../config/database';
 import { NotFoundError, ValidationError } from '../shared/errors/AppError';
@@ -231,7 +231,7 @@ export class OrderService extends BaseService {
       );
 
       for (const item of itemRecords) {
-        await this.orderItemRepo.createScoped(
+        const createdOrderItem = await this.orderItemRepo.createScoped(
           tenantId,
           storeId,
           {
@@ -240,6 +240,29 @@ export class OrderService extends BaseService {
           },
           { transaction: t }
         );
+
+        if (item.customization) {
+          const cust = item.customization;
+          await PodCustomization.create(
+            {
+              tenantId,
+              orderId: newOrder.id,
+              orderItemId: createdOrderItem.id,
+              productId: Number(item.productId),
+              templateId: cust.templateId ? Number(cust.templateId) : null,
+              templateName: cust.templateName || cust.templateTitle || cust.title || null,
+              uploadedImageUrl: cust.uploadedImageUrl || cust.uploadedImage || null,
+              customText: cust.customText || null,
+              font: cust.font || null,
+              textColor: cust.textColor || null,
+              size: cust.size || null,
+              color: cust.color || null,
+              previewImageUrl: cust.previewImageUrl || cust.previewImage || null,
+              metaData: cust.metaData || cust.canvasJson || cust,
+            },
+            { transaction: t }
+          );
+        }
       }
 
       return newOrder;

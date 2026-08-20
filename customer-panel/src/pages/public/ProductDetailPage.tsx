@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Container, Grid, Box, Typography, Button, Rating, Chip, Paper, Divider, TextField, Alert } from '@mui/material';
 import { ShoppingCart, Heart, ShieldCheck, Truck, RotateCcw, Sparkles } from 'lucide-react';
-import { PodStudioModal } from '../../components/pod/PodStudioModal';
+import { PodCustomizerModal } from '../../components/pod/PodCustomizerModal';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useGetProductByIdQuery, useGetProductReviewsQuery } from '../../api/catalogApi';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
@@ -280,14 +280,14 @@ export const ProductDetailPage: React.FC = () => {
                   },
                 }}
               >
-                Customize & Design (2D Studio + 3D Packaging)
+                Customize in Lumise Product Studio
               </Button>
             </Box>
           )}
 
-          {/* POD STUDIO MODAL */}
+          {/* POD CUSTOMIZER STUDIO MODAL */}
           {isPodProduct && (
-            <PodStudioModal
+            <PodCustomizerModal
               isOpen={isPodModalOpen}
               onClose={() => setIsPodModalOpen(false)}
               product={product}

@@ -47,6 +47,9 @@ import { PodDesignTemplate } from './podDesignTemplate';
 import { PodClipart } from './podClipart';
 import { PodSavedDesign } from './podSavedDesign';
 import { PodPackagingModel } from './podPackagingModel';
+import { PodCategory } from './podCategory';
+import { PodTemplate } from './podTemplate';
+import { PodCustomization } from './podCustomization';
 import { ProductVersion } from './productVersion';
 import { CategorySeo } from './categorySeo';
 import { BrandSeo } from './brandSeo';
@@ -993,3 +996,26 @@ AttributeGroup.hasMany(CategoryAttribute, {
   as: 'categoryAttributes',
 });
 CategoryAttribute.belongsTo(AttributeGroup, { foreignKey: 'attribute_group_id', as: 'group' });
+
+// --- POD ASSOCIATIONS ---
+PodCategory.hasMany(PodTemplate, { foreignKey: 'category_id', as: 'templates' });
+PodTemplate.belongsTo(PodCategory, { foreignKey: 'category_id', as: 'category' });
+
+PodTemplate.belongsTo(Product, { foreignKey: 'product_id', as: 'product' });
+Product.hasMany(PodTemplate, { foreignKey: 'product_id', as: 'podTemplates' });
+
+Order.hasMany(PodCustomization, { foreignKey: 'order_id', as: 'podCustomizations' });
+PodCustomization.belongsTo(Order, { foreignKey: 'order_id', as: 'order' });
+
+OrderItem.hasOne(PodCustomization, { foreignKey: 'order_item_id', as: 'podCustomization' });
+PodCustomization.belongsTo(OrderItem, { foreignKey: 'order_item_id', as: 'orderItem' });
+
+PodCustomization.belongsTo(PodTemplate, { foreignKey: 'template_id', as: 'template' });
+PodCustomization.belongsTo(Product, { foreignKey: 'product_id', as: 'product' });
+
+export {
+  PodCategory,
+  PodTemplate,
+  PodCustomization,
+};
+

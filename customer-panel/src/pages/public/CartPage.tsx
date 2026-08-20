@@ -162,11 +162,28 @@ export const CartPage: React.FC = () => {
                     {(item as any).customization && (
                       <Box sx={{ mt: 1, display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
                         <Chip
-                          label="🎨 Custom Design Attached (Front, Back, Left, Right)"
+                          label={`🎨 POD: ${(item as any).customization.templateName || 'Custom'} (${(item as any).customization.color || ''}, ${(item as any).customization.size || ''})`}
                           color="secondary"
                           size="small"
                           sx={{ fontWeight: 800, fontSize: '0.7rem' }}
                         />
+                        {(item as any).customization.customText && (
+                          <Chip
+                            label={`Text: "${(item as any).customization.customText}"`}
+                            variant="outlined"
+                            size="small"
+                            sx={{ fontSize: '0.7rem', fontWeight: 600 }}
+                          />
+                        )}
+                        {(item as any).customization.uploadedImage && (
+                          <Chip
+                            label="Artwork Attached"
+                            color="success"
+                            variant="outlined"
+                            size="small"
+                            sx={{ fontSize: '0.7rem', fontWeight: 700 }}
+                          />
+                        )}
                       </Box>
                     )}
 

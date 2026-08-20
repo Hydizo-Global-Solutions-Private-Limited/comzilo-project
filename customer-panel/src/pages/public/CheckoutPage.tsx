@@ -501,7 +501,7 @@ export const CheckoutPage: React.FC = () => {
                   )}
                   {(item as any).customization && (
                     <Typography variant="caption" sx={{ display: 'block', color: '#6366F1', fontWeight: 800, mt: 0.25 }}>
-                      🎨 Custom Artwork (Front, Back, Left, Right)
+                      🎨 POD: {(item as any).customization.templateName || 'Custom'} ({(item as any).customization.color || ''} - {(item as any).customization.size || ''})
                     </Typography>
                   )}
                 </Box>
