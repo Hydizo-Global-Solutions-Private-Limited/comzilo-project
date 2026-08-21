@@ -112,20 +112,20 @@ const PRINT_BOUNDS_MAP = {
   },
   'phone-covers': {
     minX: 120,
-    minY: 45,
-    maxX: 340,
-    maxY: 415,
-    width: 220,
-    height: 370,
-    label: 'Back Cover Print Area (2400 × 4200 px)',
+    minY: 15,
+    maxX: 360,
+    maxY: 465,
+    width: 240,
+    height: 450,
+    label: 'Full-Wrap Back Cover (2400 × 4500 px)',
   },
   'coffee-mugs': {
-    minX: 130,
+    minX: 155,
     minY: 130,
-    maxX: 330,
-    maxY: 350,
-    width: 200,
-    height: 220,
+    maxX: 360,
+    maxY: 380,
+    width: 205,
+    height: 250,
     label: 'Wrap Print Area (2475 × 1155 px)',
   },
 };
@@ -231,13 +231,7 @@ export const LumiseProductDesigner: React.FC<LumiseProductDesignerProps> = ({
   const [selectedCategory, setSelectedCategory] = useState<'t-shirts' | 'phone-covers' | 'coffee-mugs'>(detectedCategory);
 
   // Template Filtering per Product Type
-  const categoryTemplates = SMART_POD_TEMPLATES.filter((t) => {
-    if (selectedCategory === 'coffee-mugs') {
-      return t.category === 'coffee-mugs';
-    }
-    return t.category === 't-shirts' || t.category === 'both' || t.category === 'phone-covers';
-  });
-
+  const categoryTemplates = SMART_POD_TEMPLATES.filter((t) => t.category === selectedCategory);
   const activeTemplates = categoryTemplates.length > 0 ? categoryTemplates : SMART_POD_TEMPLATES;
 
   // Active Tool in Left Sidebar
@@ -247,7 +241,7 @@ export const LumiseProductDesigner: React.FC<LumiseProductDesignerProps> = ({
 
   // Product Selection State
   const defaultColors = selectedCategory === 'coffee-mugs' ? MUG_COLORS : GARMENT_COLORS;
-  const [selectedTemplate, setSelectedTemplate] = useState<SmartPodTemplate>(activeTemplates[0] || SMART_POD_TEMPLATES[0]);
+  const [selectedTemplate, setSelectedTemplate] = useState<SmartPodTemplate | null>(null);
   const [selectedColor, setSelectedColor] = useState<any>(defaultColors[0]);
   const [selectedSize, setSelectedSize] = useState<string>(
     selectedCategory === 'coffee-mugs'
@@ -260,17 +254,15 @@ export const LumiseProductDesigner: React.FC<LumiseProductDesignerProps> = ({
   // Multi-Side Support (Front, Back, Handle/Wrap)
   const [activeSide, setActiveSide] = useState<'front' | 'back' | 'handle'>('front');
 
-  // Multi-Side Canvas Layers
+  // Multi-Side Canvas Layers: Start every POD product with a plain blank canvas (no design layers)
   const [sideDesigns, setSideDesigns] = useState<{ front: CanvasElement[]; back: CanvasElement[]; handle?: CanvasElement[] }>({
-    front: (activeTemplates[0] || SMART_POD_TEMPLATES[0]).defaultLayers.map((l) => ({ ...l, id: `${l.id}-${Date.now()}` })),
+    front: [],
     back: [],
     handle: [],
   });
 
   const currentElements = sideDesigns[activeSide] || [];
-  const [selectedElementId, setSelectedElementId] = useState<string | null>(
-    currentElements[0]?.id || null
-  );
+  const [selectedElementId, setSelectedElementId] = useState<string | null>(null);
   const [history, setHistory] = useState<{ front: CanvasElement[]; back: CanvasElement[]; handle?: CanvasElement[] }[]>([]);
   const [historyIndex, setHistoryIndex] = useState<number>(-1);
   const [zoomLevel, setZoomLevel] = useState<number>(100);
@@ -322,13 +314,6 @@ export const LumiseProductDesigner: React.FC<LumiseProductDesignerProps> = ({
   // Sync Category Change on Product Change
   useEffect(() => {
     setSelectedCategory(detectedCategory);
-    const tmpls = SMART_POD_TEMPLATES.filter((t) => {
-      if (detectedCategory === 'coffee-mugs') return t.category === 'coffee-mugs';
-      return t.category === 't-shirts' || t.category === 'both' || t.category === 'phone-covers';
-    });
-
-    const initialTmpl = tmpls[0] || SMART_POD_TEMPLATES[0];
-    setSelectedTemplate(initialTmpl);
 
     if (detectedCategory === 'coffee-mugs') {
       setSelectedColor(MUG_COLORS[0]);
@@ -341,15 +326,11 @@ export const LumiseProductDesigner: React.FC<LumiseProductDesignerProps> = ({
       setSelectedSize(PHONE_MODELS[0]);
     }
 
-    const defaultLayers = initialTmpl.defaultLayers.map((l) => ({
-      ...l,
-      id: `${l.id}-${Date.now()}`,
-      imageUrl: userUploadedImage || '',
-    }));
-
-    const newSides = { front: defaultLayers, back: [], handle: [] };
+    // Start with blank product canvas
+    setSelectedTemplate(null);
+    const newSides = { front: [], back: [], handle: [] };
     setSideDesigns(newSides);
-    setSelectedElementId(defaultLayers[0]?.id || null);
+    setSelectedElementId(null);
     saveStateToHistory(newSides);
   }, [product, detectedCategory]);
 
@@ -449,31 +430,34 @@ export const LumiseProductDesigner: React.FC<LumiseProductDesignerProps> = ({
       setUploadedAssets((prev) => [dataUrl, ...prev]);
 
       // Smart Template Image Placeholder Auto-Snap
-      const ph = selectedTemplate.imagePlaceholder;
-      const existingImgIndex = currentElements.findIndex((el) => el.type === 'image');
+      const ph = selectedTemplate?.imagePlaceholder || {
+        x: printBounds.minX + 20,
+        y: printBounds.minY + 20,
+        width: printBounds.width - 40,
+        height: printBounds.height - 40,
+        fit: 'cover',
+      };
 
-      if (existingImgIndex !== -1) {
+      const existingPhotoLayerIndex = currentElements.findIndex((el) => el.id.includes('user-photo'));
+
+      if (existingPhotoLayerIndex !== -1) {
         const updated = [...currentElements];
-        updated[existingImgIndex] = {
-          ...updated[existingImgIndex],
+        updated[existingPhotoLayerIndex] = {
+          ...updated[existingPhotoLayerIndex],
           imageUrl: dataUrl,
           x: ph.x,
           y: ph.y,
           width: ph.width,
           height: ph.height,
-          filter: ph.filter || 'none',
-          border: ph.border || 'none',
-          borderRadius: ph.borderRadius || 0,
-          boxShadow: ph.boxShadow || 'none',
         };
         updateCurrentElements(updated);
-        setSelectedElementId(updated[existingImgIndex].id);
+        setSelectedElementId(updated[existingPhotoLayerIndex].id);
       } else {
-        const newId = `img-${Date.now()}`;
+        const newId = `user-photo-${Date.now()}`;
         const newElement: CanvasElement = {
           id: newId,
           type: 'image',
-          name: 'Custom Artwork',
+          name: 'Uploaded Photo',
           imageUrl: dataUrl,
           x: ph.x,
           y: ph.y,
@@ -488,7 +472,19 @@ export const LumiseProductDesigner: React.FC<LumiseProductDesignerProps> = ({
           borderRadius: ph.borderRadius || 0,
           boxShadow: ph.boxShadow || 'none',
         };
-        const updated = [...currentElements, newElement];
+
+        const artworkIndex = currentElements.findIndex((el) => el.id.includes('tmpl-artwork'));
+        let updated: CanvasElement[];
+        if (artworkIndex !== -1) {
+          // Insert photo layer right before the frame layer so frame stays on top
+          updated = [
+            ...currentElements.slice(0, artworkIndex),
+            newElement,
+            ...currentElements.slice(artworkIndex),
+          ];
+        } else {
+          updated = [...currentElements, newElement];
+        }
         updateCurrentElements(updated);
         setSelectedElementId(newId);
       }
@@ -500,13 +496,19 @@ export const LumiseProductDesigner: React.FC<LumiseProductDesignerProps> = ({
 
   const handleAddAssetToCanvas = (assetUrl: string) => {
     setUserUploadedImage(assetUrl);
-    const ph = selectedTemplate.imagePlaceholder;
-    const existingImgIndex = currentElements.findIndex((el) => el.type === 'image');
+    const ph = selectedTemplate?.imagePlaceholder || {
+      x: printBounds.minX + 20,
+      y: printBounds.minY + 20,
+      width: printBounds.width - 40,
+      height: printBounds.height - 40,
+      fit: 'cover',
+    };
+    const existingPhotoLayerIndex = currentElements.findIndex((el) => el.id.includes('user-photo'));
 
-    if (existingImgIndex !== -1) {
+    if (existingPhotoLayerIndex !== -1) {
       const updated = [...currentElements];
-      updated[existingImgIndex] = {
-        ...updated[existingImgIndex],
+      updated[existingPhotoLayerIndex] = {
+        ...updated[existingPhotoLayerIndex],
         imageUrl: assetUrl,
         x: ph.x,
         y: ph.y,
@@ -514,13 +516,13 @@ export const LumiseProductDesigner: React.FC<LumiseProductDesignerProps> = ({
         height: ph.height,
       };
       updateCurrentElements(updated);
-      setSelectedElementId(updated[existingImgIndex].id);
+      setSelectedElementId(updated[existingPhotoLayerIndex].id);
     } else {
-      const newId = `img-${Date.now()}`;
+      const newId = `user-photo-${Date.now()}`;
       const newElement: CanvasElement = {
         id: newId,
         type: 'image',
-        name: 'Library Graphic',
+        name: 'Uploaded Photo',
         imageUrl: assetUrl,
         x: ph.x,
         y: ph.y,
@@ -530,64 +532,109 @@ export const LumiseProductDesigner: React.FC<LumiseProductDesignerProps> = ({
         opacity: 1,
         isLocked: false,
         isHidden: false,
+        filter: ph.filter || 'none',
+        border: ph.border || 'none',
+        borderRadius: ph.borderRadius || 0,
+        boxShadow: ph.boxShadow || 'none',
       };
-      const updated = [...currentElements, newElement];
+
+      const artworkIndex = currentElements.findIndex((el) => el.id.includes('tmpl-artwork'));
+      let updated: CanvasElement[];
+      if (artworkIndex !== -1) {
+        updated = [
+          ...currentElements.slice(0, artworkIndex),
+          newElement,
+          ...currentElements.slice(artworkIndex),
+        ];
+      } else {
+        updated = [...currentElements, newElement];
+      }
       updateCurrentElements(updated);
       setSelectedElementId(newId);
     }
+    toast.success('Artwork placed on canvas!');
+  };
+
+  const handleGraphicUpload = (graphicUrl: string) => {
+    const newElement: CanvasElement = {
+      id: `graphic-${Date.now()}`,
+      type: 'image',
+      name: 'Custom Graphic',
+      imageUrl: graphicUrl,
+      x: printBounds.minX + 25,
+      y: printBounds.minY + 25,
+      width: printBounds.width - 50,
+      height: printBounds.height - 50,
+      rotation: 0,
+      opacity: 1,
+      isLocked: false,
+      isHidden: false,
+    };
+    updateCurrentElements([...currentElements, newElement]);
+    setSelectedElementId(newElement.id);
     toast.success('Graphic applied to canvas!');
   };
 
-  // SMART TEMPLATE SWITCHER (PRESERVES BASE PRODUCT & APPLIES DESIGN PRESETS)
+  // SMART TEMPLATE SWITCHER (INSTANTLY REPLACES PREVIEW WITH FULL DESIGNED ARTWORK)
   const handleApplySmartTemplate = (tmpl: SmartPodTemplate) => {
     setSelectedTemplate(tmpl);
 
     const activePhotoUrl = userUploadedImage || '';
-    const isLightProduct = selectedColor.hex === '#FFFFFF' || selectedColor.hex === '#F3E8D6';
 
-    const newLayers: CanvasElement[] = tmpl.defaultLayers.map((layer) => {
-      const layerId = `${layer.id}-${Date.now()}`;
+    const defaultArt = tmpl.defaultLayers.find((l) => l.id.includes('artwork') || l.type === 'image');
+    const artX = defaultArt?.x ?? printBounds.minX;
+    const artY = defaultArt?.y ?? printBounds.minY;
+    const artWidth = defaultArt?.width ?? printBounds.width;
+    const artHeight = defaultArt?.height ?? printBounds.height;
+    const artName = defaultArt?.name || `${tmpl.name} Print Artwork`;
 
-      if (layer.type === 'image') {
-        return {
-          ...layer,
-          id: layerId,
-          imageUrl: activePhotoUrl,
-          x: tmpl.imagePlaceholder.x,
-          y: tmpl.imagePlaceholder.y,
-          width: tmpl.imagePlaceholder.width,
-          height: tmpl.imagePlaceholder.height,
-          filter: tmpl.imagePlaceholder.filter || 'none',
-          border: tmpl.imagePlaceholder.border || 'none',
-          borderRadius: tmpl.imagePlaceholder.borderRadius || 0,
-          boxShadow: tmpl.imagePlaceholder.boxShadow || 'none',
-        };
-      }
+    // Create template artwork layer
+    const isLocked = defaultArt ? (defaultArt.isLocked ?? true) : true;
+    const artworkLayer: CanvasElement = {
+      id: `tmpl-artwork-${Date.now()}`,
+      type: 'image',
+      name: artName,
+      imageUrl: tmpl.artworkUrl,
+      x: artX,
+      y: artY,
+      width: artWidth,
+      height: artHeight,
+      rotation: 0,
+      opacity: 1,
+      isLocked: isLocked,
+      isHidden: false,
+    };
 
-      if (layer.type === 'text') {
-        const adjustedColor = isLightProduct
-          ? layer.color === '#FFFFFF'
-            ? '#111827'
-            : layer.color
-          : layer.color === '#0F172A'
-          ? '#FFFFFF'
-          : layer.color;
-        return {
-          ...layer,
-          id: layerId,
-          color: adjustedColor,
-        };
-      }
+    const newLayers: CanvasElement[] = [];
 
-      return {
-        ...layer,
-        id: layerId,
-      };
-    });
+    // If user uploaded an image and template supports image replacement, place photo layer underneath frame
+    if (activePhotoUrl && tmpl.imagePlaceholder) {
+      newLayers.push({
+        id: `user-photo-${Date.now()}`,
+        type: 'image',
+        name: 'Uploaded Photo',
+        imageUrl: activePhotoUrl,
+        x: tmpl.imagePlaceholder.x,
+        y: tmpl.imagePlaceholder.y,
+        width: tmpl.imagePlaceholder.width,
+        height: tmpl.imagePlaceholder.height,
+        rotation: 0,
+        opacity: 1,
+        isLocked: false,
+        isHidden: false,
+        filter: tmpl.imagePlaceholder.filter || 'none',
+        border: tmpl.imagePlaceholder.border || 'none',
+        borderRadius: tmpl.imagePlaceholder.borderRadius || 0,
+        boxShadow: tmpl.imagePlaceholder.boxShadow || 'none',
+      });
+    }
+
+    // Add frame overlay layer on top
+    newLayers.push(artworkLayer);
 
     updateCurrentElements(newLayers);
     setSelectedElementId(newLayers[0]?.id || null);
-    toast.success(`✨ Applied ${tmpl.name} Template!`);
+    toast.success(`✨ Applied ${tmpl.name} Design!`);
   };
 
   // Layers Operations
@@ -726,8 +773,8 @@ export const LumiseProductDesigner: React.FC<LumiseProductDesignerProps> = ({
     const frontImages = sideDesigns.front.filter((el) => el.type === 'image');
 
     const primaryText = frontTexts[0]?.text || '';
-    const primaryFont = frontTexts[0]?.fontFamily || selectedTemplate.defaultFont;
-    const primaryTextColor = frontTexts[0]?.color || selectedTemplate.defaultTextColor;
+    const primaryFont = frontTexts[0]?.fontFamily || selectedTemplate?.defaultFont || 'Montserrat';
+    const primaryTextColor = frontTexts[0]?.color || selectedTemplate?.defaultTextColor || '#111827';
     const primaryUploadedImage = frontImages[0]?.imageUrl || null;
 
     const categoryLabel =
@@ -746,8 +793,8 @@ export const LumiseProductDesigner: React.FC<LumiseProductDesignerProps> = ({
 
     const customizationPayload = {
       productId: product?.id || 1,
-      templateId: selectedTemplate.id,
-      templateName: selectedTemplate.name,
+      templateId: selectedTemplate?.id || 'blank',
+      templateName: selectedTemplate?.name || 'Blank Design',
       category: categoryLabel,
       color: selectedColor.name,
       colorHex: selectedColor.hex,
@@ -757,7 +804,7 @@ export const LumiseProductDesigner: React.FC<LumiseProductDesignerProps> = ({
       font: primaryFont,
       textColor: primaryTextColor,
       uploadedImage: primaryUploadedImage,
-      previewImage: primaryUploadedImage || selectedTemplate.thumbnailUrl || defaultThumbnail,
+      previewImage: primaryUploadedImage || selectedTemplate?.thumbnailUrl || defaultThumbnail,
       frontDesign: sideDesigns.front,
       backDesign: sideDesigns.back,
       layers: currentElements,
@@ -766,7 +813,7 @@ export const LumiseProductDesigner: React.FC<LumiseProductDesignerProps> = ({
 
     onAddToCartCustomized({
       productId: product?.id || 1,
-      name: `${product?.name || (selectedCategory === 'coffee-mugs' ? 'Custom Ceramic Mug' : 'Custom Graphic Apparel')} (${selectedTemplate.name} - ${selectedSize})`,
+      name: `${product?.name || (selectedCategory === 'coffee-mugs' ? 'Custom Ceramic Mug' : 'Custom Graphic Apparel')} (${selectedTemplate?.name || 'Custom'} - ${selectedSize})`,
       price: totalPrice,
       customization: customizationPayload,
     });
@@ -1430,88 +1477,196 @@ export const LumiseProductDesigner: React.FC<LumiseProductDesignerProps> = ({
               justifyContent: 'center',
             }}
           >
-            {/* 1. REALISTIC CERAMIC COFFEE MUG VECTOR */}
+            {/* 1. PHOTO-REALISTIC CERAMIC COFFEE MUG MOCKUP */}
             {selectedCategory === 'coffee-mugs' ? (
-              <svg
-                width="460"
-                height="460"
-                viewBox="0 0 460 460"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-                style={{ position: 'absolute', top: 0, left: 10, pointerEvents: 'none' }}
+              <Box
+                sx={{
+                  position: 'absolute',
+                  inset: 0,
+                  pointerEvents: 'none',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
               >
-                {/* Ceramic Handle (Side / Back Angle) */}
-                <path
-                  d="M330 160 C400 160 400 320 330 320 L330 290 C375 290 375 190 330 190 Z"
-                  fill={selectedColor.hex}
-                  stroke="#2D3748"
-                  strokeWidth="2.5"
+                {/* Photo-realistic Base Ceramic Mug Image */}
+                <Box
+                  component="img"
+                  src="/pod/pod_mug_realistic.png"
+                  alt="Realistic Ceramic Mug Mockup"
+                  sx={{
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'contain',
+                    filter: selectedColor.hex === '#FFFFFF'
+                      ? 'none'
+                      : selectedColor.hex === '#111827' || selectedColor.hex === '#374151'
+                      ? 'brightness(0.35) contrast(1.15)'
+                      : selectedColor.hex === '#1E40AF' || selectedColor.hex === '#1E3A8A'
+                      ? 'hue-rotate(200deg) brightness(0.65) saturate(1.5)'
+                      : selectedColor.hex === '#DC2626'
+                      ? 'hue-rotate(330deg) saturate(2.2) brightness(0.8)'
+                      : selectedColor.hex === '#047857'
+                      ? 'hue-rotate(90deg) saturate(1.8) brightness(0.7)'
+                      : selectedColor.hex === '#F472B6'
+                      ? 'hue-rotate(290deg) saturate(1.6) brightness(0.95)'
+                      : selectedColor.hex === '#F59E0B'
+                      ? 'hue-rotate(20deg) saturate(2.5) brightness(0.9)'
+                      : 'brightness(0.9)',
+                  }}
                 />
 
-                {/* Mug Cylinder Body */}
-                <path
-                  d="M130 110 C130 110 130 360 130 370 C130 395 330 395 330 370 C330 360 330 110 330 110 Z"
-                  fill={selectedColor.hex}
-                  stroke="#2D3748"
-                  strokeWidth="2.5"
-                />
-
-                {/* Mug Bottom Base Curve */}
-                <ellipse cx="230" cy="370" rx="100" ry="20" fill="none" stroke="#2D3748" strokeWidth="2" opacity="0.4" />
-
-                {/* Mug Top Rim Opening Lip */}
-                <ellipse cx="230" cy="110" rx="100" ry="24" fill={selectedColor.hex === '#FFFFFF' ? '#F9FAFB' : '#374151'} stroke="#2D3748" strokeWidth="2.5" />
-                {/* Inner Depth */}
-                <ellipse cx="230" cy="112" rx="90" ry="18" fill="#1F2937" opacity={selectedColor.hex === '#FFFFFF' ? '0.1' : '0.4'} />
-
-                {/* Ceramic Gloss Highlight Sheen */}
-                <path d="M150 140 L150 350" stroke="#FFFFFF" strokeWidth="4" strokeLinecap="round" opacity={selectedColor.hex === '#FFFFFF' ? '0.6' : '0.25'} />
-              </svg>
+                {/* Ceramic Tint Overlay for Precise Color Variant Matching */}
+                {selectedColor.hex !== '#FFFFFF' && (
+                  <Box
+                    sx={{
+                      position: 'absolute',
+                      inset: 0,
+                      bgcolor: selectedColor.hex,
+                      mixBlendMode: 'multiply',
+                      opacity: 0.65,
+                      pointerEvents: 'none',
+                      maskImage: 'url(/pod/pod_mug_realistic.png)',
+                      WebkitMaskImage: 'url(/pod/pod_mug_realistic.png)',
+                      maskSize: 'contain',
+                      WebkitMaskSize: 'contain',
+                      maskPosition: 'center',
+                      WebkitMaskPosition: 'center',
+                      maskRepeat: 'no-repeat',
+                      WebkitMaskRepeat: 'no-repeat',
+                    }}
+                  />
+                )}
+              </Box>
             ) : selectedCategory === 'phone-covers' ? (
-              /* 2. REALISTIC PHONE CASE VECTOR */
-              <svg
-                width="280"
-                height="460"
-                viewBox="0 0 280 460"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-                style={{ position: 'absolute', top: 0, left: 100, pointerEvents: 'none' }}
-              >
-                <rect x="20" y="20" width="240" height="420" rx="36" fill={selectedColor.hex} stroke="#2D3748" strokeWidth="3" />
-                <rect x="40" y="40" width="70" height="70" rx="16" fill="#1F2937" stroke="#374151" strokeWidth="2" />
-                <circle cx="60" cy="60" r="14" fill="#000000" />
-                <circle cx="90" cy="90" r="14" fill="#000000" />
-              </svg>
+              /* 2. FULL-WRAP 3D PHONE CASE MOCKUP (EDGE-TO-EDGE WITH 3D BEVEL & CAMERA OVERLAY) */
+              <Box sx={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
+                {/* Phone Case Base Silhouette Body */}
+                <Box
+                  sx={{
+                    position: 'absolute',
+                    left: 120,
+                    top: 15,
+                    width: 240,
+                    height: 450,
+                    borderRadius: '38px',
+                    bgcolor: selectedColor.hex,
+                    boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.55), 0 0 0 2px rgba(255, 255, 255, 0.08)',
+                    overflow: 'hidden',
+                  }}
+                />
+
+                {/* 3D Side Edge Wrap & Gloss Sheen Overlay */}
+                <Box
+                  sx={{
+                    position: 'absolute',
+                    left: 120,
+                    top: 15,
+                    width: 240,
+                    height: 450,
+                    borderRadius: '38px',
+                    pointerEvents: 'none',
+                    boxShadow: 'inset 10px 0 14px -2px rgba(0,0,0,0.55), inset -10px 0 14px -2px rgba(0,0,0,0.55), inset 0 8px 12px -2px rgba(255,255,255,0.2), inset 0 -8px 12px -2px rgba(0,0,0,0.4)',
+                    background: 'linear-gradient(90deg, rgba(0,0,0,0.3) 0%, rgba(255,255,255,0.08) 12%, transparent 28%, transparent 72%, rgba(255,255,255,0.08) 88%, rgba(0,0,0,0.3) 100%)',
+                    zIndex: 8,
+                  }}
+                />
+
+                {/* Realistic Camera Cutout Island Overlay (Lenses on top of artwork) */}
+                <Box
+                  sx={{
+                    position: 'absolute',
+                    top: 28,
+                    left: 134,
+                    width: 72,
+                    height: 72,
+                    borderRadius: '20px',
+                    bgcolor: '#0B0F19',
+                    border: '1.5px solid #2D3748',
+                    boxShadow: '2px 4px 12px rgba(0,0,0,0.65), inset 0 0 4px rgba(255,255,255,0.1)',
+                    pointerEvents: 'none',
+                    zIndex: 9,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'space-between',
+                    p: '6px',
+                  }}
+                >
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Box sx={{ width: 22, height: 22, borderRadius: '50%', bgcolor: '#000', border: '2px solid #374151', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: '#1E3A8A', opacity: 0.8 }} />
+                    </Box>
+                    <Box sx={{ width: 9, height: 9, borderRadius: '50%', bgcolor: '#FEF08A', border: '1px solid #D97706', mr: 0.5 }} />
+                  </Box>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Box sx={{ width: 22, height: 22, borderRadius: '50%', bgcolor: '#000', border: '2px solid #374151', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: '#1E3A8A', opacity: 0.8 }} />
+                    </Box>
+                    <Box sx={{ width: 22, height: 22, borderRadius: '50%', bgcolor: '#000', border: '2px solid #374151', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: '#1E3A8A', opacity: 0.8 }} />
+                    </Box>
+                  </Box>
+                </Box>
+              </Box>
             ) : (
-              /* 3. REALISTIC 2D FLAT-LAY T-SHIRT VECTOR */
-              <svg
-                width="460"
-                height="460"
-                viewBox="0 0 460 460"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-                style={{ position: 'absolute', top: 0, left: 10, pointerEvents: 'none' }}
+              /* 3. ORIGINAL REALISTIC FLAT-LAY STUDIO T-SHIRT PHOTO MOCKUP */
+              <Box
+                sx={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 10,
+                  width: 460,
+                  height: 460,
+                  pointerEvents: 'none',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
               >
-                {/* T-Shirt Body Outline & Garment Color */}
-                <path
-                  d="M145 55 C160 85 300 85 315 55 L385 130 C400 145 425 130 405 175 L355 195 L350 415 C350 425 340 430 330 430 L130 430 C120 430 110 425 110 415 L105 195 L55 175 C35 130 60 145 75 130 Z"
-                  fill={selectedColor.hex}
-                  stroke="#2D3748"
-                  strokeWidth="2.5"
-                  strokeLinejoin="round"
+                {/* Photo-realistic Base Garment Image */}
+                <Box
+                  component="img"
+                  src="/pod/pod_tshirt.png"
+                  alt="Realistic Flat-Lay T-Shirt"
+                  sx={{
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'contain',
+                    filter: selectedColor.hex === '#FFFFFF' 
+                      ? 'none' 
+                      : selectedColor.hex === '#111827' || selectedColor.hex === '#374151'
+                      ? 'brightness(0.35) contrast(1.2)'
+                      : selectedColor.hex === '#1E3A8A'
+                      ? 'hue-rotate(180deg) brightness(0.7) saturate(1.4)'
+                      : selectedColor.hex === '#DC2626'
+                      ? 'hue-rotate(300deg) saturate(2) brightness(0.8)'
+                      : 'brightness(0.9)',
+                  }}
                 />
-                {/* Crew Neck Collar Ribbing */}
-                <path
-                  d="M145 55 C165 95 295 95 315 55 C295 78 165 78 145 55 Z"
-                  fill={selectedColor.hex === '#FFFFFF' ? '#F3F4F6' : '#1F2937'}
-                  stroke="#2D3748"
-                  strokeWidth="2"
-                />
-                {/* Sleeve Crease Lines */}
-                <path d="M105 195 L140 120" stroke="#2D3748" strokeWidth="1.5" strokeDasharray="3 3" opacity="0.6" />
-                <path d="M355 195 L320 120" stroke="#2D3748" strokeWidth="1.5" strokeDasharray="3 3" opacity="0.6" />
-                <line x1="115" y1="418" x2="345" y2="418" stroke="#2D3748" strokeWidth="1.5" strokeDasharray="4 4" opacity="0.5" />
-              </svg>
+
+                {/* Garment Tint Overlay for Precise Color Variant Matching */}
+                {selectedColor.hex !== '#FFFFFF' && (
+                  <Box
+                    sx={{
+                      position: 'absolute',
+                      inset: 0,
+                      bgcolor: selectedColor.hex,
+                      mixBlendMode: 'multiply',
+                      opacity: 0.65,
+                      borderRadius: 4,
+                      pointerEvents: 'none',
+                      maskImage: 'url(/pod/pod_tshirt.png)',
+                      WebkitMaskImage: 'url(/pod/pod_tshirt.png)',
+                      maskSize: 'contain',
+                      WebkitMaskSize: 'contain',
+                      maskPosition: 'center',
+                      WebkitMaskPosition: 'center',
+                      maskRepeat: 'no-repeat',
+                      WebkitMaskRepeat: 'no-repeat',
+                    }}
+                  />
+                )}
+              </Box>
             )}
 
             {/* DASHED SAFE PRINT AREA RECTANGLE (Printify/Lumise Style) */}
@@ -1523,6 +1678,7 @@ export const LumiseProductDesigner: React.FC<LumiseProductDesignerProps> = ({
                   left: printBounds.minX,
                   width: printBounds.width,
                   height: printBounds.height,
+                  borderRadius: selectedCategory === 'phone-covers' ? '38px' : 0,
                   border: '1.5px dashed rgba(255, 255, 255, 0.85)',
                   outline: '1px dashed rgba(0, 0, 0, 0.45)',
                   pointerEvents: 'none',
@@ -1550,7 +1706,8 @@ export const LumiseProductDesigner: React.FC<LumiseProductDesignerProps> = ({
                     opacity: el.opacity,
                     cursor: el.isLocked || viewMode === 'preview' ? 'default' : 'move',
                     border: isSelected && !el.isLocked ? '1.5px solid #2563EB' : 'none',
-                    borderRadius: el.borderRadius ? `${el.borderRadius}px` : 1,
+                    borderRadius: selectedCategory === 'phone-covers' ? '38px' : (el.borderRadius ? `${el.borderRadius}px` : 1),
+                    overflow: selectedCategory === 'phone-covers' ? 'hidden' : 'visible',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -1590,12 +1747,13 @@ export const LumiseProductDesigner: React.FC<LumiseProductDesignerProps> = ({
                         sx={{
                           width: '100%',
                           height: '100%',
-                          objectFit: 'contain',
+                          objectFit: selectedCategory === 'phone-covers' ? 'cover' : 'contain',
                           filter: el.filter || 'none',
                           border: el.border || 'none',
-                          borderRadius: el.borderRadius ? `${el.borderRadius}px` : 0,
+                          borderRadius: selectedCategory === 'phone-covers' ? '38px' : (el.borderRadius ? `${el.borderRadius}px` : 0),
                           boxShadow: el.boxShadow || 'none',
                           pointerEvents: 'none',
+                          userSelect: 'none',
                         }}
                       />
                     ) : (
@@ -1686,73 +1844,94 @@ export const LumiseProductDesigner: React.FC<LumiseProductDesignerProps> = ({
                 </Box>
               );
             })}
+
+            {/* GLOSSY SPECULAR HIGHLIGHT REFLECTION FOR CERAMIC COFFEE MUGS */}
+            {selectedCategory === 'coffee-mugs' && (
+              <Box
+                sx={{
+                  position: 'absolute',
+                  top: 125,
+                  left: 172,
+                  width: 20,
+                  height: 245,
+                  borderRadius: 10,
+                  pointerEvents: 'none',
+                  zIndex: 8,
+                  background: 'linear-gradient(180deg, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0.3) 65%, transparent 100%)',
+                  filter: 'blur(2.5px)',
+                  mixBlendMode: 'screen',
+                }}
+              />
+            )}
           </Box>
 
-          {/* BOTTOM FLOATING CONTROLS: FRONT/BACK/HANDLE TOGGLE PILL */}
-          <Box
-            sx={{
-              position: 'absolute',
-              bottom: 24,
-              display: 'flex',
-              alignItems: 'center',
-              bgcolor: '#FFFFFF',
-              borderRadius: 3,
-              p: 0.5,
-              border: '1px solid #E5E7EB',
-              boxShadow: '0 2px 10px rgba(0,0,0,0.06)',
-            }}
-          >
-            <Button
-              size="small"
-              onClick={() => setActiveSide('front')}
+          {/* BOTTOM FLOATING CONTROLS: FRONT/BACK/HANDLE TOGGLE PILL (For T-Shirts and Coffee Mugs only) */}
+          {selectedCategory !== 'phone-covers' && (
+            <Box
               sx={{
-                py: 0.4,
-                px: 2,
-                fontSize: 12,
-                fontWeight: 700,
-                borderRadius: 2.5,
-                bgcolor: activeSide === 'front' ? '#5A6351' : 'transparent',
-                color: activeSide === 'front' ? '#FFFFFF' : '#4B5563',
-                '&:hover': { bgcolor: activeSide === 'front' ? '#4D5445' : '#F3F4F6' },
+                position: 'absolute',
+                bottom: 24,
+                display: 'flex',
+                alignItems: 'center',
+                bgcolor: '#FFFFFF',
+                borderRadius: 3,
+                p: 0.5,
+                border: '1px solid #E5E7EB',
+                boxShadow: '0 2px 10px rgba(0,0,0,0.06)',
               }}
             >
-              Front side
-            </Button>
-            <Button
-              size="small"
-              onClick={() => setActiveSide('back')}
-              sx={{
-                py: 0.4,
-                px: 2,
-                fontSize: 12,
-                fontWeight: 700,
-                borderRadius: 2.5,
-                bgcolor: activeSide === 'back' ? '#5A6351' : 'transparent',
-                color: activeSide === 'back' ? '#FFFFFF' : '#4B5563',
-                '&:hover': { bgcolor: activeSide === 'back' ? '#4D5445' : '#F3F4F6' },
-              }}
-            >
-              Back side
-            </Button>
-            {selectedCategory === 'coffee-mugs' && (
               <Button
                 size="small"
-                onClick={() => setActiveSide('handle')}
+                onClick={() => setActiveSide('front')}
                 sx={{
                   py: 0.4,
                   px: 2,
                   fontSize: 12,
                   fontWeight: 700,
                   borderRadius: 2.5,
-                  bgcolor: activeSide === 'handle' ? '#5A6351' : 'transparent',
-                  color: activeSide === 'handle' ? '#FFFFFF' : '#4B5563',
-                  '&:hover': { bgcolor: activeSide === 'handle' ? '#4D5445' : '#F3F4F6' },
+                  bgcolor: activeSide === 'front' ? '#5A6351' : 'transparent',
+                  color: activeSide === 'front' ? '#FFFFFF' : '#4B5563',
+                  '&:hover': { bgcolor: activeSide === 'front' ? '#4D5445' : '#F3F4F6' },
                 }}
               >
-                Handle view
+                Front side
               </Button>
-            )}
-          </Box>
+              <Button
+                size="small"
+                onClick={() => setActiveSide('back')}
+                sx={{
+                  py: 0.4,
+                  px: 2,
+                  fontSize: 12,
+                  fontWeight: 700,
+                  borderRadius: 2.5,
+                  bgcolor: activeSide === 'back' ? '#5A6351' : 'transparent',
+                  color: activeSide === 'back' ? '#FFFFFF' : '#4B5563',
+                  '&:hover': { bgcolor: activeSide === 'back' ? '#4D5445' : '#F3F4F6' },
+                }}
+              >
+                Back side
+              </Button>
+              {selectedCategory === 'coffee-mugs' && (
+                <Button
+                  size="small"
+                  onClick={() => setActiveSide('handle')}
+                  sx={{
+                    py: 0.4,
+                    px: 2,
+                    fontSize: 12,
+                    fontWeight: 700,
+                    borderRadius: 2.5,
+                    bgcolor: activeSide === 'handle' ? '#5A6351' : 'transparent',
+                    color: activeSide === 'handle' ? '#FFFFFF' : '#4B5563',
+                    '&:hover': { bgcolor: activeSide === 'handle' ? '#4D5445' : '#F3F4F6' },
+                  }}
+                >
+                  Handle view
+                </Button>
+              )}
+            </Box>
+          )}
         </Box>
 
         {/* RIGHT SIDE PANEL: "VARIANTS AND LAYERS" (Printify/Lumise Style) */}
