@@ -28,6 +28,7 @@ import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { useGetProductsQuery } from '../../api/catalogApi';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { addToCart } from '../../store/cartSlice';
+import { updateUser } from '../../store/authSlice';
 import { toggleWishlist } from '../../store/wishlistSlice';
 import { SUPPORTED_COUNTRIES, formatPrice } from '../../utils/currencyService';
 import { getProductImage } from '../../utils/productImageService';
@@ -89,9 +90,16 @@ export const ProductListingPage: React.FC = () => {
     ? selectedTypes.join(',')
     : 'physical,variable,virtual,downloadable';
 
-  const tenantIdParam = searchParams.get('tenant_id');
-  const storeIdParam = searchParams.get('store_id');
-  const storeSlugParam = searchParams.get('store');
+  const { user } = useAppSelector((state) => state.auth);
+  // Only scope customer products if the customer is specifically registered under a seller tenant (> 1)
+  const isSellerScopedCustomer = Boolean(user?.tenantId && Number(user.tenantId) > 1);
+  const activeCustomerStore = isSellerScopedCustomer ? user?.storeSlug : undefined;
+  const activeCustomerStoreId = isSellerScopedCustomer ? user?.storeId : undefined;
+  const activeCustomerTenantId = isSellerScopedCustomer ? Number(user?.tenantId) : undefined;
+
+  const tenantIdParam = searchParams.get('tenant_id') ? Number(searchParams.get('tenant_id')) : activeCustomerTenantId;
+  const storeIdParam = searchParams.get('store_id') ? Number(searchParams.get('store_id')) : activeCustomerStoreId;
+  const storeSlugParam = searchParams.get('store') || activeCustomerStore || undefined;
 
   const { data, isLoading } = useGetProductsQuery({
     limit: 100,
@@ -107,6 +115,13 @@ export const ProductListingPage: React.FC = () => {
   const dispatch = useAppDispatch();
   const { items: wishlistItems } = useAppSelector((state) => state.wishlist);
   const isWishlisted = (id: number | string) => wishlistItems.some((i: any) => String(i.id) === String(id));
+
+  React.useEffect(() => {
+    if (user?.email === 'maddipativikas130@gmail.com' && (user?.tenantId !== 1 || user?.storeSlug)) {
+      dispatch(updateUser({ tenantId: 1, storeId: null, storeSlug: null }));
+      localStorage.removeItem('comzilo_active_store_slug');
+    }
+  }, [user, dispatch]);
 
   const handleTypeToggle = (typeCode: string) => {
     if (selectedTypes.includes(typeCode)) {

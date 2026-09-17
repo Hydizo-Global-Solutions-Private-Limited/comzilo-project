@@ -7,6 +7,9 @@ export const registerSchema = {
     firstName: Joi.string().min(1).max(100).required(),
     lastName: Joi.string().min(1).max(100).required(),
     mobile: Joi.string().max(50).optional().allow('', null),
+    storeSlug: Joi.string().max(255).optional().allow('', null),
+    storeName: Joi.string().max(255).optional().allow('', null),
+    storeId: Joi.number().integer().positive().optional().allow(null),
   }),
 };
 

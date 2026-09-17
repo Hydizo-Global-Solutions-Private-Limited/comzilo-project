@@ -47,6 +47,36 @@ export class AuthController {
         // Non-fatal if customer avatar columns are not in schema
       }
 
+      // Look up customer's registered store/tenant details
+      let customerTenantId: number | null = null;
+      let customerStoreId: number | null = null;
+      let customerStoreSlug: string | null = null;
+      let customerStoreName: string | null = null;
+
+      try {
+        const userTenantId = (result.user as any).tenantId || (result.user as any).tenant_id || 1;
+        if (userTenantId > 1) {
+          const [custRec]: any = await sequelize.query(
+            `SELECT c.tenant_id, c.store_id, s.slug as store_slug, s.name as store_name, t.slug as tenant_slug, t.name as tenant_name
+             FROM customers c
+             LEFT JOIN stores s ON c.store_id = s.id
+             LEFT JOIN tenants t ON c.tenant_id = t.id
+             WHERE (c.user_id = :uId OR c.email = :email) AND c.tenant_id = :userTenantId AND c.deleted_at IS NULL
+             ORDER BY c.id DESC
+             LIMIT 1`,
+            { replacements: { uId: result.user.id, email: result.user.email, userTenantId }, type: QueryTypes.SELECT }
+          );
+          if (custRec) {
+            customerTenantId = custRec.tenant_id ? Number(custRec.tenant_id) : null;
+            customerStoreId = custRec.store_id ? Number(custRec.store_id) : null;
+            customerStoreSlug = custRec.store_slug || custRec.tenant_slug || null;
+            customerStoreName = custRec.store_name || custRec.tenant_name || null;
+          }
+        }
+      } catch {
+        // Non-fatal
+      }
+
       success(res, 'Login successful', {
         accessToken: result.accessToken,
         refreshToken: result.refreshToken,
@@ -64,11 +94,17 @@ export class AuthController {
           emailVerifiedAt: result.user.emailVerifiedAt,
           status: result.user.status,
           mustChangePassword: result.user.mustChangePassword,
+          tenantId: customerTenantId || result.user.tenantId,
+          storeId: customerStoreId,
+          storeSlug: customerStoreSlug,
+          storeName: customerStoreName,
         },
         tenant: {
           uuid: result.tenant.uuid,
-          name: result.tenant.name,
-          slug: result.tenant.slug,
+          name: customerStoreName || result.tenant.name,
+          slug: customerStoreSlug || result.tenant.slug,
+          tenantId: customerTenantId || result.user.tenantId,
+          storeId: customerStoreId,
         },
       });
     } catch (error) {
@@ -368,6 +404,41 @@ export class AuthController {
         avatarUrl: avatar,
         profileImage: avatar,
       });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  public getPublicStores = async (_req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const stores: any = await sequelize.query(
+        `SELECT s.id, s.name, s.slug, s.tenant_id, t.name as tenant_name, t.slug as tenant_slug
+         FROM stores s
+         JOIN tenants t ON s.tenant_id = t.id
+         WHERE s.status = 'active' AND t.status = 'active'
+         ORDER BY 
+           CASE 
+             WHEN t.slug = 'satish-trade' OR s.slug = 'satish-store' THEN 1
+             ELSE 2
+           END,
+           t.name ASC,
+           s.name ASC`,
+        { type: QueryTypes.SELECT }
+      );
+
+      const formatted = stores.map((st: any) => ({
+        id: st.id,
+        name: st.name,
+        slug: st.slug,
+        tenantId: st.tenant_id,
+        tenantName: st.tenant_name,
+        tenantSlug: st.tenant_slug,
+        displayName: st.tenant_name && st.tenant_name !== st.name
+          ? `${st.tenant_name} (${st.name})`
+          : st.name || st.tenant_name,
+      }));
+
+      success(res, 'Public stores retrieved successfully', formatted);
     } catch (error) {
       next(error);
     }

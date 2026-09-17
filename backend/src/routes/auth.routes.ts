@@ -77,6 +77,9 @@ const refreshLimiter = isTest
 const router = express.Router();
 const controller = new AuthController();
 
+// Public Active Stores for Registration Dropdown
+router.get('/stores', controller.getPublicStores);
+
 // Registration
 router.post(
   '/register',

@@ -24,12 +24,21 @@ axiosInstance.interceptors.request.use(
       config.headers.Authorization = `Bearer ${token}`;
     }
 
-    // Extract storeSlug from URL path (e.g. /store/satish-traders/...) or fallback to localStorage
+    // Extract storeSlug from URL path (e.g. /store/:storeSlug) or from logged-in seller customer
     const match = window.location.pathname.match(/\/store\/([^/]+)/);
-    const activeStoreSlug = match ? match[1] : localStorage.getItem('comzilo_active_store_slug');
+    let activeStoreSlug = match ? match[1] : null;
+    if (!activeStoreSlug) {
+      try {
+        const userData = JSON.parse(localStorage.getItem('customer_user_data') || '{}');
+        if (userData?.tenantId && Number(userData.tenantId) > 1 && userData.storeSlug) {
+          activeStoreSlug = userData.storeSlug;
+        }
+      } catch {}
+    }
     if (activeStoreSlug) {
       config.headers['x-store-slug'] = activeStoreSlug;
-      localStorage.setItem('comzilo_active_store_slug', activeStoreSlug);
+    } else {
+      delete config.headers['x-store-slug'];
     }
 
     return config;
@@ -42,7 +51,9 @@ axiosInstance.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       localStorage.removeItem('customer_access_token');
+      localStorage.removeItem('customer_refresh_token');
       localStorage.removeItem('customer_user_data');
+      localStorage.removeItem('comzilo_active_store_slug');
       window.location.href = '/login';
     }
     return Promise.reject(error);

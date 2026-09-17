@@ -47,11 +47,28 @@ export class CustomerPortalController {
     });
 
     if (!customer) {
+      // Check if user has a customer record across stores
+      customer = await Customer.findOne({
+        where: { userId },
+        order: [['id', 'DESC']],
+        include: ['preference', 'addresses'],
+      });
+    }
+
+    if (!customer) {
       const user = await User.findByPk(userId);
       if (user) {
+        let targetStoreId = (user as any).storeId || 1;
+        if (tenantId && tenantId !== 1) {
+          const [tStore]: any = await sequelize.query(
+            'SELECT id FROM stores WHERE tenant_id = :tId AND status = "active" ORDER BY id ASC LIMIT 1',
+            { replacements: { tId: tenantId }, type: QueryTypes.SELECT }
+          );
+          if (tStore) targetStoreId = Number(tStore.id);
+        }
         customer = await Customer.create({
-          tenantId: user.tenantId || tenantId || 1,
-          storeId: (user as any).storeId || 1,
+          tenantId: tenantId || user.tenantId || 1,
+          storeId: targetStoreId,
           uuid: uuidv4(),
           customerCode: `CUST-${Date.now().toString().slice(-6)}`,
           userId: user.id,
@@ -77,7 +94,7 @@ export class CustomerPortalController {
     email?: string
   ): Promise<number[]> {
     const customers = await Customer.findAll({
-      where: { tenantId, [Op.or]: [{ userId }, ...(email ? [{ email }] : [])] },
+      where: { [Op.or]: [{ userId }, ...(email ? [{ email }] : [])] },
       attributes: ['id'],
     });
     const ids = customers.map((c) => c.id);

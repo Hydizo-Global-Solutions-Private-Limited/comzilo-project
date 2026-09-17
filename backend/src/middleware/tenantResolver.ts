@@ -46,42 +46,85 @@ export const tenantResolver = async (
         tenantId = Number(results.id);
         tenantUuid = results.uuid;
       }
-    } else if (headerSlug || headerStoreSlug) {
-      const slug = headerSlug || headerStoreSlug;
-      const [results]: any = await sequelize.query(
-        'SELECT id, uuid FROM tenants WHERE slug = :slug AND status = "active" LIMIT 1',
-        {
-          replacements: { slug },
-          type: QueryTypes.SELECT,
-        }
-      );
-      if (!results) {
-        const [storeRes]: any = await sequelize.query(
-          'SELECT id, tenant_id, slug FROM stores WHERE slug = :slug AND status = "active" LIMIT 1',
+    } else if (headerSlug || headerStoreSlug || req.body?.storeSlug || req.body?.storeName) {
+      const rawInput = (headerSlug || headerStoreSlug || req.body?.storeSlug || req.body?.storeName || '').toString().trim();
+      if (rawInput) {
+        const slugified = rawInput.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+        const alphanumeric = rawInput.toLowerCase().replace(/[^a-z0-9]/g, '');
+        const firstWord = rawInput.toLowerCase().split(/[\s-_]+/)[0];
+        const likeFirst = firstWord && firstWord.length >= 3 ? `${firstWord}%` : '%nevermatch%';
+        const likeAlpha = alphanumeric ? `%${alphanumeric}%` : '%nevermatch%';
+
+        // First check matching tenant
+        const [tenantRes]: any = await sequelize.query(
+          `SELECT id, uuid, slug, name FROM tenants 
+           WHERE status = "active" AND (
+             slug = :rawInput OR slug = :slugified OR LOWER(name) = LOWER(:rawInput) OR LOWER(name) = :slugified OR
+             slug LIKE :likeAlpha OR LOWER(name) LIKE :likeAlpha OR
+             slug LIKE :likeFirst OR LOWER(name) LIKE :likeFirst
+           ) ORDER BY 
+             CASE 
+               WHEN slug = :slugified THEN 1 
+               WHEN LOWER(name) = LOWER(:rawInput) THEN 2 
+               WHEN slug = :rawInput THEN 3 
+               WHEN slug LIKE :likeAlpha THEN 4 
+               ELSE 5 
+             END LIMIT 1`,
           {
-            replacements: { slug },
+            replacements: { rawInput, slugified, likeAlpha, likeFirst },
             type: QueryTypes.SELECT,
           }
         );
-        if (storeRes) {
-          const tId = storeRes.tenant_id;
-          const [tRes]: any = await sequelize.query(
-            'SELECT id, uuid FROM tenants WHERE id = :tId AND status = "active" LIMIT 1',
-            {
-              replacements: { tId },
-              type: QueryTypes.SELECT,
-            }
-          );
-          if (tRes) {
-            tenantId = Number(tRes.id);
-            tenantUuid = tRes.uuid;
+
+        // Also check matching store
+        const [storeRes]: any = await sequelize.query(
+          `SELECT id, tenant_id, slug, name FROM stores 
+           WHERE status = "active" AND (
+             slug = :rawInput OR slug = :slugified OR LOWER(name) = LOWER(:rawInput) OR LOWER(name) = :slugified OR
+             slug LIKE :likeAlpha OR LOWER(name) LIKE :likeAlpha OR
+             slug LIKE :likeFirst OR LOWER(name) LIKE :likeFirst
+           ) ORDER BY 
+             CASE 
+               WHEN slug = :slugified THEN 1 
+               WHEN LOWER(name) = LOWER(:rawInput) THEN 2 
+               WHEN slug = :rawInput THEN 3 
+               WHEN slug LIKE :likeAlpha THEN 4 
+               ELSE 5 
+             END LIMIT 1`,
+          {
+            replacements: { rawInput, slugified, likeAlpha, likeFirst },
+            type: QueryTypes.SELECT,
+          }
+        );
+
+        if (tenantRes) {
+          tenantId = Number(tenantRes.id);
+          tenantUuid = tenantRes.uuid;
+          if (storeRes && Number(storeRes.tenant_id) === tenantId) {
             req.context.storeId = Number(storeRes.id);
             req.context.storeSlug = storeRes.slug;
+          } else {
+            const [tStore]: any = await sequelize.query(
+              'SELECT id, slug FROM stores WHERE tenant_id = :tId AND status = "active" ORDER BY id ASC LIMIT 1',
+              { replacements: { tId: tenantId }, type: QueryTypes.SELECT }
+            );
+            if (tStore) {
+              req.context.storeId = Number(tStore.id);
+              req.context.storeSlug = tStore.slug;
+            }
+          }
+        } else if (storeRes) {
+          tenantId = Number(storeRes.tenant_id);
+          req.context.storeId = Number(storeRes.id);
+          req.context.storeSlug = storeRes.slug;
+          const [tRes]: any = await sequelize.query(
+            'SELECT id, uuid FROM tenants WHERE id = :tId AND status = "active" LIMIT 1',
+            { replacements: { tId: tenantId }, type: QueryTypes.SELECT }
+          );
+          if (tRes) {
+            tenantUuid = tRes.uuid;
           }
         }
-      } else {
-        tenantId = Number(results.id);
-        tenantUuid = results.uuid;
       }
     }
 

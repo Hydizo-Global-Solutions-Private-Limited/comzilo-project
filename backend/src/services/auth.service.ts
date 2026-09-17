@@ -80,13 +80,36 @@ export class AuthService extends BaseService {
       throw new NotFoundError('Tenant not found');
     }
 
-    // If a store slug is provided, verify the store exists in database
-    if (data.storeSlug) {
+    // If a store slug is provided, verify the store or tenant exists in database
+    const storeInput = (data.storeSlug || data.storeName || '').trim();
+    if (storeInput) {
+      const slugified = storeInput.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+      const alphanumeric = storeInput.toLowerCase().replace(/[^a-z0-9]/g, '');
+      const firstWord = storeInput.toLowerCase().split(/[\s-_]+/)[0];
+      const likeFirst = firstWord && firstWord.length >= 3 ? `${firstWord}%` : '%nevermatch%';
+      const likeAlpha = alphanumeric ? `%${alphanumeric}%` : '%nevermatch%';
+
       const [store]: any = await sequelize.query(
-        'SELECT id, tenant_id FROM stores WHERE (slug = :slug OR LOWER(name) = LOWER(:slug)) AND status = "active" LIMIT 1',
-        { replacements: { slug: data.storeSlug.trim() }, type: QueryTypes.SELECT }
+        `SELECT id, tenant_id FROM stores 
+         WHERE status = "active" AND (
+           slug = :slug OR slug = :slugified OR LOWER(name) = LOWER(:slug) OR LOWER(name) = :slugified OR
+           slug LIKE :likeAlpha OR LOWER(name) LIKE :likeAlpha OR
+           slug LIKE :likeFirst OR LOWER(name) LIKE :likeFirst
+         ) LIMIT 1`,
+        { replacements: { slug: storeInput, slugified, likeAlpha, likeFirst }, type: QueryTypes.SELECT }
       );
-      if (!store) {
+
+      const [tenant]: any = store ? [null] : await sequelize.query(
+        `SELECT id FROM tenants 
+         WHERE status = "active" AND (
+           slug = :slug OR slug = :slugified OR LOWER(name) = LOWER(:slug) OR LOWER(name) = :slugified OR
+           slug LIKE :likeAlpha OR LOWER(name) LIKE :likeAlpha OR
+           slug LIKE :likeFirst OR LOWER(name) LIKE :likeFirst
+         ) LIMIT 1`,
+        { replacements: { slug: storeInput, slugified, likeAlpha, likeFirst }, type: QueryTypes.SELECT }
+      );
+
+      if (!store && !tenant) {
         throw new ValidationError(
           `Store code "${data.storeSlug}" was not found. Please enter a valid seller store code or leave it blank.`
         );
@@ -109,28 +132,34 @@ export class AuthService extends BaseService {
       let targetStoreId = data.storeId || context?.storeId;
 
       // If storeSlug or storeName is provided in registration payload, look up store_id and tenant_id
-      const storeInput = (data.storeSlug || data.storeName || '').trim();
       if (storeInput) {
         const slugified = storeInput
           .toLowerCase()
           .replace(/[^a-z0-9]+/g, '-')
           .replace(/^-+|-+$/g, '');
-        const fuzzyPattern = `%${storeInput.toLowerCase().replace(/[^a-z0-9]/g, '')}%`;
+        const alphanumeric = storeInput.toLowerCase().replace(/[^a-z0-9]/g, '');
+        const firstWord = storeInput.toLowerCase().split(/[\s-_]+/)[0];
+        const likeFirst = firstWord && firstWord.length >= 3 ? `${firstWord}%` : '%nevermatch%';
+        const likeAlpha = alphanumeric ? `%${alphanumeric}%` : '%nevermatch%';
 
-        const [foundStore]: any = await sequelize.query(
-          `SELECT id, tenant_id FROM stores 
-           WHERE (
+        // First check tenant match
+        const [foundTenant]: any = await sequelize.query(
+          `SELECT id, slug, name FROM tenants 
+           WHERE status = "active" AND (
              slug = :slug 
              OR slug = :slugified 
              OR LOWER(name) = LOWER(:input) 
-             OR LOWER(name) LIKE :fuzzyPattern 
-             OR LOWER(slug) LIKE :fuzzyPattern
+             OR LOWER(name) = :slugified
+             OR slug LIKE :likeAlpha 
+             OR LOWER(name) LIKE :likeAlpha
+             OR slug LIKE :likeFirst
+             OR LOWER(name) LIKE :likeFirst
            ) 
            ORDER BY 
              CASE 
-               WHEN slug = :slug THEN 1 
-               WHEN slug = :slugified THEN 2 
-               WHEN LOWER(name) = LOWER(:input) THEN 3 
+               WHEN slug = :slugified THEN 1 
+               WHEN LOWER(name) = LOWER(:input) THEN 2 
+               WHEN slug = :slug THEN 3 
                ELSE 4 
              END 
            LIMIT 1`,
@@ -139,23 +168,70 @@ export class AuthService extends BaseService {
               slug: storeInput,
               slugified,
               input: storeInput,
-              fuzzyPattern,
+              likeAlpha,
+              likeFirst,
             },
             type: QueryTypes.SELECT,
             transaction: t,
           }
         );
-        if (foundStore) {
+
+        const [foundStore]: any = await sequelize.query(
+          `SELECT id, tenant_id, slug, name FROM stores 
+           WHERE status = "active" AND (
+             slug = :slug 
+             OR slug = :slugified 
+             OR LOWER(name) = LOWER(:input) 
+             OR LOWER(name) = :slugified
+             OR slug LIKE :likeAlpha 
+             OR LOWER(name) LIKE :likeAlpha
+             OR slug LIKE :likeFirst
+             OR LOWER(name) LIKE :likeFirst
+           ) 
+           ORDER BY 
+             CASE 
+               WHEN slug = :slugified THEN 1 
+               WHEN LOWER(name) = LOWER(:input) THEN 2 
+               WHEN slug = :slug THEN 3 
+               ELSE 4 
+             END 
+           LIMIT 1`,
+          {
+            replacements: {
+              slug: storeInput,
+              slugified,
+              input: storeInput,
+              likeAlpha,
+              likeFirst,
+            },
+            type: QueryTypes.SELECT,
+            transaction: t,
+          }
+        );
+
+        if (foundTenant) {
+          targetTenantId = Number(foundTenant.id);
+          const [tStore]: any = await sequelize.query(
+            'SELECT id, slug FROM stores WHERE tenant_id = :tId AND status = "active" ORDER BY id ASC LIMIT 1',
+            { replacements: { tId: targetTenantId }, type: QueryTypes.SELECT, transaction: t }
+          );
+          if (tStore) {
+            targetStoreId = Number(tStore.id);
+          }
+        } else if (foundStore) {
           targetStoreId = Number(foundStore.id);
           targetTenantId = Number(foundStore.tenant_id);
         }
       }
 
-      targetTenantId = tenantId;
+      if (!targetTenantId) {
+        targetTenantId = tenantId || 1;
+      }
+
       if (!targetStoreId) {
         const [tenantStore]: any = await sequelize.query(
           'SELECT id FROM stores WHERE tenant_id = :tenantId AND status = "active" ORDER BY id DESC LIMIT 1',
-          { replacements: { tenantId }, type: QueryTypes.SELECT, transaction: t }
+          { replacements: { tenantId: targetTenantId }, type: QueryTypes.SELECT, transaction: t }
         );
         if (tenantStore) {
           targetStoreId = Number(tenantStore.id);
@@ -165,7 +241,7 @@ export class AuthService extends BaseService {
             `INSERT INTO stores (tenant_id, name, slug, status, created_at, updated_at) 
              VALUES (:tId, 'Default Store', :slug, 'active', NOW(), NOW())`,
             {
-              replacements: { tId: tenantId, slug: storeSlug },
+              replacements: { tId: targetTenantId, slug: storeSlug },
               type: QueryTypes.INSERT,
               transaction: t,
             }
@@ -262,7 +338,13 @@ export class AuthService extends BaseService {
       throw new NotFoundError('Tenant not found');
     }
 
-    const user = await this.userRepository.findByEmail(tenantId, email);
+    let user = await this.userRepository.findByEmail(tenantId, email);
+    if (!user && tenantId !== 1) {
+      const globalUser = await this.userRepository.findByEmail(1, email);
+      if (globalUser) {
+        user = globalUser;
+      }
+    }
 
     if (!user) {
       await LoginHistory.create({
@@ -385,6 +467,40 @@ export class AuthService extends BaseService {
       ipAddress: clientContext.ip,
       userAgent: clientContext.userAgent,
     });
+
+    // Ensure Customer record exists for active tenant context only if user is registered under that seller tenant
+    if (tenantId && tenantId !== 1 && user.tenantId === tenantId) {
+      try {
+        const existingCust = await Customer.findOne({
+          where: { tenantId, email: user.email },
+        });
+        if (!existingCust) {
+          let sId = context?.storeId;
+          if (!sId) {
+            const [tStore]: any = await sequelize.query(
+              'SELECT id FROM stores WHERE tenant_id = :tId AND status = "active" ORDER BY id ASC LIMIT 1',
+              { replacements: { tId: tenantId }, type: QueryTypes.SELECT }
+            );
+            sId = tStore ? Number(tStore.id) : 1;
+          }
+          await Customer.create({
+            tenantId,
+            storeId: sId,
+            uuid: uuidv4(),
+            customerCode: `CUST-${Date.now().toString().slice(-6)}${Math.floor(Math.random() * 100)}`,
+            userId: user.id,
+            email: user.email,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            fullName: `${user.firstName} ${user.lastName}`,
+            phone: (user as any).mobile || `+91${Math.floor(1000000000 + Math.random() * 9000000000)}`,
+            status: 'active',
+          } as any);
+        }
+      } catch (custSyncErr) {
+        this.logError('Customer sync on login notice:', custSyncErr);
+      }
+    }
 
     // Generate tokens
     const tokens = await this.issueTokenPair(tenantId, tenant.uuid, user, clientContext);

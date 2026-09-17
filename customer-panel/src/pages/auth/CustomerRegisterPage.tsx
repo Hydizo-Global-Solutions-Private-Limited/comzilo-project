@@ -1,33 +1,115 @@
-import React, { useState } from 'react';
-import { Container, Paper, Typography, TextField, Button, Box, Grid, Alert } from '@mui/material';
+import React, { useState, useEffect } from 'react';
+import {
+  Container,
+  Paper,
+  Typography,
+  TextField,
+  Button,
+  Box,
+  Grid,
+  Alert,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  FormHelperText,
+  CircularProgress,
+} from '@mui/material';
 import { UserPlus } from 'lucide-react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { axiosInstance } from '../../api/axiosInstance';
 
+interface StoreOption {
+  id: number;
+  name: string;
+  slug: string;
+  tenantId: number;
+  tenantName: string;
+  tenantSlug: string;
+  displayName: string;
+}
+
 export const CustomerRegisterPage: React.FC = () => {
   const { storeSlug } = useParams<{ storeSlug?: string }>();
-  const [formData, setFormData] = useState({ firstName: '', lastName: '', email: '', password: '', storeSlug: storeSlug || '' });
+  const [stores, setStores] = useState<StoreOption[]>([]);
+  const [loadingStores, setLoadingStores] = useState(true);
+
+  const [formData, setFormData] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    password: '',
+    storeSlug: storeSlug || '',
+  });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
-  const loginLink = storeSlug ? `/store/${storeSlug}/login` : '/login';
+  useEffect(() => {
+    let isMounted = true;
+    const fetchStores = async () => {
+      try {
+        setLoadingStores(true);
+        const res = await axiosInstance.get('/auth/stores');
+        if (isMounted && res.data?.data) {
+          const list: StoreOption[] = res.data.data;
+          setStores(list);
+
+          // If storeSlug was provided in URL, preselect it
+          if (storeSlug) {
+            const matched = list.find(
+              (s) =>
+                s.slug === storeSlug ||
+                s.tenantSlug === storeSlug ||
+                s.name.toLowerCase() === storeSlug.toLowerCase() ||
+                s.tenantName.toLowerCase() === storeSlug.toLowerCase()
+            );
+            if (matched) {
+              setFormData((prev) => ({
+                ...prev,
+                storeSlug: matched.slug || matched.tenantSlug,
+              }));
+            }
+          }
+        }
+      } catch (e) {
+        console.error('Failed to load stores list:', e);
+      } finally {
+        if (isMounted) setLoadingStores(false);
+      }
+    };
+
+    fetchStores();
+    return () => {
+      isMounted = false;
+    };
+  }, [storeSlug]);
+
+  const activeSlug = (formData.storeSlug || storeSlug || '').trim();
+  const loginLink = activeSlug ? `/store/${activeSlug}/login` : '/login';
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
 
-    try {
-      const activeSlug = formData.storeSlug || storeSlug;
-      const headers: Record<string, string> = {};
-      if (activeSlug) {
-        headers['x-store-slug'] = activeSlug;
-        localStorage.setItem('comzilo_active_store_slug', activeSlug);
-      }
+    if (!activeSlug) {
+      setError('Please select a seller / store to register under.');
+      setLoading(false);
+      return;
+    }
 
-      await axiosInstance.post('/auth/register', formData, { headers });
+    try {
+      const headers: Record<string, string> = {
+        'x-store-slug': activeSlug,
+      };
+
+      await axiosInstance.post(
+        '/auth/register',
+        { ...formData, storeSlug: activeSlug },
+        { headers }
+      );
       toast.success('Customer account registered successfully! Please sign in.');
       navigate(loginLink);
     } catch (err: any) {
@@ -81,15 +163,35 @@ export const CustomerRegisterPage: React.FC = () => {
             </Grid>
           </Grid>
 
-          <TextField
-            label="Store Code / Store ID (e.g. satish-traders)"
-            fullWidth
-            value={formData.storeSlug || storeSlug || ''}
-            onChange={(e) => setFormData({ ...formData, storeSlug: e.target.value })}
-            placeholder="satish-traders"
-            sx={{ mb: 2 }}
-            helperText="Enter the unique store code or merchant ID you wish to register under."
-          />
+          <FormControl fullWidth required sx={{ mb: 2, textAlign: 'left' }}>
+            <InputLabel id="store-select-label">Select Seller / Store *</InputLabel>
+            <Select
+              labelId="store-select-label"
+              id="store-select"
+              value={formData.storeSlug}
+              label="Select Seller / Store *"
+              onChange={(e) => setFormData({ ...formData, storeSlug: e.target.value })}
+              required
+              disabled={loadingStores}
+              endAdornment={
+                loadingStores ? (
+                  <CircularProgress size={20} sx={{ mr: 2 }} />
+                ) : null
+              }
+            >
+              <MenuItem value="" disabled>
+                <em>-- Choose Seller / Store * --</em>
+              </MenuItem>
+              {stores.map((s) => (
+                <MenuItem key={`${s.tenantId}-${s.id}`} value={s.slug || s.tenantSlug}>
+                  {s.displayName || s.tenantName || s.name}
+                </MenuItem>
+              ))}
+            </Select>
+            <FormHelperText>
+              Compulsory: Select which seller store your account will belong to.
+            </FormHelperText>
+          </FormControl>
 
           <TextField
             label="Email Address"
@@ -111,14 +213,27 @@ export const CustomerRegisterPage: React.FC = () => {
             required
           />
 
-          <Button type="submit" variant="contained" color="success" fullWidth size="large" sx={{ py: 1.5, fontWeight: 800, borderRadius: 2, mb: 2 }}>
-            Create Account
+          <Button
+            type="submit"
+            variant="contained"
+            color="success"
+            fullWidth
+            size="large"
+            disabled={loading}
+            sx={{ py: 1.5, fontWeight: 800, borderRadius: 2, mb: 2 }}
+          >
+            {loading ? <CircularProgress size={24} color="inherit" /> : 'Create Account'}
           </Button>
         </form>
 
         <Typography variant="body2" color="text.secondary">
           Already have an account?{' '}
-          <Typography component={Link} to={loginLink} variant="body2" sx={{ fontWeight: 700, color: '#2563EB', textDecoration: 'none' }}>
+          <Typography
+            component={Link}
+            to={loginLink}
+            variant="body2"
+            sx={{ fontWeight: 700, color: '#2563EB', textDecoration: 'none' }}
+          >
             Sign In
           </Typography>
         </Typography>

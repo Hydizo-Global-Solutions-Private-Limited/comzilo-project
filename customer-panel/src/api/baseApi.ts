@@ -16,9 +16,19 @@ const rawBaseQuery = fetchBaseQuery({
       headers.set('authorization', `Bearer ${token}`);
     }
     const match = window.location.pathname.match(/\/store\/([^/]+)/);
-    const activeStoreSlug = match ? match[1] : localStorage.getItem('comzilo_active_store_slug');
+    let activeStoreSlug = match ? match[1] : null;
+    if (!activeStoreSlug) {
+      try {
+        const userData = JSON.parse(localStorage.getItem('customer_user_data') || '{}');
+        if (userData?.tenantId && Number(userData.tenantId) > 1 && userData.storeSlug) {
+          activeStoreSlug = userData.storeSlug;
+        }
+      } catch {}
+    }
     if (activeStoreSlug) {
       headers.set('x-store-slug', activeStoreSlug);
+    } else {
+      headers.delete('x-store-slug');
     }
     return headers;
   },

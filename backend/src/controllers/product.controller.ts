@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+import jwt from 'jsonwebtoken';
 import { ProductService } from '../services/product.service';
 import { createAuditLog } from '../utils/auditHelper';
 import { RESPONSE_MESSAGES } from '../shared/constants';
@@ -152,46 +153,112 @@ export class ProductController {
     try {
       const queryTenantId = req.query.tenant_id ? Number(req.query.tenant_id) : undefined;
       const queryStoreId = req.query.store_id ? Number(req.query.store_id) : undefined;
-      const queryStoreSlug = req.query.store || req.query.tenant;
+      const queryStoreSlug = (req.query.store || req.query.tenant || req.headers['x-store-slug'] || req.headers['x-tenant-slug']) as string | undefined;
 
-      let tenantId: number | null = queryTenantId || req.context?.tenantId || null;
-      let storeId = queryStoreId;
+      let tenantId: number | null = queryTenantId || (req.context?.tenantId && req.context.tenantId !== 1 ? req.context.tenantId : null);
+      let storeId: number | null = queryStoreId || req.context?.storeId || null;
 
-      // If store slug is provided, resolve tenant & store from MySQL
-      if (queryStoreSlug && typeof queryStoreSlug === 'string') {
+      // 1. If store slug or store name is provided, resolve from stores/tenants
+      if (queryStoreSlug && typeof queryStoreSlug === 'string' && (!tenantId || !storeId)) {
+        const rawInput = queryStoreSlug.trim();
+        const slugified = rawInput.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+        const alphanumeric = rawInput.toLowerCase().replace(/[^a-z0-9]/g, '');
+
         const [storeRes]: any = await sequelize.query(
-          'SELECT id, tenant_id FROM stores WHERE (slug = :slug OR name LIKE :nameLike) AND status = "active" LIMIT 1',
+          `SELECT id, tenant_id, slug FROM stores 
+           WHERE status = 'active' AND (
+             slug = :rawInput OR slug = :slugified OR LOWER(name) = LOWER(:rawInput) OR LOWER(name) = :slugified OR
+             slug LIKE :likeAlpha OR LOWER(name) LIKE :likeAlpha
+           ) LIMIT 1`,
           {
-            replacements: { slug: queryStoreSlug, nameLike: `%${queryStoreSlug}%` },
+            replacements: { rawInput, slugified, likeAlpha: `%${alphanumeric}%` },
             type: QueryTypes.SELECT,
           }
         );
         if (storeRes) {
           tenantId = Number(storeRes.tenant_id);
           storeId = Number(storeRes.id);
+        } else {
+          const [tRes]: any = await sequelize.query(
+            `SELECT id FROM tenants 
+             WHERE status = 'active' AND (
+               slug = :rawInput OR slug = :slugified OR LOWER(name) = LOWER(:rawInput) OR LOWER(name) = :slugified OR
+               slug LIKE :likeAlpha OR LOWER(name) LIKE :likeAlpha
+             ) LIMIT 1`,
+            {
+              replacements: { rawInput, slugified, likeAlpha: `%${alphanumeric}%` },
+              type: QueryTypes.SELECT,
+            }
+          );
+          if (tRes) {
+            tenantId = Number(tRes.id);
+            const [tStore]: any = await sequelize.query(
+              'SELECT id FROM stores WHERE tenant_id = :tId AND status = "active" ORDER BY id ASC LIMIT 1',
+              { replacements: { tId: tenantId }, type: QueryTypes.SELECT }
+            );
+            if (tStore) storeId = Number(tStore.id);
+          }
         }
       }
 
-      // If authenticated seller request without explicit store query, resolve seller storeId
-      if (!storeId && req.headers.authorization && req.context?.tenantId) {
+      // 2. If authenticated customer/seller without explicit store, resolve customer's registered store/tenant
+      if ((!tenantId || tenantId === 1) && !queryStoreSlug && req.headers.authorization?.startsWith('Bearer ')) {
         try {
-          storeId = await this.getStoreId(req);
-          tenantId = req.context.tenantId;
+          const token = req.headers.authorization.split(' ')[1];
+          const decoded: any = jwt.decode(token);
+          if (decoded && (decoded.userId || decoded.id)) {
+            const uId = decoded.userId || decoded.id;
+            const [userRow]: any = await sequelize.query(
+              'SELECT tenant_id FROM users WHERE id = :uId LIMIT 1',
+              { replacements: { uId }, type: QueryTypes.SELECT }
+            );
+            const userTenantId = userRow && userRow.tenant_id ? Number(userRow.tenant_id) : 1;
+
+            if (userTenantId > 1) {
+              const [cust]: any = await sequelize.query(
+                `SELECT tenant_id, store_id FROM customers 
+                 WHERE (user_id = :uId OR email = :email) AND tenant_id = :userTenantId AND deleted_at IS NULL
+                 ORDER BY id DESC LIMIT 1`,
+                { replacements: { uId, email: decoded.email || '', userTenantId }, type: QueryTypes.SELECT }
+              );
+              if (cust && cust.tenant_id && Number(cust.tenant_id) > 1) {
+                tenantId = Number(cust.tenant_id);
+                storeId = cust.store_id ? Number(cust.store_id) : storeId;
+              }
+            } else {
+              // Customer is registered on main marketplace (tenant 1): do not scope to any single seller
+              tenantId = null;
+              storeId = null;
+            }
+          }
         } catch {
           // fallback
         }
       }
 
-      // Public customer storefront queries without explicit store filters should query across all stores
-      const isExplicitStoreQuery = Boolean(queryTenantId || queryStoreId || queryStoreSlug);
-      const isMarketplaceRequest = req.query.marketplace === 'true' || !isExplicitStoreQuery;
+      // If authenticated seller request without explicit store query, resolve seller storeId
+      if (!storeId && req.headers.authorization && tenantId && tenantId > 1) {
+        try {
+          storeId = await this.getStoreId(req);
+        } catch {
+          // fallback
+        }
+      }
+
+      // If customer or visitor is scoped to a specific seller tenant (> 1), restrict products strictly to that seller!
+      const isSellerScoped = Boolean(tenantId && tenantId > 1);
+      const isMarketplaceRequest = !isSellerScoped || req.query.marketplace === 'true';
 
       const filters: any = {
         ...req.query,
         allStores: isMarketplaceRequest,
       };
 
-      const products = await this.productService.listProducts(tenantId, storeId || 1, filters);
+      const products = await this.productService.listProducts(
+        isSellerScoped ? tenantId : null,
+        isSellerScoped ? (storeId || 1) : 1,
+        filters
+      );
 
       success(res, RESPONSE_MESSAGES.SUCCESS, products.rows, {
         total: products.count,
