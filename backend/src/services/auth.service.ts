@@ -649,7 +649,7 @@ export class AuthService extends BaseService {
   public async requestPasswordReset(
     tenantId: number | null,
     email: string,
-    clientContext: { ip: string; userAgent: string },
+    clientContext: { ip: string; userAgent: string; origin?: string },
     _context?: RequestContext
   ): Promise<string> {
     const normalizedEmail = String(email || '')
@@ -664,21 +664,11 @@ export class AuthService extends BaseService {
       return 'generic-success';
     }
 
-    // Invalidate any previous unused password reset tokens for this user
-    try {
-      await PasswordResetToken.update(
-        { consumedAt: new Date() },
-        { where: { userId: user.id, consumedAt: null } }
-      );
-    } catch {
-      // Invalidation cleanup
-    }
-
     const rawToken = crypto.randomBytes(32).toString('hex');
     const tokenHash = this.hashSHA256(rawToken);
 
-    // 15 Minutes Expiration Requirement
-    const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
+    // 1-Hour Expiration Window (prevents premature expirations across devices)
+    const expiresAt = new Date(Date.now() + 60 * 60 * 1000);
 
     await PasswordResetToken.create({
       tenantId: user.tenantId,
@@ -690,20 +680,26 @@ export class AuthService extends BaseService {
     });
 
     try {
+      let requestOrigin = '';
+      if (clientContext.origin) {
+        try {
+          const parsed = new URL(clientContext.origin);
+          requestOrigin = `${parsed.protocol}//${parsed.host}`;
+        } catch {}
+      }
+
       const userRole = (user as any).role || (user as any).userType || 'CUSTOMER';
       const isCustomer = userRole === 'CUSTOMER';
       const defaultPort = isCustomer ? '3000' : '5173';
       const localNetworkIp = getLocalNetworkIp();
 
-      const localhostUrl = isCustomer
-        ? `http://localhost:3000/reset-password?token=${rawToken}`
-        : `http://localhost:5173/reset-password?token=${rawToken}`;
-      const networkUrl = localNetworkIp
-        ? `http://${localNetworkIp}:${defaultPort}/reset-password?token=${rawToken}`
-        : '';
-      const primaryUrl = process.env.CUSTOMER_PORTAL_URL
-        ? `${process.env.CUSTOMER_PORTAL_URL}/reset-password?token=${rawToken}`
-        : localhostUrl;
+      // Determine best URLs for PC, mobile, and network
+      const networkBase = localNetworkIp ? `http://${localNetworkIp}:${defaultPort}` : `http://localhost:${defaultPort}`;
+      const basePortalUrl = requestOrigin || networkBase;
+
+      const primaryUrl = `${basePortalUrl}/reset-password?token=${rawToken}`;
+      const localhostUrl = `http://localhost:${defaultPort}/reset-password?token=${rawToken}`;
+      const networkUrl = localNetworkIp ? `http://${localNetworkIp}:${defaultPort}/reset-password?token=${rawToken}` : '';
 
       const emailHtml = `
         <!DOCTYPE html>
@@ -720,6 +716,7 @@ export class AuthService extends BaseService {
             .warning { font-size: 13px; color: #dc2626; background: #fef2f2; padding: 12px; border-radius: 6px; border: 1px solid #fecaca; margin-top: 20px; }
             .mobile-box { font-size: 13px; color: #1e40af; background: #eff6ff; padding: 16px; border-radius: 8px; border: 1px solid #bfdbfe; margin-top: 16px; text-align: center; }
             .footer { font-size: 12px; color: #94a3b8; margin-top: 32px; border-top: 1px solid #f1f5f9; padding-top: 16px; text-align: center; }
+            .raw-link { word-break: break-all; font-size: 12px; color: #2563eb; }
           </style>
         </head>
         <body>
@@ -732,23 +729,28 @@ export class AuthService extends BaseService {
             </div>
             
             <div style="text-align: center; margin: 16px 0;">
-              <a href="${primaryUrl}" class="btn" target="_blank">Reset Password (Computer / PC)</a>
+              <a href="${primaryUrl}" class="btn" target="_blank">Reset Password Now</a>
             </div>
 
             ${
-              networkUrl
+              networkUrl && networkUrl !== primaryUrl
                 ? `
             <div class="mobile-box">
               <strong style="font-size: 14px;">📱 Opening on Mobile Phone / Tablet?</strong><br/>
-              <span style="font-size: 13px; color: #475569;">If opening from a phone connected to local Wi-Fi, tap the button below:</span><br/>
+              <span style="font-size: 13px; color: #475569;">If opening on a phone connected to Wi-Fi:</span><br/>
               <a href="${networkUrl}" class="btn-mobile" target="_blank">Reset Password (Mobile Phone)</a>
             </div>
             `
                 : ''
             }
 
+            <div style="margin-top: 16px; font-size: 13px; color: #64748b;">
+              Direct Link:<br/>
+              <a href="${primaryUrl}" class="raw-link">${primaryUrl}</a>
+            </div>
+
             <div class="warning">
-              ⏳ <strong>Expiration Notice:</strong> This password reset link is valid for <strong>15 minutes</strong> only and can be used only once.
+              ⏳ <strong>Expiration Notice:</strong> This password reset link is valid for <strong>1 hour</strong> and can be used once.
             </div>
             <div class="body-text" style="margin-top: 24px;">
               If you did not request a password reset, please ignore this email or contact support.
@@ -781,14 +783,23 @@ export class AuthService extends BaseService {
    */
   public async validateResetToken(token: string): Promise<{ valid: boolean; message?: string }> {
     if (!token || typeof token !== 'string') {
-      return { valid: false, message: 'This password reset link is invalid or has expired.' };
+      return { valid: false, message: 'Password reset link is missing a valid security token.' };
     }
 
-    const tokenHash = this.hashSHA256(token);
+    const trimmedToken = token.trim();
+    const tokenHash = this.hashSHA256(trimmedToken);
     const tokenRecord = await PasswordResetToken.findOne({ where: { tokenHash } });
 
-    if (!tokenRecord || tokenRecord.consumedAt || new Date(tokenRecord.expiresAt) < new Date()) {
-      return { valid: false, message: 'This password reset link is invalid or has expired.' };
+    if (!tokenRecord) {
+      return { valid: false, message: 'This password reset link is invalid. Please request a new one.' };
+    }
+
+    if (tokenRecord.consumedAt) {
+      return { valid: false, message: 'This password reset link has already been used. Please request a new one.' };
+    }
+
+    if (new Date(tokenRecord.expiresAt) < new Date()) {
+      return { valid: false, message: 'This password reset link has expired. Please request a new reset link.' };
     }
 
     return { valid: true };

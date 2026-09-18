@@ -7,7 +7,12 @@ import toast from 'react-hot-toast';
 
 export const CustomerResetPasswordPage: React.FC = () => {
   const [searchParams] = useSearchParams();
-  const token = searchParams.get('token') || '';
+  const rawToken =
+    searchParams.get('token') ||
+    new URLSearchParams(window.location.search).get('token') ||
+    (window.location.href.includes('token=') ? window.location.href.split('token=')[1]?.split('&')[0]?.split('#')[0] : '') ||
+    '';
+  const token = rawToken.trim();
   const navigate = useNavigate();
 
   const [validating, setValidating] = useState(true);
@@ -23,7 +28,7 @@ export const CustomerResetPasswordPage: React.FC = () => {
     if (!token) {
       setValidating(false);
       setIsValidToken(false);
-      setInvalidMessage('This password reset link is invalid or has expired.');
+      setInvalidMessage('This password reset link is missing a valid security token. Please request a new link.');
       return;
     }
 
@@ -38,7 +43,14 @@ export const CustomerResetPasswordPage: React.FC = () => {
         }
       } catch (err: any) {
         setIsValidToken(false);
-        setInvalidMessage(err?.response?.data?.message || 'This password reset link is invalid or has expired.');
+        const serverMsg = err?.response?.data?.message;
+        if (serverMsg) {
+          setInvalidMessage(serverMsg);
+        } else if (err?.message?.includes('Network Error') || !err?.response) {
+          setInvalidMessage('Unable to reach server. Please ensure you are connected to the same Wi-Fi network.');
+        } else {
+          setInvalidMessage('This password reset link is invalid or has expired.');
+        }
       } finally {
         setValidating(false);
       }

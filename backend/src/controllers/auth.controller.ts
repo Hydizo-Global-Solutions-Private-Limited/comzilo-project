@@ -169,6 +169,7 @@ export class AuthController {
       const clientContext = {
         ip: req.context.ipAddress || req.ip || '',
         userAgent: (req.context.userAgent || req.headers['user-agent'] || '') as string,
+        origin: (req.headers.origin || req.headers.referer || req.context.origin || '') as string,
       };
 
       const token = await this.authService.requestPasswordReset(
