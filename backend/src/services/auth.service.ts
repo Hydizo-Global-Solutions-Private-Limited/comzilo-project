@@ -342,7 +342,18 @@ export class AuthService extends BaseService {
     if (!user && tenantId !== 1) {
       const globalUser = await this.userRepository.findByEmail(1, email);
       if (globalUser) {
-        user = globalUser;
+        // Allow fallback to Tenant 1 only for super_admin / platform administrator accounts
+        const isSuper =
+          globalUser.email === 'admin@comzilo.com' ||
+          globalUser.id === 1 ||
+          (await UserRole.count({
+            include: [{ model: Role, as: 'role', where: { code: 'super_admin' } }],
+            where: { userId: globalUser.id },
+          })) > 0;
+
+        if (isSuper) {
+          user = globalUser;
+        }
       }
     }
 

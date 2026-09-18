@@ -43,17 +43,9 @@ export class CustomerPortalController {
   private async getCustomerFromUser(tenantId: number, userId: number): Promise<Customer> {
     let customer = await Customer.findOne({
       where: { tenantId, userId },
+      order: [['id', 'DESC']],
       include: ['preference', 'addresses'],
     });
-
-    if (!customer) {
-      // Check if user has a customer record across stores
-      customer = await Customer.findOne({
-        where: { userId },
-        order: [['id', 'DESC']],
-        include: ['preference', 'addresses'],
-      });
-    }
 
     if (!customer) {
       const user = await User.findByPk(userId);
@@ -76,7 +68,7 @@ export class CustomerPortalController {
           firstName: user.firstName || 'Valued',
           lastName: user.lastName || 'Customer',
           fullName: `${user.firstName || 'Valued'} ${user.lastName || 'Customer'}`,
-          phone: (user as any).mobile || '+915221187774',
+          phone: (user as any).mobile || null,
           status: 'active',
         } as any);
       }
@@ -94,7 +86,10 @@ export class CustomerPortalController {
     email?: string
   ): Promise<number[]> {
     const customers = await Customer.findAll({
-      where: { [Op.or]: [{ userId }, ...(email ? [{ email }] : [])] },
+      where: {
+        tenantId,
+        [Op.or]: [{ userId }, ...(email ? [{ email }] : [])],
+      },
       attributes: ['id'],
     });
     const ids = customers.map((c) => c.id);
@@ -437,7 +432,11 @@ export class CustomerPortalController {
       const custIds = await this.getAllCustomerIdsForUser(tenantId, userId, customer.email);
       const orderId = Number(req.params.id);
 
-      const order: any = await Order.findByPk(orderId, {
+      const order: any = await Order.findOne({
+        where: {
+          id: orderId,
+          tenantId,
+        },
         include: [
           { model: Customer, as: 'customer' },
           { model: OrderItem, as: 'items' },
@@ -678,6 +677,7 @@ export class CustomerPortalController {
 
       let orders = await Order.findAll({
         where: {
+          tenantId,
           [Op.or]: [{ customerId: { [Op.in]: custIds } }, { createdBy: userId }],
         } as any,
         order: [['createdAt', 'DESC']],
@@ -708,15 +708,16 @@ export class CustomerPortalController {
 
       const orderIds = orders.map((o: any) => o.id);
 
-      const myInvoices: any[] = await Invoice.findAll({
+      const myInvoices: any[] = orderIds.length > 0 ? await Invoice.findAll({
         where: {
+          tenantId,
           orderId: { [Op.in]: orderIds },
           invoiceNumber: {
             [Op.notLike]: 'INV-SLR-%',
           },
         },
         order: [['createdAt', 'DESC']],
-      });
+      }) : [];
 
       // AUTO-GENERATE INVOICE RECORDS FOR ANY ORDERS MISSING AN INVOICE
       for (const order of orders) {
@@ -763,6 +764,7 @@ export class CustomerPortalController {
 
       let orders = await Order.findAll({
         where: {
+          tenantId,
           [Op.or]: [{ customerId: { [Op.in]: custIds } }, { createdBy: userId }],
         } as any,
         order: [['createdAt', 'DESC']],
@@ -788,12 +790,13 @@ export class CustomerPortalController {
 
       const orderIds = orders.map((o: any) => o.id);
 
-      const myPayments: any[] = await Payment.findAll({
+      const myPayments: any[] = orderIds.length > 0 ? await Payment.findAll({
         where: {
+          tenantId,
           orderId: { [Op.in]: orderIds },
         },
         order: [['createdAt', 'DESC']],
-      });
+      }) : [];
 
       // AUTO-GENERATE PAYMENT RECORDS FOR ANY ORDERS MISSING A PAYMENT TRANSACTION
       for (const order of orders) {

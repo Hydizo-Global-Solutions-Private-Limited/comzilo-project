@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   Box,
   Container,
@@ -28,7 +28,6 @@ import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { useGetProductsQuery } from '../../api/catalogApi';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { addToCart } from '../../store/cartSlice';
-import { updateUser } from '../../store/authSlice';
 import { toggleWishlist } from '../../store/wishlistSlice';
 import { SUPPORTED_COUNTRIES, formatPrice } from '../../utils/currencyService';
 import { getProductImage } from '../../utils/productImageService';
@@ -75,7 +74,7 @@ const PRODUCT_IMAGE_MAP: Record<string, string> = {
 };
 
 export const ProductListingPage: React.FC = () => {
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const initialSearch = searchParams.get('search') || '';
 
   const [search, setSearch] = useState(initialSearch);
@@ -83,23 +82,19 @@ export const ProductListingPage: React.FC = () => {
   const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
   const [minPrice, setMinPrice] = useState('');
   const [maxPrice, setMaxPrice] = useState('');
+  const defaultStoreSlug = import.meta.env.VITE_DEFAULT_STORE_SLUG || 'chowdary-store';
+  const selectedStore = searchParams.get('store') || localStorage.getItem('comzilo_active_store_slug') || defaultStoreSlug;
 
   const isPodFilterSelected = selectedTypes.includes('print_on_demand');
-  // Hide POD products by default. Only include POD products when explicitly selected.
   const typesQuery = selectedTypes.length > 0
     ? selectedTypes.join(',')
-    : 'physical,variable,virtual,downloadable';
+    : undefined;
 
-  const { user } = useAppSelector((state) => state.auth);
-  // Only scope customer products if the customer is specifically registered under a seller tenant (> 1)
-  const isSellerScopedCustomer = Boolean(user?.tenantId && Number(user.tenantId) > 1);
-  const activeCustomerStore = isSellerScopedCustomer ? user?.storeSlug : undefined;
-  const activeCustomerStoreId = isSellerScopedCustomer ? user?.storeId : undefined;
-  const activeCustomerTenantId = isSellerScopedCustomer ? Number(user?.tenantId) : undefined;
-
-  const tenantIdParam = searchParams.get('tenant_id') ? Number(searchParams.get('tenant_id')) : activeCustomerTenantId;
-  const storeIdParam = searchParams.get('store_id') ? Number(searchParams.get('store_id')) : activeCustomerStoreId;
-  const storeSlugParam = searchParams.get('store') || activeCustomerStore || undefined;
+  const tenantIdParam = searchParams.get('tenant_id') ? Number(searchParams.get('tenant_id')) : undefined;
+  const storeIdParam = searchParams.get('store_id') ? Number(searchParams.get('store_id')) : undefined;
+  const isMarketplace = selectedStore === 'all';
+  const storeSlugParam = isMarketplace ? undefined : (selectedStore || defaultStoreSlug);
+  const marketplaceParam = isMarketplace ? 'true' : undefined;
 
   const { data, isLoading } = useGetProductsQuery({
     limit: 100,
@@ -108,20 +103,14 @@ export const ProductListingPage: React.FC = () => {
     sortBy,
     minPrice: minPrice ? Number(minPrice) : undefined,
     maxPrice: maxPrice ? Number(maxPrice) : undefined,
-    tenant_id: tenantIdParam ? Number(tenantIdParam) : undefined,
-    store_id: storeIdParam ? Number(storeIdParam) : undefined,
-    store: storeSlugParam || undefined,
+    tenant_id: tenantIdParam,
+    store_id: storeIdParam,
+    store: storeSlugParam,
+    marketplace: marketplaceParam,
   });
   const dispatch = useAppDispatch();
   const { items: wishlistItems } = useAppSelector((state) => state.wishlist);
   const isWishlisted = (id: number | string) => wishlistItems.some((i: any) => String(i.id) === String(id));
-
-  React.useEffect(() => {
-    if (user?.email === 'maddipativikas130@gmail.com' && (user?.tenantId !== 1 || user?.storeSlug)) {
-      dispatch(updateUser({ tenantId: 1, storeId: null, storeSlug: null }));
-      localStorage.removeItem('comzilo_active_store_slug');
-    }
-  }, [user, dispatch]);
 
   const handleTypeToggle = (typeCode: string) => {
     if (selectedTypes.includes(typeCode)) {
@@ -260,7 +249,7 @@ export const ProductListingPage: React.FC = () => {
                   setMinPrice('');
                   setMaxPrice('');
                 }}
-                sx={{ mt: 1, fontWeight: 700 }}
+                sx={{ mt: 2.5, fontWeight: 700 }}
               >
                 Clear All Filters
               </Button>

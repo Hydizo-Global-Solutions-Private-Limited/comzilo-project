@@ -2,7 +2,7 @@ import { baseApi } from './baseApi';
 
 export const catalogApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
-    getProducts: builder.query<any, { page?: number; limit?: number; search?: string; categoryId?: number; types?: string; minPrice?: number; maxPrice?: number; tenant_id?: number; store_id?: number; store?: string; sortBy?: string; sort?: string }>({
+    getProducts: builder.query<any, { page?: number; limit?: number; search?: string; categoryId?: number; types?: string; minPrice?: number; maxPrice?: number; tenant_id?: number; store_id?: number; store?: string; sortBy?: string; sort?: string; marketplace?: boolean | string }>({
       query: (params) => ({
         url: '/products',
         params,

@@ -24,17 +24,25 @@ axiosInstance.interceptors.request.use(
       config.headers.Authorization = `Bearer ${token}`;
     }
 
-    // Extract storeSlug from URL path (e.g. /store/:storeSlug) or from logged-in seller customer
+    // Extract storeSlug from URL path, query params, localStorage, or default env
     const match = window.location.pathname.match(/\/store\/([^/]+)/);
-    let activeStoreSlug = match ? match[1] : null;
-    if (!activeStoreSlug) {
-      try {
-        const userData = JSON.parse(localStorage.getItem('customer_user_data') || '{}');
-        if (userData?.tenantId && Number(userData.tenantId) > 1 && userData.storeSlug) {
-          activeStoreSlug = userData.storeSlug;
-        }
-      } catch {}
+    const urlStore = new URLSearchParams(window.location.search).get('store');
+    const storedSlug = localStorage.getItem('comzilo_active_store_slug');
+    const defaultSlug = import.meta.env.VITE_DEFAULT_STORE_SLUG || 'chowdary-store';
+
+    let activeStoreSlug: string | null = null;
+    if (match && match[1]) {
+      activeStoreSlug = match[1];
+    } else if (urlStore) {
+      activeStoreSlug = urlStore;
+    } else if (storedSlug && storedSlug !== 'all') {
+      activeStoreSlug = storedSlug;
+    } else if (storedSlug === 'all') {
+      activeStoreSlug = null;
+    } else {
+      activeStoreSlug = defaultSlug;
     }
+
     if (activeStoreSlug) {
       config.headers['x-store-slug'] = activeStoreSlug;
     } else {

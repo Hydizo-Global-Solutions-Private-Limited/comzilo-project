@@ -9,14 +9,7 @@ interface AuthState {
 
 const initialToken = localStorage.getItem('customer_access_token');
 const initialUserRaw = localStorage.getItem('customer_user_data');
-let initialUser = initialUserRaw ? JSON.parse(initialUserRaw) : null;
-if (initialUser && initialUser.email === 'maddipativikas130@gmail.com') {
-  initialUser.tenantId = 1;
-  initialUser.storeId = null;
-  initialUser.storeSlug = null;
-  localStorage.setItem('customer_user_data', JSON.stringify(initialUser));
-  localStorage.removeItem('comzilo_active_store_slug');
-}
+const initialUser = initialUserRaw ? JSON.parse(initialUserRaw) : null;
 
 const initialState: AuthState = {
   user: initialUser,
@@ -40,11 +33,6 @@ const authSlice = createSlice({
 
       localStorage.setItem('customer_access_token', action.payload.accessToken);
       localStorage.setItem('customer_user_data', JSON.stringify(action.payload.user));
-      if (action.payload.user?.tenantId && Number(action.payload.user.tenantId) > 1 && action.payload.user?.storeSlug) {
-        localStorage.setItem('comzilo_active_store_slug', action.payload.user.storeSlug);
-      } else {
-        localStorage.removeItem('comzilo_active_store_slug');
-      }
     },
     updateUser: (state, action: PayloadAction<Partial<any>>) => {
       state.user = { ...(state.user || {}), ...action.payload };

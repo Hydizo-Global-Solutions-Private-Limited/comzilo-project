@@ -117,5 +117,10 @@ export const productValidation = {
     sort: Joi.string().allow('').optional(),
     sort_by: Joi.string().allow('').optional(),
     sortOrder: Joi.string().allow('').optional(),
+    tenant_id: Joi.number().integer().positive().optional(),
+    store_id: Joi.number().integer().positive().optional(),
+    store: Joi.string().allow('').optional(),
+    tenant: Joi.string().allow('').optional(),
+    marketplace: Joi.alternatives().try(Joi.boolean(), Joi.string().allow('')).optional(),
   }),
 };
